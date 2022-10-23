@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres_registration
+    image: 'postgres:alpine'
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./src/main/resources/db/create_database_voy.sql:/docker-entrypoint-initdb.d/create_database_voy.sql
