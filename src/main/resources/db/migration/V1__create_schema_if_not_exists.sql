@@ -1,1 +1,1 @@
-create schema if not exists voyregistration
+create schema if not exists registration
