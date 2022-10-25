@@ -14,11 +14,15 @@ import java.time.LocalDate;
 public class UserRequest {
 
     @NotBlank
-    @Size(max = 100)
+    @Size(min = 3, max= 30)
     private String name;
 
     @NotBlank
-    @Size(max = 14)
+    @Size(min = 3, max = 50)
+    private String surname;
+
+    @NotBlank
+    @Size(min = 11, max = 14)
     private String phone;
 
     @NotNull
@@ -42,7 +46,7 @@ public class UserRequest {
 
     @NotBlank
     @CPF
-    @Size(max = 11)
+//    @Size(min = 11, max = 11)
     private String cpf;
 
     @NotBlank
