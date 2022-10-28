@@ -4,6 +4,7 @@ package src.application.controller.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
+import src.domain.entity.User;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -11,10 +12,10 @@ import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Getter
-public class UserRequest {
+public class UserRequest extends AbstractRequest {
 
     @NotBlank
-    @Size(min = 3, max= 30)
+    @Size(min = 3, max = 30)
     private String name;
 
     @NotBlank
@@ -46,11 +47,29 @@ public class UserRequest {
 
     @NotBlank
     @CPF
-//    @Size(min = 11, max = 11)
     private String cpf;
 
     @NotBlank
     @Size(max = 30)
     private String occupation;
 
+    @Override
+    public User toDomain() {
+
+        return User
+                .builder()
+                .id(null)
+                .name(name)
+                .surname(surname)
+                .phone(phone)
+                .dateBirth(dateBirth)
+                .maritalStatus(maritalStatus)
+                .genre(genre)
+                .city(city)
+                .state(state)
+                .cpf(cpf)
+                .occupation(occupation)
+                .build();
+
+    }
 }

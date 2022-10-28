@@ -5,7 +5,7 @@ create table if not exists registration.user
     surname        varchar(50)                      not null,
     phone          varchar(14)                      not null,
     date_birth     timestamp                        not null,
-    merital_status registration.merital_status_enum not null,
+    marital_status registration.marital_status_enum not null,
     genre          varchar(14)                      not null,
     city           varchar(30)                      not null,
     state          varchar(2)                       not null,
