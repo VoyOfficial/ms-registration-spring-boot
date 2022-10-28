@@ -1,1 +1,1 @@
-create type registration.merital_status_enum as enum ('SINGLE', 'MARRIED', 'DIVORCED', 'SEPARATED', 'WIDOWED')
+create type registration.marital_status_enum as enum ('SINGLE', 'MARRIED', 'DIVORCED', 'SEPARATED', 'WIDOWED')
