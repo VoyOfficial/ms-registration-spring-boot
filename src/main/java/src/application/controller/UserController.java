@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import src.application.controller.request.UserRequest;
 import src.domain.service.UserRegistryService;
+import src.domain.usecase.UserRegistryUseCase;
 
 import javax.validation.Valid;
 
@@ -19,9 +20,8 @@ import javax.validation.Valid;
 public class UserController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
-    private UserRegistryService service;
+    private UserRegistryUseCase service;
 
     @PostMapping
     public ResponseEntity<Void> registry(
