@@ -31,7 +31,6 @@ class UserControllerTest {
     public static final String PHONE = "5595980451966";
     public static final LocalDate DATE_BIRTH = LocalDate.of(1982, 2, 6);
     public static final String MARITAL_STATUS = "MARRIED";
-    public static final String GENRE = "analisar";
     public static final String CITY = "Lafayette";
     public static final String STATE = "IN";
     public static final String CPF = "68799786060";
@@ -77,7 +76,6 @@ class UserControllerTest {
                 .phone(PHONE)
                 .dateBirth(DATE_BIRTH)
                 .maritalStatus(MARITAL_STATUS)
-                .genre(GENRE)
                 .city(CITY)
                 .state(STATE)
                 .cpf(CPF)
@@ -96,7 +94,6 @@ class UserControllerTest {
                 .phone(PHONE)
                 .dateBirth(DATE_BIRTH)
                 .maritalStatus(MARITAL_STATUS)
-                .genre(GENRE)
                 .city(CITY)
                 .state(STATE)
                 .cpf(CPF)

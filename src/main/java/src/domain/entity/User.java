@@ -2,6 +2,8 @@ package src.domain.entity;
 
 import lombok.Builder;
 import lombok.Getter;
+import src.infrastructure.model.enums.MaritalStatusEnum;
+import src.infrastructure.model.enums.SexEnum;
 
 import java.time.LocalDate;
 
@@ -14,8 +16,8 @@ public class User {
     private String surname;
     private String phone;
     private LocalDate dateBirth;
-    private String maritalStatus;
-    private String genre;
+    private MaritalStatusEnum maritalStatus;
+    private SexEnum sex;
     private String city;
     private String state;
     private String cpf;
