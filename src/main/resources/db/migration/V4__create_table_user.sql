@@ -9,7 +9,7 @@ create table if not exists registration.user
     marital_status registration.marital_status_enum not null,
     city           varchar(30)                      not null,
     state          varchar(2)                       not null,
-    cpf            varchar(11)                      not null,
+    cpf            varchar(11) unique               not null,
     occupation     varchar(30)                      not null,
 
     primary key (id)
