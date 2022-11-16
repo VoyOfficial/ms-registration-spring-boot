@@ -37,11 +37,11 @@ public class UserRequest extends AbstractRequest {
     private LocalDate dateBirth;
 
     @NotBlank
-//    @ValueOfEnum(enumClass = MaritalStatusEnum.class)
+    @ValueOfEnum(enumClass = MaritalStatusEnum.class)
     private String maritalStatus;
 
     @NotEmpty
-//    @ValueOfEnum(enumClass = SexEnum.class)
+    @ValueOfEnum(enumClass = SexEnum.class)
     private String sex;
 
     @NotBlank
