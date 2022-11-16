@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import src.domain.entity.User;
+import src.infrastructure.model.enums.MaritalStatusEnum;
+import src.infrastructure.model.enums.SexEnum;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @TypeDef(name = "marital_status_enum", typeClass = PostgreSQLEnumType.class)
+@TypeDef(name = "sex_enum", typeClass = PostgreSQLEnumType.class)
 public class UserModel extends AbstractModel {
 
     @Id
@@ -28,7 +31,10 @@ public class UserModel extends AbstractModel {
     private String phone;
     private LocalDate dateBirth;
 
-    private String genre;
+    @Enumerated(EnumType.STRING)
+    @Type(type = "sex_enum")
+    @Column(name = "sex", nullable = false)
+    private SexEnum sex;
     @Enumerated(EnumType.STRING)
     @Type(type = "marital_status_enum")
     @Column(name = "marital_status", nullable = false)
@@ -45,8 +51,8 @@ public class UserModel extends AbstractModel {
         this.surname = userDomain.getSurname();
         this.phone = userDomain.getPhone();
         this.dateBirth = userDomain.getDateBirth();
-        this.maritalStatus = MaritalStatusEnum.valueOf(userDomain.getMaritalStatus());
-        this.genre = userDomain.getGenre();
+        this.sex = userDomain.getSex();
+        this.maritalStatus = userDomain.getMaritalStatus();
         this.city = userDomain.getCity();
         this.state = userDomain.getState();
         this.cpf = userDomain.getCpf();
@@ -57,7 +63,20 @@ public class UserModel extends AbstractModel {
     @Override
     public User toDomain() {
 
-        return User.builder().id(id).name(name).surname(surname).phone(phone).dateBirth(dateBirth).maritalStatus(maritalStatus.name()).genre(genre).city(city).state(state).cpf(cpf).occupation(occupation).build();
+        return User
+                .builder()
+                .id(id)
+                .name(name)
+                .surname(surname)
+                .phone(phone)
+                .dateBirth(dateBirth)
+                .sex(sex)
+                .maritalStatus(maritalStatus)
+                .city(city)
+                .state(state)
+                .cpf(cpf)
+                .occupation(occupation)
+                .build();
 
     }
 }

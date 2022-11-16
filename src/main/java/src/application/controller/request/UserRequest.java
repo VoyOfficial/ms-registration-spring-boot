@@ -5,9 +5,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
+import src.application.validation.valueOfEnum.ValueOfEnum;
+import src.infrastructure.model.enums.MaritalStatusEnum;
+import src.infrastructure.model.enums.SexEnum;
 import src.domain.entity.User;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
@@ -33,11 +37,12 @@ public class UserRequest extends AbstractRequest {
     private LocalDate dateBirth;
 
     @NotBlank
-    @Size(max = 9)
+//    @ValueOfEnum(enumClass = MaritalStatusEnum.class)
     private String maritalStatus;
 
-    @NotBlank
-    private String genre;
+    @NotEmpty
+//    @ValueOfEnum(enumClass = SexEnum.class)
+    private String sex;
 
     @NotBlank
     @Size(max = 30)
@@ -65,8 +70,8 @@ public class UserRequest extends AbstractRequest {
                 .surname(surname)
                 .phone(phone)
                 .dateBirth(dateBirth)
-                .maritalStatus(maritalStatus)
-                .genre(genre)
+                .maritalStatus(MaritalStatusEnum.valueOf(maritalStatus.toUpperCase()))
+                .sex(SexEnum.valueOf(sex.toUpperCase()))
                 .city(city)
                 .state(state)
                 .cpf(cpf)

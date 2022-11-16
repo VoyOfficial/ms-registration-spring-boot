@@ -1,6 +1,4 @@
-package src.infrastructure.model;
-
-import javax.persistence.Entity;
+package src.infrastructure.model.enums;
 
 public enum MaritalStatusEnum {
 
