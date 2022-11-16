@@ -17,7 +17,7 @@ public @interface UniqueValue {
 
     String field();
 
-    String message() default "must be any of enum {enumClass}";
+    String message() default "{custom_annotation.unique_value.message.default}";
 
     Class<?>[] groups() default {};
 

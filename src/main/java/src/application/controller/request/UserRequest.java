@@ -39,11 +39,11 @@ public class UserRequest extends AbstractRequest {
     private LocalDate dateBirth;
 
     @NotBlank
-    @ValueOfEnum(enumClass = MaritalStatusEnum.class)
+    @ValueOfEnum(enumClass = MaritalStatusEnum.class, message = "{user_marital_status.message.invalid}")
     private String maritalStatus;
 
     @NotEmpty
-    @ValueOfEnum(enumClass = SexEnum.class)
+    @ValueOfEnum(enumClass = SexEnum.class, message ="{user_sex.message.invalid}")
     private String sex;
 
     @NotBlank
@@ -56,7 +56,7 @@ public class UserRequest extends AbstractRequest {
 
     @CPF
     @NotBlank
-    @UniqueValue(modelClass = UserModel.class, field = "cpf", message = "exists")
+    @UniqueValue(modelClass = UserModel.class, field = "cpf", message = "{user_cpf.field.message.already.exists}")
     private String cpf;
 
     @NotBlank
