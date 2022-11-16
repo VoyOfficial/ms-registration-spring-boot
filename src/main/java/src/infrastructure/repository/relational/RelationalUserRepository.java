@@ -25,7 +25,7 @@ public class RelationalUserRepository implements UserRepository {
 
         var userModel = new UserModel(userDomain);
 
-//        userModel = jpaRepository.save(userModel);
+        userModel = jpaRepository.save(userModel);
 
         logger.info("RELATIONAL USER REPOSITORY - SAVE USER - User ID: {}", userModel.getId());
 

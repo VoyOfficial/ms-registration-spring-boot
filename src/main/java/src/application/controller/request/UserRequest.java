@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
+import src.application.validation.uniqueValue.UniqueValue;
 import src.application.validation.valueOfEnum.ValueOfEnum;
+import src.infrastructure.model.UserModel;
 import src.infrastructure.model.enums.MaritalStatusEnum;
 import src.infrastructure.model.enums.SexEnum;
 import src.domain.entity.User;
@@ -52,8 +54,9 @@ public class UserRequest extends AbstractRequest {
     @Size(max = 2)
     private String state;
 
-    @NotBlank
     @CPF
+    @NotBlank
+    @UniqueValue(modelClass = UserModel.class, field = "cpf", message = "exists")
     private String cpf;
 
     @NotBlank
