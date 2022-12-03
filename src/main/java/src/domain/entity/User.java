@@ -1,6 +1,7 @@
 package src.domain.entity;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import src.infrastructure.model.enums.MaritalStatusEnum;
 import src.infrastructure.model.enums.SexEnum;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
+@EqualsAndHashCode
 public class User {
 
     private Long id;

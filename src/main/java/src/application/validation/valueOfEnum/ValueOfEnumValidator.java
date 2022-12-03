@@ -23,7 +23,7 @@ public class ValueOfEnumValidator implements ConstraintValidator<ValueOfEnum, St
     public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
 
         if (value == null) {
-            return true;
+            return false;
         }
 
         return acceptedValues.contains(value.toUpperCase());
