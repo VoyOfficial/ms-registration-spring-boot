@@ -1,10 +1,7 @@
 package src.infrastructure.model;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import src.domain.entity.User;
@@ -17,6 +14,7 @@ import java.time.LocalDate;
 @Entity(name = "user")
 @Getter
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
 @TypeDef(name = "marital_status_enum", typeClass = PostgreSQLEnumType.class)
@@ -46,7 +44,7 @@ public class UserModel extends AbstractModel {
 
     public UserModel(User userDomain) {
 
-        this.id = null;
+        this.id = userDomain.getId();
         this.name = userDomain.getName();
         this.surname = userDomain.getSurname();
         this.phone = userDomain.getPhone();
