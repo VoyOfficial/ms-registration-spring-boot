@@ -9,6 +9,8 @@ import src.domain.repository.UserRepository;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
 
+import java.util.Optional;
+
 
 @Repository
 public class RelationalUserRepository implements UserRepository {
@@ -31,5 +33,28 @@ public class RelationalUserRepository implements UserRepository {
 
         return userModel.toDomain();
     }
+
+
+    @Override
+    public Optional<User> findByCpf(String cpf) {
+        logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - CPF: {}", cpf);
+
+        var optionalUserModel = jpaRepository.findByCpf(cpf);
+
+        if (optionalUserModel.isPresent()) {
+            var userModel = optionalUserModel.get();
+
+            logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - USER ID: {}", userModel.getId());
+
+            return Optional.of(userModel.toDomain());
+
+        }
+
+        logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - USER NOT FOUND BY CPF : {}", cpf);
+
+        return Optional.empty();
+
+    }
+
 
 }

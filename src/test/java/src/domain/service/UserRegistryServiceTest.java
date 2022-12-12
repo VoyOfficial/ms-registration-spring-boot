@@ -12,8 +12,7 @@ import src.domain.entity.User;
 import src.domain.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserRegistryServiceTest {
@@ -32,7 +31,7 @@ class UserRegistryServiceTest {
         var expectedUserId = 1L;
         var userDomain = UserDatas.makeAnUserDomain(1L);
 
-        Mockito.when(repository.saveUser(userDomain)).thenReturn(userDomain);
+        when(repository.saveUser(userDomain)).thenReturn(userDomain);
 
         // action
         var userId = service.registry(userDomain);

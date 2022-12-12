@@ -5,12 +5,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
-import src.application.validation.uniqueValue.UniqueValue;
+import src.application.validation.cpfAlreadyExist.CpfAlreadyExist;
 import src.application.validation.valueOfEnum.ValueOfEnum;
-import src.infrastructure.model.UserModel;
+import src.domain.entity.User;
 import src.infrastructure.model.enums.MaritalStatusEnum;
 import src.infrastructure.model.enums.SexEnum;
-import src.domain.entity.User;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -43,7 +42,7 @@ public class UserRequest extends AbstractRequest {
     private String maritalStatus;
 
     @NotEmpty
-    @ValueOfEnum(enumClass = SexEnum.class, message ="{user_sex.message.invalid}")
+    @ValueOfEnum(enumClass = SexEnum.class, message = "{user_sex.message.invalid}")
     private String sex;
 
     @NotBlank
@@ -56,7 +55,7 @@ public class UserRequest extends AbstractRequest {
 
     @CPF
     @NotBlank
-    @UniqueValue(modelClass = UserModel.class, field = "cpf", message = "{user_cpf.field.message.already.exists}")
+    @CpfAlreadyExist(message = "{user_cpf.field.message.already.exists}")
     private String cpf;
 
     @NotBlank

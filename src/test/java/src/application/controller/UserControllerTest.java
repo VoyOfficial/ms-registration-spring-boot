@@ -10,7 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import src.application.controller.request.UserRequest;
-import src.application.validation.uniqueValue.UniqueValueValidator;
 import src.domain.entity.User;
 import src.domain.service.UserRegistryService;
 import src.infrastructure.model.enums.MaritalStatusEnum;
@@ -47,8 +46,8 @@ class UserControllerTest {
     @MockBean
     EntityManager entityManager;
 
-    @MockBean
-    UniqueValueValidator validator;
+//    @MockBean
+//    UniqueValueValidator validator;
 
     @MockBean
     UserRegistryService registryService;
