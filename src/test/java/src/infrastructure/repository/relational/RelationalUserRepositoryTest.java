@@ -12,6 +12,7 @@ import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,10 +29,14 @@ class RelationalUserRepositoryTest {
     void mustToSaveAnUser() {
 
         // cenary
-        var userDomain = UserDatas.makeAnUserDomain();
+        var expectedUserId = UserDatas.ID;
+        var userDomain = UserDatas.makeAnUserDomain(expectedUserId);
+
         var userModel = new UserModel(userDomain);
 
-        when(jpaRepository.save(userModel)).thenReturn(userModel);
+        var expectedUserModel = UserDatas.makeAnUserModel(expectedUserId);
+
+        when(jpaRepository.save(userModel)).thenReturn(expectedUserModel);
 
         // action
         var savedUser = relationalRepository.saveUser(userDomain);
@@ -39,7 +44,7 @@ class RelationalUserRepositoryTest {
         // validation
         assertEquals(userDomain, savedUser);
 
-        verify(jpaRepository, times(1)).save(Mockito.any(UserModel.class));
+        verify(jpaRepository, times(1)).save(any(UserModel.class));
 
     }
 

@@ -1,4 +1,4 @@
-package src.application.validation.cpfAlreadyExist;
+package src.application.validation.cpfAlreadyExists;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

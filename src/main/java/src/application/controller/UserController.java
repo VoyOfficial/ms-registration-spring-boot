@@ -38,7 +38,7 @@ public class UserController {
                 .buildAndExpand(userId)
                 .toUri();
 
-        logger.info("USER CONTROLLER - REGISTRY - User: {}", request.getName());
+        logger.info("USER CONTROLLER - REGISTERED USER - User: {}", userId);
 
         return ResponseEntity.created(uri).build();
 
