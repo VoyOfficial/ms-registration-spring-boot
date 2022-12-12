@@ -1,4 +1,4 @@
-package src.application.validation.cpfAlreadyExist;
+package src.application.validation.cpfAlreadyExists;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

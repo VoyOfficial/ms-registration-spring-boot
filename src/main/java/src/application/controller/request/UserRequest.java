@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
-import src.application.validation.cpfAlreadyExist.CpfAlreadyExist;
+import src.application.validation.cpfAlreadyExists.CpfAlreadyExist;
 import src.application.validation.valueOfEnum.ValueOfEnum;
 import src.domain.entity.User;
 import src.infrastructure.model.enums.MaritalStatusEnum;
