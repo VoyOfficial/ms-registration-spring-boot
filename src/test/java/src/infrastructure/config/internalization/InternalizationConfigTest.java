@@ -35,14 +35,14 @@ class InternalizationConfigTest {
     }
 
     @Test
-    @DisplayName("Must to get a Default Message of UniqueValue defined in message.properties")
-    void mustToGetDefaultMessageOfUniqueValueAnnotation() {
+    @DisplayName("Must to get a Default Message of CpfAlreadyExist defined in message.properties")
+    void mustToGetDefaultMessageOfCpfAlreadyExistAnnotation() {
 
         // cenary
         var expectedMessage = "The entered value already exists in the database, enter another one.";
 
         // action
-        var message = messageSource.getMessage("custom_annotation.unique_value.message.default", null, Locale.getDefault());
+        var message = messageSource.getMessage("custom_annotation.cpf.already.exists.default", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
