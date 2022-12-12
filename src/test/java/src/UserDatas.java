@@ -60,6 +60,14 @@ public class UserDatas {
 
     }
 
+    public static User makeAnInvalidUserDomain() {
+
+        return User
+                .builder()
+                .build();
+
+    }
+
     public static UserModel makeAnUserModel() {
 
         return UserModel
