@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = CpfAlreadyExistValidator.class)
 public @interface CpfAlreadyExist {
 
-    String message() default "{custom_annotation.cpf.already.exists.default}";
+    String message() default "{custom.annotation.cpf.already.exists.default.message}";
 
     Class<?>[] groups() default {};
 

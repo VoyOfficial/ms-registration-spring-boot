@@ -1,5 +1,6 @@
 package src.infrastructure.repository.relational;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import src.UserDatas;
 import src.domain.entity.User;
+import src.domain.exception.InvalidUserException;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
 
@@ -48,6 +50,24 @@ class RelationalUserRepositoryTest {
         assertEquals(userDomain, savedUser);
 
         verify(jpaRepository, times(1)).save(any(UserModel.class));
+
+    }
+
+    @Test
+    @DisplayName("Don't to save an User")
+    void dontShouldToSaveAnUser() {
+
+        // cenary
+        var invalidUser = UserDatas.makeAnInvalidUserDomain();
+
+        // action
+        var raisedException = Assertions.assertThrows(InvalidUserException.class,
+                () -> relationalRepository.saveUser(invalidUser)
+        );
+
+        // Validation
+        assertEquals(InvalidUserException.class, raisedException.getClass());
+        assertEquals("{invalid.user.default.message}", raisedException.getMessage());
 
     }
 
