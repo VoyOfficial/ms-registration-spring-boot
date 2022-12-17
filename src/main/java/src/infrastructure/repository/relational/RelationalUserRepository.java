@@ -11,7 +11,6 @@ import src.domain.repository.UserRepository;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -69,6 +68,7 @@ public class RelationalUserRepository implements UserRepository {
         if (isValid) {
             throw new InvalidUserException();
         }
+
     }
 
 }

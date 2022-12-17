@@ -57,7 +57,7 @@ class InternalizationConfigTest {
         var expectedMessage = "Invalid value, accepted values: SINGLE, MARRIED, DIVORCED, SEPARATED, WIDOWED .";
 
         // action
-        var message = messageSource.getMessage("user_marital_status.message.invalid", null, Locale.getDefault());
+        var message = messageSource.getMessage("user.marital.status.message.invalid", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
@@ -72,7 +72,7 @@ class InternalizationConfigTest {
         var expectedMessage = "Invalid value, accepted values: MALE, FEMALE, DO_NOT_INFORM .";
 
         // action
-        var message = messageSource.getMessage("user_sex.message.invalid", null, Locale.getDefault());
+        var message = messageSource.getMessage("user.sex.message.invalid", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
@@ -87,10 +87,26 @@ class InternalizationConfigTest {
         var expectedMessage = "The CPF entered already exists.";
 
         // action
-        var message = messageSource.getMessage("user_cpf.field.message.already.exists", null, Locale.getDefault());
+        var message = messageSource.getMessage("user.cpf.field.message.already.exists", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
 
     }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Invalid User Exception defined in message.properties")
+    void mustToGetCustomMessageInvalidUserException() {
+
+        // cenary
+        var expectedMessage = "Invalid User found, it cannot be are null.";
+
+        // action
+        var message = messageSource.getMessage("invalid.user.default.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
 }
