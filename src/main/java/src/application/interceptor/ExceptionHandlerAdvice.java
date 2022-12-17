@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import src.domain.exception.InvalidUserException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -56,5 +57,31 @@ public class ExceptionHandlerAdvice {
 
     }
 
+    @ExceptionHandler(InvalidUserException.class)
+    public ResponseEntity<?> handleInvalidUserExceptionError(
+            InvalidUserException exception,
+            HttpServletRequest request
+    ) {
+        logger.warn("Exception Handler - Invalid User Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Unexpected Error")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
 
 }

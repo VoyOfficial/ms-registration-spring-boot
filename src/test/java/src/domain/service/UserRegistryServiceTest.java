@@ -8,9 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import src.UserDatas;
 import src.domain.entity.User;
+import src.domain.exception.InvalidUserException;
 import src.domain.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,8 +26,8 @@ class UserRegistryServiceTest {
     UserRegistryService service;
 
     @Test
-    @DisplayName("Service - Must to Registry an User")
-    void mustToRegistryAnUser(){
+    @DisplayName("Must to Registry an User")
+    void mustToRegistryAnUser() {
 
         // cenary
         var expectedUserId = UserDatas.ID;
@@ -43,5 +45,25 @@ class UserRegistryServiceTest {
 
     }
 
+    @Test
+    @DisplayName("Don't should to Registry an User when this is Invalid")
+    void dontShouldRegistryAnUser() {
+
+        // cenary
+        var invalidUser = UserDatas.makeAnInvalidUserDomain();
+        var expectedMessage = "invalid.user.default.message";
+
+        // action
+
+        var raisedException = assertThrows(InvalidUserException.class,
+                () -> service.registry(invalidUser)
+        );
+
+
+        // validation
+        assertEquals(InvalidUserException.class, raisedException.getClass());
+        assertEquals(expectedMessage, raisedException.getMessage());
+
+    }
 
 }
