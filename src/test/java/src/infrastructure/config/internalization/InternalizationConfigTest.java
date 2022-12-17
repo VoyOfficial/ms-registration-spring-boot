@@ -27,7 +27,7 @@ class InternalizationConfigTest {
         var expectedMessage = "must be any of enum {enumClass}";
 
         // action
-        var message = messageSource.getMessage("custom_annotation.value_of_enum.message.default", null, Locale.getDefault());
+        var message = messageSource.getMessage("custom.annotation.value.of.enum.default.message", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
@@ -42,7 +42,7 @@ class InternalizationConfigTest {
         var expectedMessage = "The entered value already exists in the database, enter another one.";
 
         // action
-        var message = messageSource.getMessage("custom_annotation.cpf.already.exists.default", null, Locale.getDefault());
+        var message = messageSource.getMessage("custom.annotation.cpf.already.exists.default.message", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);

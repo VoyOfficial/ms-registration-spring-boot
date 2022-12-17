@@ -4,12 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import src.domain.entity.User;
+import src.domain.exception.InvalidUserException;
 import src.domain.repository.UserRepository;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
 
+import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.Objects.isNull;
 
 
 @Repository
@@ -21,7 +26,10 @@ public class RelationalUserRepository implements UserRepository {
     private UserJpaRepository jpaRepository;
 
     @Override
+    @Transactional
     public User saveUser(User userDomain) {
+
+        userIsValid(userDomain);
 
         logger.info("RELATIONAL USER REPOSITORY - SAVE USER - User: {}", userDomain.getName());
 
@@ -33,7 +41,6 @@ public class RelationalUserRepository implements UserRepository {
 
         return userModel.toDomain();
     }
-
 
     @Override
     public Optional<User> findByCpf(String cpf) {
@@ -56,5 +63,12 @@ public class RelationalUserRepository implements UserRepository {
 
     }
 
+    private void userIsValid(User userDomain) {
+        boolean isValid = isNull(userDomain) || isNull(userDomain.getName());
+
+        if (isValid) {
+            throw new InvalidUserException();
+        }
+    }
 
 }

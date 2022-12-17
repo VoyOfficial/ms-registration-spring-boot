@@ -18,7 +18,7 @@ public @interface ValueOfEnum {
 
     Class<? extends Enum<?>> enumClass();
 
-    String message() default "{custom_annotation.value_of_enum.message.default}";
+    String message() default "{custom.annotation.value.of.enum.default.message}";
 
     Class<?>[] groups() default {};
 
