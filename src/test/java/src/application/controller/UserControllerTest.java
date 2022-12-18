@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
-    private final String URL = "/users";
+    private final String URL = "/v1/users";
 
     @Autowired
     MockMvc mockMvc;
@@ -79,7 +79,7 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Validation"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Validation Error"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/users"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/v1/users"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.occupation").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.phone").value("must not be blank"))
