@@ -68,6 +68,17 @@ Com a aplicação sendo executada, você pode acessar a página do Swagger por m
 http://localhost:8080/api/registration/swagger-ui/index.html#/
 ```
 
+## 📝Spring Actuator
+Esse projeto conta com o Spring Actuator implementado, isso possibilita verificar informações dele durante sua execução,
+tais como saúde, env vars e muito mais.
+
+Essas informações podem ser acessadas por meio do seguinte endpoint:
+
+```
+http://localhost:2022/actuator/portal-admin
+```
+
+
 ## 🚀 Tecnologias 👩‍🚀
 
 As seguintes tecnologias foram utilizadas no desenvolvimento do projeto.
@@ -86,7 +97,7 @@ As seguintes tecnologias foram utilizadas no desenvolvimento do projeto.
 - Lombok
 - OpenAPI
 
-- [Spring Boot Admin 2.5.1](https://codecentric.github.io/spring-boot-admin/current/)
+- [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/)
 
 ## 👨🏻‍💻 Autor
 
