@@ -16,8 +16,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import src.application.controller.request.UserRequest;
 import src.application.controller.response.UserResponse;
 import src.application.interceptor.StandardError;
-import src.domain.entity.User;
-import src.domain.service.GetUserService;
 import src.domain.usecase.GetUserUseCase;
 import src.domain.usecase.UserRegistryUseCase;
 
@@ -75,7 +73,11 @@ public class UserController {
     })
     @ResponseStatus(OK)
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<UserResponse> getUserById(
+            @Schema(example = "1", type = "Long")
+            @PathVariable
+            Long userId
+    ) {
 
         logger.info("USER CONTROLLER - GET USER BY ID - UserID: {}", userId);
 
