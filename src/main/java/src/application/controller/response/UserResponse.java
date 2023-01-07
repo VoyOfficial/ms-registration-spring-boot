@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserResponse {
 
-    @Schema(example = "Id")
+    @Schema(example = "1")
     private Long id;
 
     @Schema(example = "Axel")
