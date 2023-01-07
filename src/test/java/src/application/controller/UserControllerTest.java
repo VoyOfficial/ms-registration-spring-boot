@@ -52,7 +52,7 @@ class UserControllerTest {
         var userID = UserDatas.ID;
         var userRequest = UserDatas.makeAnUserRequest();
         var userRequestJson = objectMapper.writeValueAsString(userRequest);
-        var expectedLocationHeader = "http://localhost/users/" + userID;
+        var expectedLocationHeader = "http://localhost/v1/users/" + userID;
 
         doReturn(userID).when(registryService).registry(userRequest.toDomain());
 
