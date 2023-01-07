@@ -8,7 +8,7 @@ public interface UserRepository {
 
     User saveUser(User userDomain);
 
-    User findById(Long userId);
+    Optional<User> findById(Long userId);
 
     Optional<User> findByCpf(String cpf);
 

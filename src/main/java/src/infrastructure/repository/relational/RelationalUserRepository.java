@@ -42,38 +42,45 @@ public class RelationalUserRepository implements UserRepository {
     }
 
     @Override
-    public User findById(Long userId) {
+    public Optional<User> findById(Long userId) {
 
-        logger.info("RELATIONAL USER REPOSITORY - GET USER - User ID: {}", userId);
+        logger.info("RELATIONAL USER REPOSITORY - FIND BY ID - User ID: {}", userId);
 
-        var userModel = jpaRepository
-                .findById(userId)
-                .orElseThrow(UserNotFoundException::new);
+        var optionalUserModel = jpaRepository.findById(userId);
 
-        var userDomain = userModel.toDomain();
+        if(optionalUserModel.isPresent()){
 
-        logger.info("RELATIONAL USER REPOSITORY - USER FOUND - User: {}", userDomain);
+            var userModel = optionalUserModel.get();
 
-        return userDomain;
+            logger.info("RELATIONAL USER REPOSITORY - FIND BY ID - ID: {}", userId);
+
+            return Optional.of(userModel.toDomain());
+
+        }
+
+        logger.info("RELATIONAL USER REPOSITORY - FIND BY ID - USER NOT FOUND - ID : {}", userId);
+
+        return Optional.empty();
 
     }
 
     @Override
     public Optional<User> findByCpf(String cpf) {
-        logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - CPF: {}", cpf);
+
+        logger.info("RELATIONAL USER REPOSITORY - FIND BY CPF - CPF: {}", cpf);
 
         var optionalUserModel = jpaRepository.findByCpf(cpf);
 
         if (optionalUserModel.isPresent()) {
             var userModel = optionalUserModel.get();
 
-            logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - USER ID: {}", userModel.getId());
+            logger.info("RELATIONAL USER REPOSITORY - FIND BY CPF - USER FOUND - ID: {}", userModel.getId());
 
             return Optional.of(userModel.toDomain());
 
         }
 
-        logger.info("RELATIONAL USER REPOSITORY - FIND USER BY CPF - USER NOT FOUND BY CPF : {}", cpf);
+        logger.info("RELATIONAL USER REPOSITORY - FIND BY CPF - USER NOT FOUND - CPF : {}", cpf);
 
         return Optional.empty();
 
