@@ -1,6 +1,7 @@
 package src;
 
 import src.application.controller.request.UserRequest;
+import src.application.controller.response.UserResponse;
 import src.domain.entity.User;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.model.enums.MaritalStatusEnum;
@@ -139,6 +140,31 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
+
+    }
+
+    public static UserResponse makeAnUserResponse() {
+
+        return UserResponse
+                .builder()
+                .id(ID)
+                .name(NAME)
+                .surname(SURNAME)
+                .phone(PHONE)
+                .dateBirth(DATE_BIRTH)
+                .maritalStatus(MARITAL_STATUS)
+                .sex(SexEnum.MALE.name())
+                .city(CITY)
+                .state(STATE)
+                .cpf(CPF)
+                .occupation(OCCUPATION)
+                .build();
+
+    }
+
+    public static UserResponse makeAnUserResponse(User userDomain) {
+
+        return new UserResponse(userDomain);
 
     }
 

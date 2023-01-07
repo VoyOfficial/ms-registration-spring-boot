@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import src.domain.entity.User;
 import src.domain.exception.InvalidUserException;
+import src.domain.exception.UserNotFoundException;
 import src.domain.repository.UserRepository;
 import src.infrastructure.model.UserModel;
 import src.infrastructure.repository.jpa.UserJpaRepository;
@@ -14,7 +15,6 @@ import src.infrastructure.repository.jpa.UserJpaRepository;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
-
 
 @Repository
 public class RelationalUserRepository implements UserRepository {
@@ -39,6 +39,23 @@ public class RelationalUserRepository implements UserRepository {
         logger.info("RELATIONAL USER REPOSITORY - REGISTERED USER - User ID: {}", userModel.getId());
 
         return userModel.toDomain();
+    }
+
+    @Override
+    public User findById(Long userId) {
+
+        logger.info("RELATIONAL USER REPOSITORY - GET USER - User ID: {}", userId);
+
+        var userModel = jpaRepository
+                .findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        var userDomain = userModel.toDomain();
+
+        logger.info("RELATIONAL USER REPOSITORY - USER FOUND - User: {}", userDomain);
+
+        return userDomain;
+
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import src.domain.exception.InvalidUserException;
+import src.domain.exception.UserNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -83,5 +84,33 @@ public class ExceptionHandlerAdvice {
         return ResponseEntity.status(httpStatus).body(standardError);
 
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFoundExceptionError(
+            UserNotFoundException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - User Not Found Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.NOT_FOUND;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("User Not Found")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
 
 }
