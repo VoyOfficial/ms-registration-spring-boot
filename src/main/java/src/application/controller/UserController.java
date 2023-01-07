@@ -24,6 +24,7 @@ import src.domain.usecase.UserRegistryUseCase;
 import javax.validation.Valid;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @Tag(name = "User", description = "Endpoint with all operations of User")
 @RestController
@@ -66,6 +67,13 @@ public class UserController {
 
     }
 
+    @Operation(summary = "Get an User by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User Found", content = @Content(schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = StandardError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
+    })
+    @ResponseStatus(OK)
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
 
