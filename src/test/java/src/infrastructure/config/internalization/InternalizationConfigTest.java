@@ -109,4 +109,19 @@ class InternalizationConfigTest {
 
     }
 
+    @Test
+    @DisplayName("Must to get a Custom Message of User Not Found Exception defined in message.properties")
+    void mustToGetCustomMessageUserNotFoundException() {
+
+        // cenary
+        var expectedMessage = "User not found.";
+
+        // action
+        var message = messageSource.getMessage("user.not.found.default.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
 }

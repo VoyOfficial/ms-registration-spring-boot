@@ -11,11 +11,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import src.UserDatas;
 import src.application.controller.request.UserRequest;
+import src.application.controller.response.UserResponse;
+import src.domain.exception.UserNotFoundException;
 import src.domain.repository.UserRepository;
+import src.domain.service.GetUserService;
 import src.domain.service.UserRegistryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,6 +37,9 @@ class UserControllerTest {
 
     @MockBean
     UserRegistryService registryService;
+
+    @MockBean
+    GetUserService getUserService;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -94,5 +102,52 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.maritalStatus").exists());
 
     }
+
+    @Test
+    @DisplayName("Must to Get an User by ID")
+    void mustToGetAnUserById() throws Exception {
+
+        // cenary
+        var userId = UserDatas.ID;
+        var userDomain = UserDatas.makeAnUserDomain(userId);
+        var expectedUserResponse = new UserResponse(userDomain);
+
+        doReturn(userDomain).when(getUserService).getUserById(userId);
+
+        // action
+        var responseString = mockMvc.perform(
+                        get(URL + "/" + userId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        UserResponse userResponse = objectMapper.readValue(responseString, UserResponse.class);
+
+        // validation
+        assertEquals(expectedUserResponse, userResponse);
+
+    }
+
+    @Test
+    @DisplayName("Don't should to Get an User by ID when User not found")
+    void dontShouldToGetAnUserByIdWhenUserNotExists() throws Exception {
+
+        // cenary
+        var userId = UserDatas.ID;
+
+        var userNotfoundException = new UserNotFoundException();
+
+        doThrow(userNotfoundException).when(getUserService).getUserById(userId);
+
+        // action / validation
+        mockMvc.perform(
+                get(URL + "/" + userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
+
+    }
+
 
 }

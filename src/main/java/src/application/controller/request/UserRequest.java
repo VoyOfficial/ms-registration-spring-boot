@@ -2,14 +2,10 @@ package src.application.controller.request;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.validator.constraints.br.CPF;
-import org.springdoc.api.annotations.ParameterObject;
 import src.application.validation.cpfAlreadyExists.CpfAlreadyExist;
 import src.application.validation.valueOfEnum.ValueOfEnum;
 import src.domain.entity.User;

@@ -14,7 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import src.application.controller.request.UserRequest;
+import src.application.controller.response.UserResponse;
 import src.application.interceptor.StandardError;
+import src.domain.entity.User;
+import src.domain.service.GetUserService;
+import src.domain.usecase.GetUserUseCase;
 import src.domain.usecase.UserRegistryUseCase;
 
 import javax.validation.Valid;
@@ -29,7 +33,10 @@ public class UserController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private UserRegistryUseCase service;
+    private UserRegistryUseCase userRegistryService;
+
+    @Autowired
+    private GetUserUseCase getUserService;
 
     @Operation(summary = "Register a new User")
     @ApiResponses(value = {
@@ -46,7 +53,7 @@ public class UserController {
 
         logger.info("USER CONTROLLER - REGISTRY - User: {}", request.getName());
 
-        var userId = service.registry(request.toDomain());
+        var userId = userRegistryService.registry(request.toDomain());
 
         var uri = uriBuilder
                 .path("/users/{userId}")
@@ -56,6 +63,21 @@ public class UserController {
         logger.info("USER CONTROLLER - REGISTERED USER - User: {}", userId);
 
         return ResponseEntity.created(uri).build();
+
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
+
+        logger.info("USER CONTROLLER - GET USER BY ID - UserID: {}", userId);
+
+        var userDomain = getUserService.getUserById(userId);
+
+        logger.info("USER CONTROLLER - USER FOUND - User: {}", userDomain);
+
+        var response = new UserResponse(userDomain);
+
+        return ResponseEntity.ok(response);
 
     }
 
