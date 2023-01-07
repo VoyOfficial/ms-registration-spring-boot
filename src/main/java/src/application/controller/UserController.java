@@ -56,7 +56,7 @@ public class UserController {
         var userId = userRegistryService.registry(request.toDomain());
 
         var uri = uriBuilder
-                .path("/users/{userId}")
+                .path("/v1/users/{userId}")
                 .buildAndExpand(userId)
                 .toUri();
 
