@@ -112,5 +112,31 @@ public class ExceptionHandlerAdvice {
 
     }
 
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<?> handleNumberFormatException(
+            NumberFormatException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Number Format Exception");
+
+        Map<String, String> errors = Map.of("userId", "Should be a number");
+
+        var httpStatus = HttpStatus.BAD_REQUEST;
+
+        var message = exception.getMessage().replace("\"","");
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Invalid ID - Should be only numbers")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
 
 }
