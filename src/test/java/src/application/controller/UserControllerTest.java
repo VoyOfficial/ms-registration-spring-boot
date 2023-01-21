@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -142,12 +143,35 @@ class UserControllerTest {
         doThrow(userNotfoundException).when(getUserService).getUserById(userId);
 
         // action / validation
-        mockMvc.perform(
-                get(URL + "/" + userId)
+        mockMvc.perform(get(URL + "/" + userId)
                         .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isNotFound());
+                ).andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("User Not Found"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("User not found."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/v1/users/" + userId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors").isEmpty());
+
 
     }
 
+    @Test
+    @DisplayName("Don't should to Get an User by ID when ID is invalid")
+    void dontShouldToGetAnUserByIdWhenIdIsInvalid() throws Exception {
+
+        // cenary
+        var invalidId = "id";
+
+        // action / validation
+        mockMvc.perform(get(URL + "/" + invalidId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid ID - Should be only numbers"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("For input string: " + invalidId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/v1/users/" + invalidId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.userId").value("Should be a number"));
+
+    }
 
 }
