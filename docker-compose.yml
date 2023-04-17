@@ -1,23 +1,23 @@
 version: '3.9'
 
 services:
-  api-registration:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    container_name: api-registration
-    environment:
-      API_PORT: 8080
-      DATABASE_URL: postgres:5432
-      DATABASE_DB: "voy"
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: password
-      DATABASE_SCHEMA: registration
-      FLYWAY_ENABLE: true
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
+#  api-registration:
+#    build:
+#      dockerfile: Dockerfile
+#      context: .
+#    container_name: api-registration
+#    environment:
+#      API_PORT: 8080
+#      DATABASE_URL: postgres:5432
+#      DATABASE_DB: "voy"
+#      DATABASE_USER: postgres
+#      DATABASE_PASSWORD: password
+#      DATABASE_SCHEMA: registration
+#      FLYWAY_ENABLE: true
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
 
   postgres:
     container_name: postgres_registration
