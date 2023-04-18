@@ -4,6 +4,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.LatLng;
+import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -26,7 +27,8 @@ public class GooglePlacesAPIAdapter implements LocationApiPort {
     @Override
     public PlacesSearchResponse getNearbyPlaces(
             LatLng location,
-            Integer radius
+            Integer radius,
+            PlaceType placeType
     ) throws IOException, InterruptedException, ApiException {
 
         logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Location: {}", location);
@@ -36,11 +38,16 @@ public class GooglePlacesAPIAdapter implements LocationApiPort {
                 .apiKey(apiKey)
                 .build();
 
-        PlacesSearchResponse placesSearchResponse = PlacesApi
+        var placesSearchRequest = PlacesApi
                 .nearbySearchQuery(context, location)
                 .radius(radius)
-                .language("en")
-                .await();
+                .language("en");
+
+        if (placeType != null) {
+            placesSearchRequest.type(placeType);
+        }
+
+        PlacesSearchResponse placesSearchResponse = placesSearchRequest.await();
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", placesSearchResponse);
 
