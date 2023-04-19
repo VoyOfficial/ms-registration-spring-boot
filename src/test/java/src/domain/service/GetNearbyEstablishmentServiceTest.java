@@ -1,7 +1,6 @@
 package src.domain.service;
 
 
-import com.google.maps.errors.ApiException;
 import com.google.maps.model.Geometry;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlacesSearchResponse;
@@ -15,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import src.application.providers.adapters.GooglePlacesAPIAdapter;
 import src.domain.entity.Location;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,7 +35,7 @@ public class GetNearbyEstablishmentServiceTest {
 
     @Test
     @DisplayName("Must to Get All Nearby Establishments given a Location")
-    void mustToGetAllNearbyEstablishmentGivenALocation() throws IOException, InterruptedException, ApiException {
+    void mustToGetAllNearbyEstablishmentGivenALocation() {
 
         // cenary
         var location = new Location(LATITUDE, LONGITUDE);

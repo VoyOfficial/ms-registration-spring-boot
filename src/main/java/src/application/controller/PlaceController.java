@@ -1,8 +1,5 @@
 package src.application.controller;
 
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.LatLng;
-import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -13,10 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import src.domain.entity.Location;
-import src.domain.ports.EstablishmentLocationPort;
 import src.domain.usecase.GetEstablishmentUseCase;
-
-import java.io.IOException;
 
 @Tag(name = "Place", description = "Endpoint with all operations of Place")
 @RestController
@@ -34,7 +28,7 @@ public class PlaceController {
             @RequestParam Double longitude,
             @RequestParam(defaultValue = "5000") Integer radius,
             @RequestParam(defaultValue = "") String placeType
-    ) throws IOException, InterruptedException, ApiException {
+    ) {
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Latitude: {}, Longitude: {}", latitude, longitude);
 

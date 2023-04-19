@@ -1,10 +1,7 @@
 package src.domain.usecase;
 
-import com.google.maps.errors.ApiException;
 import com.google.maps.model.PlacesSearchResponse;
 import src.domain.entity.Location;
-
-import java.io.IOException;
 
 public interface GetEstablishmentUseCase {
 
@@ -12,6 +9,6 @@ public interface GetEstablishmentUseCase {
             Location location,
             Integer radius,
             String placeType
-    ) throws IOException, InterruptedException, ApiException;
+    );
 
 }
