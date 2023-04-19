@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import src.domain.ports.LocationApiPort;
+import src.domain.entity.Location;
+import src.domain.ports.EstablishmentLocationPort;
+import src.domain.usecase.GetEstablishmentUseCase;
 
 import java.io.IOException;
 
@@ -24,7 +26,7 @@ public class PlaceController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    LocationApiPort locationApiPort;
+    GetEstablishmentUseCase getEstablishmentUseCase;
 
     @GetMapping()
     public PlacesSearchResponse getNearbyPlaces(
@@ -36,15 +38,7 @@ public class PlaceController {
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Latitude: {}, Longitude: {}", latitude, longitude);
 
-        var location = new LatLng(latitude, longitude);
-
-        PlaceType placeTypeEnum = null;
-
-        if (!placeType.isEmpty()) {
-            placeTypeEnum = PlaceType.valueOf(placeType.toUpperCase());
-        }
-
-        var placesResponse = locationApiPort.getNearbyPlaces(location, radius, placeTypeEnum);
+        var placesResponse = getEstablishmentUseCase.getNearbyEstablishments(new Location(latitude, longitude), radius, placeType);
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Places Response: {}", placesResponse.results.length);
 

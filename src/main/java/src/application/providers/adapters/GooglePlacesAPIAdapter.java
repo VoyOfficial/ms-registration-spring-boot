@@ -11,13 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import src.domain.ports.LocationApiPort;
+import src.domain.entity.Location;
+import src.domain.ports.EstablishmentLocationPort;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class GooglePlacesAPIAdapter implements LocationApiPort {
+public class GooglePlacesAPIAdapter implements EstablishmentLocationPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -26,27 +27,28 @@ public class GooglePlacesAPIAdapter implements LocationApiPort {
 
     @Override
     public PlacesSearchResponse getNearbyPlaces(
-            LatLng location,
+            Location location,
             Integer radius,
-            PlaceType placeType
+            String placeType
     ) throws IOException, InterruptedException, ApiException {
-
-        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Location: {}", location);
 
         GeoApiContext context = new GeoApiContext
                 .Builder()
                 .apiKey(apiKey)
                 .build();
 
+        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Location: {}, Radius: {}, PlaceType: {}", location, radius, placeType);
+
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
+
         var placesSearchRequest = PlacesApi
-                .nearbySearchQuery(context, location)
+                .nearbySearchQuery(context, latLng)
+                .language("en")
                 .radius(radius)
-                .language("en");
+                .type(placeTypeEnum);
 
-        if (placeType != null) {
-            placesSearchRequest.type(placeType);
-        }
-
+        logger.info("GOOGLE PLACES API ADAPTER - CALLING PLACES API NEARBY SEARCH");
         PlacesSearchResponse placesSearchResponse = placesSearchRequest.await();
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", placesSearchResponse);
@@ -54,6 +56,16 @@ public class GooglePlacesAPIAdapter implements LocationApiPort {
         context.shutdown();
 
         return placesSearchResponse;
+
+    }
+
+    private PlaceType createPlaceTypeEnum(String placeType) {
+
+        if (!placeType.isEmpty()) {
+            return PlaceType.valueOf(placeType.toUpperCase());
+        }
+
+        return null;
 
     }
 
