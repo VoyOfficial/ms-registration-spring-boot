@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import src.domain.entity.Location;
+import src.domain.entity.Coordinates;
 import src.domain.usecase.GetEstablishmentUseCase;
 
 @Tag(name = "Place", description = "Endpoint with all operations of Place")
@@ -32,7 +32,7 @@ public class PlaceController {
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Latitude: {}, Longitude: {}", latitude, longitude);
 
-        var placesResponse = getEstablishmentUseCase.getNearbyEstablishments(new Location(latitude, longitude), radius, placeType);
+        var placesResponse = getEstablishmentUseCase.getNearbyEstablishments(new Coordinates(latitude, longitude), radius, placeType);
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Places Response: {}", placesResponse.results.length);
 

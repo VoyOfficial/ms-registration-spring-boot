@@ -1,12 +1,12 @@
 package src.domain.ports;
 
 import com.google.maps.model.PlacesSearchResponse;
-import src.domain.entity.Location;
+import src.domain.entity.Coordinates;
 
-public interface EstablishmentLocationPort {
+public interface PlacesApiPort {
 
     PlacesSearchResponse getNearbyPlaces(
-            Location location,
+            Coordinates coordinates,
             Integer radius,
             String placeType
     );

@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import src.application.providers.adapters.GooglePlacesAPIAdapter;
-import src.domain.entity.Location;
+import src.domain.entity.Coordinates;
 
 import java.util.Arrays;
 
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class GetNearbyEstablishmentServiceTest {
+public class GetNearbyPlacesServiceTest {
 
     public static final double LATITUDE = 2.7986896;
     public static final double LONGITUDE = -60.7532497;
@@ -31,24 +31,24 @@ public class GetNearbyEstablishmentServiceTest {
     GooglePlacesAPIAdapter placesAdapter;
 
     @InjectMocks
-    GetAllNearbyEstablishmentService service;
+    GetAllNearbyPlacesService service;
 
     @Test
-    @DisplayName("Must to Get All Nearby Establishments given a Location")
+    @DisplayName("Must to Get All Nearby Establishments given a Coordinates")
     void mustToGetAllNearbyEstablishmentGivenALocation() {
 
         // cenary
-        var location = new Location(LATITUDE, LONGITUDE);
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
         var radius = 3000;
         var placeType = "CAFE";
 
         PlacesSearchResponse placesSearchResponse = createPlacesSearchResponseMock();
 
-        when(placesAdapter.getNearbyPlaces(any(Location.class), any(), anyString()))
+        when(placesAdapter.getNearbyPlaces(any(Coordinates.class), any(), anyString()))
                 .thenReturn(placesSearchResponse);
 
         // action
-        var nearbyEstablishments = service.getNearbyEstablishments(location, radius, placeType);
+        var nearbyEstablishments = service.getNearbyEstablishments(coordinates, radius, placeType);
 
         // validation
         assertNotNull(nearbyEstablishments);

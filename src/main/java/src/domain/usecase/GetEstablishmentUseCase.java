@@ -1,12 +1,12 @@
 package src.domain.usecase;
 
 import com.google.maps.model.PlacesSearchResponse;
-import src.domain.entity.Location;
+import src.domain.entity.Coordinates;
 
 public interface GetEstablishmentUseCase {
 
     PlacesSearchResponse getNearbyEstablishments(
-            Location location,
+            Coordinates coordinates,
             Integer radius,
             String placeType
     );

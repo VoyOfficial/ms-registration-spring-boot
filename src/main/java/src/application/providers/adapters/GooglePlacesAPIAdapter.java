@@ -8,15 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import src.domain.entity.Location;
-import src.domain.ports.EstablishmentLocationPort;
+import src.domain.entity.Coordinates;
+import src.domain.ports.PlacesApiPort;
 import src.infrastructure.agents.PlacesApiClient;
 
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class GooglePlacesAPIAdapter implements EstablishmentLocationPort {
+public class GooglePlacesAPIAdapter implements PlacesApiPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -25,14 +25,14 @@ public class GooglePlacesAPIAdapter implements EstablishmentLocationPort {
 
     @Override
     public PlacesSearchResponse getNearbyPlaces(
-            Location location,
+            Coordinates coordinates,
             Integer radius,
             String placeType
     ) {
 
-        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Location: {}, Radius: {}, PlaceType: {}", location, radius, placeType);
+        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Coodinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        LatLng latLng = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
         PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
 
         var request = placesApiClient.createNearbySearchRequest(latLng, radius, placeTypeEnum);
