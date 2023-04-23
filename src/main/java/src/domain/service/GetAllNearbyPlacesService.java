@@ -5,28 +5,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import src.domain.entity.Location;
-import src.domain.ports.EstablishmentLocationPort;
+import src.domain.entity.Coordinates;
+import src.domain.ports.PlacesApiPort;
 import src.domain.usecase.GetEstablishmentUseCase;
 
 @Service
-public class GetAllNearbyEstablishmentService implements GetEstablishmentUseCase {
+public class GetAllNearbyPlacesService implements GetEstablishmentUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    EstablishmentLocationPort establishmentLocationPort;
+    PlacesApiPort placesApiPort;
 
     @Override
     public PlacesSearchResponse getNearbyEstablishments(
-            Location location,
+            Coordinates coordinates,
             Integer radius,
             String placeType
     ) {
 
-        logger.info("GET ALL NEARBY ESTABLISHMENT SERVICE - GET NEARBY ESTABLISHMENTS - Location: {}, Radius: {}, PlaceType: {}", location, radius, placeType);
+        logger.info("GET ALL NEARBY ESTABLISHMENT SERVICE - GET NEARBY ESTABLISHMENTS - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
-        var establishments = establishmentLocationPort.getNearbyPlaces(location, radius, placeType);
+        var establishments = placesApiPort.getNearbyPlaces(coordinates, radius, placeType);
 
         logger.info("GET ALL NEARBY ESTABLISHMENT SERVICE - GET NEARBY ESTABLISHMENTS - Establishments: {}", establishments);
 
