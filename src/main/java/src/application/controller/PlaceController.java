@@ -32,7 +32,7 @@ public class PlaceController {
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Latitude: {}, Longitude: {}", latitude, longitude);
 
-        var placesResponse = getEstablishmentUseCase.getNearbyEstablishments(new Coordinates(latitude, longitude), radius, placeType);
+        var placesResponse = getEstablishmentUseCase.getNearbyPlaces(new Coordinates(latitude, longitude), radius, placeType);
 
         logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Places Response: {}", placesResponse.results.length);
 

@@ -5,7 +5,7 @@ import src.domain.entity.Coordinates;
 
 public interface GetEstablishmentUseCase {
 
-    PlacesSearchResponse getNearbyEstablishments(
+    PlacesSearchResponse getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType

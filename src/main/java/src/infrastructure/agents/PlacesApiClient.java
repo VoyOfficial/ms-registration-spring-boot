@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import src.domain.exception.PlacesApiClientException;
 
 @Component
 public class PlacesApiClient {
@@ -53,7 +54,7 @@ public class PlacesApiClient {
 
             logger.warn("PLACES API CLIENT - Search For Nearby Places - Occured an Error: {}", exception.getMessage());
 
-            throw new RuntimeException("Error searching for places", exception);
+            throw new PlacesApiClientException("Occorrude an error while searching nearby Places:", exception);
 
         } finally {
             context.shutdown();
