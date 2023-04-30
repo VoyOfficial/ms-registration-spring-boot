@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import src.domain.entity.Coordinates;
 import src.domain.ports.PlacesApiPort;
-import src.domain.usecase.GetEstablishmentUseCase;
+import src.domain.usecase.GetPlaceUseCase;
 
 @Service
-public class GetAllNearbyPlacesService implements GetEstablishmentUseCase {
+public class GetAllNearbyPlacesService implements GetPlaceUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
