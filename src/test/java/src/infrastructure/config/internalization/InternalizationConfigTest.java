@@ -124,4 +124,19 @@ class InternalizationConfigTest {
 
     }
 
+    @Test
+    @DisplayName("Must to get a Custom Message of Places API Client Exception defined in message.properties")
+    void mustToGetCustomMessagePlacesApiClientException() {
+
+        // cenary
+        var expectedMessage = "Occurred an error while connecting to the Places API.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.default.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
 }

@@ -18,19 +18,19 @@ public class GetAllNearbyPlacesService implements GetEstablishmentUseCase {
     PlacesApiPort placesApiPort;
 
     @Override
-    public PlacesSearchResponse getNearbyEstablishments(
+    public PlacesSearchResponse getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType
     ) {
 
-        logger.info("GET ALL NEARBY ESTABLISHMENT SERVICE - GET NEARBY ESTABLISHMENTS - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
+        logger.info("GET ALL NEARBY PLACES SERVICE - GET NEARBY PLACES - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
-        var establishments = placesApiPort.getNearbyPlaces(coordinates, radius, placeType);
+        var places = placesApiPort.getNearbyPlaces(coordinates, radius, placeType);
 
-        logger.info("GET ALL NEARBY ESTABLISHMENT SERVICE - GET NEARBY ESTABLISHMENTS - Establishments: {}", establishments);
+        logger.info("GET ALL NEARBY PLACES SERVICE - GET NEARBY PLACES - Establishments: {}", places);
 
-        return establishments;
+        return places;
 
     }
 

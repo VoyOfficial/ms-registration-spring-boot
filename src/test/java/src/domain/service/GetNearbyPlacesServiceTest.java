@@ -48,7 +48,7 @@ public class GetNearbyPlacesServiceTest {
                 .thenReturn(placesSearchResponse);
 
         // action
-        var nearbyEstablishments = service.getNearbyEstablishments(coordinates, radius, placeType);
+        var nearbyEstablishments = service.getNearbyPlaces(coordinates, radius, placeType);
 
         // validation
         assertNotNull(nearbyEstablishments);
