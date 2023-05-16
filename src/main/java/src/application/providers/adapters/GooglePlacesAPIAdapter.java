@@ -1,6 +1,7 @@
 package src.application.providers.adapters;
 
 import com.google.maps.model.LatLng;
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,8 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
     public PlacesSearchResponse getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
-            String placeType
+            String placeType,
+            String nextPageToken
     ) {
 
         logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Coodinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
@@ -35,7 +37,7 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
         LatLng latLng = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
         PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
 
-        var request = placesApiClient.createNearbySearchRequest(latLng, radius, placeTypeEnum);
+        var request = placesApiClient.createNearbySearchRequest(latLng, radius, placeTypeEnum, nextPageToken);
         var response = placesApiClient.searchForNearbyPlaces(request);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", response);
@@ -50,6 +52,22 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
                 .filter(placeTypeString -> !placeTypeString.isEmpty())
                 .map(placeTypeString -> PlaceType.valueOf(placeTypeString.toUpperCase()))
                 .orElse(null);
+
+    }
+
+    @Override
+    public PlaceDetails getPlaceDetails(
+            String placeId
+    ) {
+
+        logger.info("GOOGLE PLACES API ADAPTER - GET PLACE DETAILS - Place Id: {}", placeId);
+
+        var request = placesApiClient.createPlaceDetailsRequest(placeId);
+        var response = placesApiClient.getPlaceDetails(request);
+
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place Id: {}", response);
+
+        return response;
 
     }
 

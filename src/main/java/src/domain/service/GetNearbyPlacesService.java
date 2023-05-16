@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import src.domain.entity.Coordinates;
 import src.domain.ports.PlacesApiPort;
-import src.domain.usecase.GetPlaceUseCase;
+import src.domain.usecase.GetNearbyPlacesUseCase;
 
 @Service
-public class GetAllNearbyPlacesService implements GetPlaceUseCase {
+public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -21,16 +21,17 @@ public class GetAllNearbyPlacesService implements GetPlaceUseCase {
     public PlacesSearchResponse getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
-            String placeType
+            String placeType,
+            String nextPageToken
     ) {
 
-        logger.info("GET ALL NEARBY PLACES SERVICE - GET NEARBY PLACES - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
+        logger.info("GET NEARBY PLACES SERVICE - GET NEARBY PLACES START - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
-        var places = placesApiPort.getNearbyPlaces(coordinates, radius, placeType);
+        var nearbyPlaces = placesApiPort.getNearbyPlaces(coordinates, radius, placeType, nextPageToken);
 
-        logger.info("GET ALL NEARBY PLACES SERVICE - GET NEARBY PLACES - Establishments: {}", places);
+        logger.info("GET NEARBY PLACES SERVICE - GET NEARBY PLACES FINISH - Places: {}", nearbyPlaces);
 
-        return places;
+        return nearbyPlaces;
 
     }
 
