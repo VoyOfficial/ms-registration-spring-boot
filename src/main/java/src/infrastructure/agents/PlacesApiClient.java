@@ -2,8 +2,10 @@ package src.infrastructure.agents;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.NearbySearchRequest;
+import com.google.maps.PlaceDetailsRequest;
 import com.google.maps.PlacesApi;
 import com.google.maps.model.LatLng;
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import org.slf4j.Logger;
@@ -31,14 +33,20 @@ public class PlacesApiClient {
 
     }
 
-    public NearbySearchRequest createNearbySearchRequest(LatLng latLng, Integer radius, PlaceType placeType) {
+    public NearbySearchRequest createNearbySearchRequest(
+            LatLng latLng,
+            Integer radius,
+            PlaceType placeType,
+            String nextPageToken
+    ) {
 
         logger.info("PLACES API CLIENT - Create Nearby Search Request");
 
         return PlacesApi.nearbySearchQuery(context, latLng)
                 .language("en")
                 .radius(radius)
-                .type(placeType);
+                .type(placeType)
+                .pageToken(nextPageToken);
 
     }
 
@@ -56,8 +64,32 @@ public class PlacesApiClient {
 
             throw new PlacesApiClientException("Occorrude an error while searching nearby Places:", exception);
 
-        } finally {
-            context.shutdown();
+        }
+
+    }
+
+    public PlaceDetailsRequest createPlaceDetailsRequest(String placeId) {
+
+        logger.info("PLACES API CLIENT - Create Place Details Request");
+
+        return PlacesApi.placeDetails(context, placeId);
+
+    }
+
+    public PlaceDetails getPlaceDetails(PlaceDetailsRequest request) {
+
+        try {
+
+            logger.info("PLACES API CLIENT - Get Place Details");
+
+            return request.await();
+
+        } catch (Exception exception) {
+
+            logger.warn("PLACES API CLIENT - Get Place Details - Occured an Error: {}", exception.getMessage());
+
+            throw new PlacesApiClientException("Occorrude an error while getting Place Details:", exception);
+
         }
 
     }

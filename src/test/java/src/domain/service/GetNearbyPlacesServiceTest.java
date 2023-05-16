@@ -31,7 +31,7 @@ public class GetNearbyPlacesServiceTest {
     GooglePlacesAPIAdapter placesAdapter;
 
     @InjectMocks
-    GetAllNearbyPlacesService service;
+    GetNearbyPlacesService service;
 
     @Test
     @DisplayName("Must to Get All Nearby Establishments given a Coordinates")
@@ -41,14 +41,15 @@ public class GetNearbyPlacesServiceTest {
         var coordinates = new Coordinates(LATITUDE, LONGITUDE);
         var radius = 3000;
         var placeType = "CAFE";
+        var nextPageToken = "";
 
         PlacesSearchResponse placesSearchResponse = createPlacesSearchResponseMock();
 
-        when(placesAdapter.getNearbyPlaces(any(Coordinates.class), any(), anyString()))
+        when(placesAdapter.getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString()))
                 .thenReturn(placesSearchResponse);
 
         // action
-        var nearbyEstablishments = service.getNearbyPlaces(coordinates, radius, placeType);
+        var nearbyEstablishments = service.getNearbyPlaces(coordinates, radius, placeType, nextPageToken);
 
         // validation
         assertNotNull(nearbyEstablishments);
