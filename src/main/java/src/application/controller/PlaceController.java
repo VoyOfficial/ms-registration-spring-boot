@@ -33,9 +33,9 @@ public class PlaceController {
             @RequestParam(defaultValue = "") String nextPageToken
     ) {
 
-        logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Latitude: {}, Longitude: {}", latitude, longitude);
+        logger.info("PLACE CONTROLLER - GET NEARBY PLACES START - Latitude: {}, Longitude: {}", latitude, longitude);
 
-        var placeDetailsReponseList = getNearbyPlacesUseCase
+        var nearbyPlacesResponse = getNearbyPlacesUseCase
                 .getNearbyPlaces(
                         new Coordinates(latitude, longitude),
                         radius,
@@ -43,9 +43,9 @@ public class PlaceController {
                         nextPageToken
                 );
 
-        logger.info("PLACE CONTROLLER - GET NEARBY PLACES - Places Response: {}", placeDetailsReponseList);
+        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Places Response: {}", nearbyPlacesResponse);
 
-        return placeDetailsReponseList;
+        return nearbyPlacesResponse;
 
     }
 
@@ -54,11 +54,11 @@ public class PlaceController {
             @PathVariable String placeId
     ) {
 
-        logger.info("PLACE CONTROLLER - GET PLACE DETAILS - Place Id: {}", placeId);
+        logger.info("PLACE CONTROLLER - GET PLACE DETAILS START - Place Id: {}", placeId);
 
         var placeDetails = getPlaceDetailsUseCase.getPlaceDetails(placeId);
 
-        logger.info("PLACE CONTROLLER - GET PLACE DETAILS - Place Details: {}", placeDetails);
+        logger.info("PLACE CONTROLLER - GET PLACE DETAILS FINISH - Place Details: {}", placeDetails);
 
         return placeDetails;
 
