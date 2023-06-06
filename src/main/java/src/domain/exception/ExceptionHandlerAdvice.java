@@ -1,4 +1,4 @@
-package src.application.interceptor;
+package src.domain.exception;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import src.domain.exception.InvalidUserException;
-import src.domain.exception.UserNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -123,7 +121,7 @@ public class ExceptionHandlerAdvice {
 
         var httpStatus = HttpStatus.BAD_REQUEST;
 
-        var message = exception.getMessage().replace("\"","");
+        var message = exception.getMessage().replace("\"", "");
 
         var standardError = StandardError
                 .builder()
