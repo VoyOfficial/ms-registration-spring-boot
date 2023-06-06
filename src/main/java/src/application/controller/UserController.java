@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import src.application.controller.request.UserRequest;
 import src.application.controller.response.UserResponse;
-import src.application.interceptor.StandardError;
+import src.domain.exception.StandardError;
 import src.domain.usecase.GetUserUseCase;
 import src.domain.usecase.UserRegistryUseCase;
 
