@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,7 +34,11 @@ public class Place {
         this.rating = placeSearchResult.rating;
         this.userRatingsTotal = placeSearchResult.userRatingsTotal;
 
-        var photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
+        var photoReference = "";
+
+        if (Objects.nonNull(placeSearchResult.photos)) {
+            photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
+        }
 
         this.photoReference = "https://maps.googleapis.com/maps/api/place/photo?photo_reference=" + photoReference;
 
