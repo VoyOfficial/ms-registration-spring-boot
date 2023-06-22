@@ -1,6 +1,12 @@
 package src.application.controller;
 
 import com.google.maps.model.PlaceDetails;
+import com.google.maps.model.PlaceType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import src.application.controller.response.NearbyPlacesResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
+import src.domain.exception.StandardError;
 import src.domain.usecase.GetNearbyPlacesUseCase;
 import src.domain.usecase.GetPlaceDetailsUseCase;
 
 import java.util.stream.Collectors;
 
-@Tag(name = "Place", description = "Endpoint with all operations of Place")
+import static org.springframework.http.HttpStatus.OK;
+
+@Tag(name = "Place", description = "Endpoint with all operations of Places")
 @RestController
 @RequestMapping("/v1/places")
 public class PlaceController {
@@ -28,12 +37,23 @@ public class PlaceController {
     @Autowired
     private GetPlaceDetailsUseCase getPlaceDetailsUseCase;
 
+    @Operation(summary = "Get 20 nearby Places per time")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
+    })
+    @ResponseStatus(OK)
     @GetMapping()
     public ResponseEntity<NearbyPlacesResponse> getNearbyPlaces(
+            @Schema(example = "-29.366054", type = "Double")
             @RequestParam Double latitude,
+            @Schema(example = "-50.877113", type = "Double")
             @RequestParam Double longitude,
+            @Schema(example = "5000", type = "Integer")
             @RequestParam(defaultValue = "5000") Integer radius,
+            @Schema(example = "shopping_mall", type = "String", implementation = PlaceType.class)
             @RequestParam(defaultValue = "") String placeType,
+            @Schema(example = "AZose0kJX6a...", type = "String", description = "Token for to get next page of 20 nearby places")
             @RequestParam(defaultValue = "") String nextPageToken
     ) {
 
