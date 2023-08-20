@@ -60,9 +60,9 @@ public class PlacesApiClient {
 
         } catch (Exception exception) {
 
-            logger.warn("PLACES API CLIENT - Search For Nearby Places - Occured an Error: {}", exception.getMessage());
+            logger.warn("PLACES API CLIENT - Search For Nearby Places - Occurred an Error: {}", exception.getMessage());
 
-            throw new PlacesApiClientException("Occorrude an error while searching nearby Places:", exception);
+            throw new PlacesApiClientException("Occurred an error while searching nearby Places:", exception);
 
         }
 

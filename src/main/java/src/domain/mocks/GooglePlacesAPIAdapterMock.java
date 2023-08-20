@@ -1,6 +1,8 @@
 package src.domain.mocks;
 
 import com.google.maps.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
@@ -10,12 +12,16 @@ import src.domain.ports.PlacesApiPort;
 @ConditionalOnProperty(name = "services.mock.enable", havingValue = "true")
 public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public PlacesSearchResponse getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType,
             String nextPageToken) {
+
+        logger.info("GOOGLE PLACES API ADAPTER MOCK - STARTING NEARBY SEARCH MOCKED - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
         PlacesSearchResponse placesSearchResponse = new PlacesSearchResponse();
 
@@ -76,9 +82,10 @@ public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
         photo4.photoReference = "photo_reference_4";
         result4.photos = new Photo[]{photo4};
 
-
         placesSearchResponse.results = new PlacesSearchResult[]{result1, result2, result3, result4};
         placesSearchResponse.nextPageToken = "3ee92b07-1305-4d1c-b5bb-b9283e9b1337";
+
+        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Places: {}", placesSearchResponse);
 
         return placesSearchResponse;
 
