@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
 import src.domain.ports.PlacesApiPort;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "services.mock.enable", havingValue = "false")
 public class GooglePlacesAPIAdapter implements PlacesApiPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
