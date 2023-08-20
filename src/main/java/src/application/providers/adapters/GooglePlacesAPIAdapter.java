@@ -34,7 +34,7 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
             String nextPageToken
     ) {
 
-        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Coodinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
+        logger.info("GOOGLE PLACES API ADAPTER - STARTING NEARBY SEARCH - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
 
         LatLng latLng = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
         PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
@@ -45,15 +45,6 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
         logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", response);
 
         return response;
-
-    }
-
-    private PlaceType createPlaceTypeEnum(String placeType) {
-
-        return Optional.ofNullable(placeType)
-                .filter(placeTypeString -> !placeTypeString.isEmpty())
-                .map(placeTypeString -> PlaceType.valueOf(placeTypeString.toUpperCase()))
-                .orElse(null);
 
     }
 
@@ -70,6 +61,15 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place Id: {}", response);
 
         return response;
+
+    }
+
+    private PlaceType createPlaceTypeEnum(String placeType) {
+
+        return Optional.ofNullable(placeType)
+                .filter(placeTypeString -> !placeTypeString.isEmpty())
+                .map(placeTypeString -> PlaceType.valueOf(placeTypeString.toUpperCase()))
+                .orElse(null);
 
     }
 
