@@ -7,10 +7,12 @@ Este projeto trata-se de uma API Rest para realizar o cadastro de Usuários.
 
 ## 🤔 O que é este projeto?
 
-Ele é uma aplicação responsável pelo domínio de Usuários do Projeto Voy, logo, essa API disponibiliza uma série de endpoints
+Ele é uma aplicação responsável pelo domínio de Usuários do Projeto Voy, logo, essa API disponibiliza uma série de
+endpoints
 para realizar o CRUD de Usuário.
 
 ## 🚀 Executando a aplicação 👾
+
 ### 📍 Local
 
 Se você quiser fazer alguma modificação no código precisará ter instalado em sua máquina as seguintes ferramentas:
@@ -25,7 +27,8 @@ Este projeto conta com um **Dockerfile**, com as instruções para realizar o bu
 Os requisitos para isso são:
 
 - [Docker](https://www.docker.com/products/docker-desktop) - Baixe de acordo com o seu SO
-- [Docker-compose](https://docs.docker.com/compose/install/) - Se estiver utilizando Windows, o Docker desktop já possui o docker-compose instalado
+- [Docker-compose](https://docs.docker.com/compose/install/) - Se estiver utilizando Windows, o Docker desktop já possui
+  o docker-compose instalado
 
 ## 🎲 Executando a API com o docker-compose
 
@@ -44,24 +47,27 @@ docker-compose up -d
 
 ## 🔧 Variáveis de Ambiente da Aplicação
 
-| ENV_VARS          | Descrição                                                                                                  |
-|-------------------|------------------------------------------------------------------------------------------------------------|
-| API_PORT          | Porta que a aplicação utilizará em sua execução. (Default: 8080)                                           |
-| DATABASE_URL      | Url do banco de dados utilizado. (Default: localhost:5432; Postgres)                                       |
-| DATABASE_DB       | Banco de dados utilizado dentro. (Default: postgres)                                                       |
-| DATABASE_USER     | Usuário do banco de dados. (Default: postgres)                                                             |
-| DATABASE_PASSWORD | Senha do banco de dados. (Default: password)                                                               |
-| DB_SCHEMA         | Esquema do banco de dados. (Default: backvotes)                                                            |
-| FLYWAY_ENABLE     | Recebe um valor booleano para ativar ou desativar o Flyway durante a execução da aplicação. (Default: true |
+| ENV_VARS             | Descrição                                                                                                  |
+|----------------------|------------------------------------------------------------------------------------------------------------|
+| API_PORT             | Porta que a aplicação utilizará em sua execução. (Default: 8080)                                           |
+| ENABLE_MOCK_SERVICES | Flag para habilitar os mocks de integração com serviços externos (google places). (Default: false)         |
+| DATABASE_URL         | Url do banco de dados utilizado. (Default: localhost:5432; Postgres)                                       |
+| DATABASE_DB          | Banco de dados utilizado dentro. (Default: postgres)                                                       |
+| DATABASE_USER        | Usuário do banco de dados. (Default: postgres)                                                             |
+| DATABASE_PASSWORD    | Senha do banco de dados. (Default: password)                                                               |
+| DATABASE_SCHEMA      | Esquema do banco de dados. (Default: registration)                                                         |
+| FLYWAY_ENABLE        | Recebe um valor booleano para ativar ou desativar o Flyway durante a execução da aplicação. (Default: true |
 
 ## 📝Fazendo requisições - Insomnia
 
-Essa aplicação tem um workspace com todas as requisições disponíveis configurado no aplicativo **Insomnia**, clicando no botão abaixo você pode
+Essa aplicação tem um workspace com todas as requisições disponíveis configurado no aplicativo **Insomnia**, clicando no
+botão abaixo você pode
 baixar o workspace de requests utilizados nesse projeto.
 
 [![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Voy&uri=https%3A%2F%2Fgist.githubusercontent.com%2Fmatheuscarv69%2F2acaa18a9e235c0e6ae21c49985aa138%2Fraw%2Fdb1a225839db36c04d827d8e550cd1f523932f2d%2FCollection)
 
-Além disso a mesma foi documentada usando o Swagger, por meio dele você também pode ter acesso as requisições e aos modelos de dados recebidos e enviados pela aplicação.
+Além disso a mesma foi documentada usando o Swagger, por meio dele você também pode ter acesso as requisições e aos
+modelos de dados recebidos e enviados pela aplicação.
 Com a aplicação sendo executada, você pode acessar a página do Swagger por meio da url abaixo.
 
 ```bash
@@ -69,6 +75,7 @@ http://localhost:8080/api/registration/swagger-ui/index.html#/
 ```
 
 ## 📝Spring Actuator
+
 Esse projeto conta com o Spring Actuator implementado, isso possibilita verificar informações dele durante sua execução,
 tais como saúde, env vars e muito mais.
 
@@ -77,7 +84,6 @@ Essas informações podem ser acessadas por meio do seguinte endpoint:
 ```
 http://localhost:2022/actuator/portal-admin
 ```
-
 
 ## 🚀 Tecnologias 👩‍🚀
 
