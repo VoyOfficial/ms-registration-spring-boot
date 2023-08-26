@@ -1,8 +1,7 @@
 package src.domain.entity;
 
 import com.google.maps.model.PlacesSearchResult;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -10,6 +9,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
+@Builder
+@ToString
+@AllArgsConstructor
 @EqualsAndHashCode
 public class Place {
 
@@ -23,16 +25,9 @@ public class Place {
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
     private String photoReference; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
-    private String address; // TODO vicinity
+    private String address;
 
-    public Place(PlacesSearchResult placeSearchResult) {
-
-        this.googlePlaceId = placeSearchResult.placeId;
-        this.name = placeSearchResult.name;
-        this.about = Stream.of(placeSearchResult.types).collect(Collectors.toList());
-        this.rating = placeSearchResult.rating;
-        this.userRatingsTotal = placeSearchResult.userRatingsTotal;
-        this.address = placeSearchResult.vicinity;
+    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult){
 
         var photoReference = "";
 
@@ -40,7 +35,16 @@ public class Place {
             photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
         }
 
-        this.photoReference = "https://maps.googleapis.com/maps/api/place/photo?photo_reference=" + photoReference;
+        return Place
+                .builder()
+                .googlePlaceId(placeSearchResult.placeId)
+                .name(placeSearchResult.name)
+                .about(Stream.of(placeSearchResult.types).collect(Collectors.toList()))
+                .rating(placeSearchResult.rating)
+                .userRatingsTotal(placeSearchResult.userRatingsTotal)
+                .address(placeSearchResult.vicinity)
+                .photoReference(photoReference)
+                .build();
 
     }
 

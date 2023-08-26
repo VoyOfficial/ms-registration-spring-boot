@@ -1,14 +1,16 @@
 package src.application.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 import src.domain.entity.Place;
 
 import java.util.List;
 
 @Getter
+@Builder
+@ToString
 @EqualsAndHashCode
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlaceResponse {
 
@@ -24,17 +26,20 @@ public class PlaceResponse {
     private String photoReference;
     private String address;
 
-    public PlaceResponse(Place place) {
+    public static PlaceResponse toNearbyPlaceResponse(Place place) {
 
-        this.id = place.getId();
-        this.googlePlaceId = place.getGooglePlaceId();
-        this.name = place.getName();
-        this.about = place.getAbout();
-        this.rating = place.getRating();
-        this.userRatingsTotal = place.getUserRatingsTotal();
-        this.address = place.getAddress();
-        this.isSaved = place.getIsSaved();
-        this.photoReference = place.getPhotoReference();
+        return PlaceResponse
+                .builder()
+                .id(place.getId())
+                .googlePlaceId(place.getGooglePlaceId())
+                .name(place.getName())
+                .about(place.getAbout())
+                .rating(place.getRating())
+                .userRatingsTotal(place.getUserRatingsTotal())
+                .address(place.getAddress())
+                .isSaved(place.getIsSaved())
+                .photoReference(place.getPhotoReference())
+                .build();
 
     }
 
