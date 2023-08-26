@@ -1,8 +1,10 @@
 package src.domain.entity;
 
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResult;
 import lombok.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,9 +27,10 @@ public class Place {
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
     private String photoReference; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private List<String> images;
     private String address;
 
-    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult){
+    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 
         var photoReference = "";
 
@@ -48,4 +51,24 @@ public class Place {
 
     }
 
+    public static Place toPlaceDetails(PlaceDetails placeDetails) {
+
+        var imagesReferenceList = Arrays
+                .stream(placeDetails.photos)
+                .map(photo -> photo.photoReference)
+                .collect(Collectors.toList());
+
+        return Place
+                .builder()
+                .googlePlaceId(placeDetails.placeId)
+                .name(placeDetails.name)
+                .about(List.of(placeDetails.editorialSummary.overview))
+                .contact(placeDetails.formattedPhoneNumber)
+                .businessHours(null)
+                .rating(placeDetails.rating)
+                .userRatingsTotal(placeDetails.userRatingsTotal)
+                .images(imagesReferenceList)
+                .build();
+
+    }
 }
