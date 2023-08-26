@@ -17,14 +17,13 @@ public class Place {
     private String googlePlaceId;
     private String name;
     private List<String> about;
-    private String contact; // TODO somente no get place details
+    private String contact; // TODO somente no get place details - nao tem na busca de locais proximos - formatted_phone_number na busca de detalhes do local
     private BusinessHours businessHours; // TODO somente no get place details
     private Float rating;
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
-    private Boolean isFavourite = false;
-    private List<String> comments; // TODO somente no get place details
     private String photoReference; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private String address; // TODO vicinity
 
     public Place(PlacesSearchResult placeSearchResult) {
 
@@ -33,6 +32,7 @@ public class Place {
         this.about = Stream.of(placeSearchResult.types).collect(Collectors.toList());
         this.rating = placeSearchResult.rating;
         this.userRatingsTotal = placeSearchResult.userRatingsTotal;
+        this.address = placeSearchResult.vicinity;
 
         var photoReference = "";
 
