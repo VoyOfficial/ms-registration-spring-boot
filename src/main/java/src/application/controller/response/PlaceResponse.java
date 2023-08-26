@@ -16,11 +16,13 @@ public class PlaceResponse {
     private String googlePlaceId;
     private String name;
     private List<String> about;
+    private String contact;
+    private BusinessHoursResponse businessHours;
     private Float rating;
     private Integer userRatingsTotal;
     private Boolean isSaved;
-    private Boolean isFavourite;
     private String photoReference;
+    private String address;
 
     public PlaceResponse(Place place) {
 
@@ -30,10 +32,11 @@ public class PlaceResponse {
         this.about = place.getAbout();
         this.rating = place.getRating();
         this.userRatingsTotal = place.getUserRatingsTotal();
+        this.address = place.getAddress();
         this.isSaved = place.getIsSaved();
-        this.isFavourite = place.getIsFavourite();
         this.photoReference = place.getPhotoReference();
 
     }
+
 }
 
