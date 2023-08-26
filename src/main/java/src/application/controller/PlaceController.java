@@ -68,7 +68,7 @@ public class PlaceController {
 
         var placeResponses = nearbyPlaces.getPlaces()
                 .stream()
-                .map(PlaceResponse::new)
+                .map(PlaceResponse::toNearbyPlaceResponse)
                 .collect(Collectors.toList());
 
         var nearbyPlacesResponse = new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());

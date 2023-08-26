@@ -2,10 +2,12 @@ package src.domain.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 
 @Getter
+@ToString
 @EqualsAndHashCode
 public class NearbyPlaces {
 

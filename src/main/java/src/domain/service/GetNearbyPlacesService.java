@@ -35,7 +35,7 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
         var placesEntities = Arrays
                 .stream(placesSearchResponse.results)
-                .map(Place::new)
+                .map(Place::toNearbyPlace)
                 .collect(Collectors.toList());
 
         var nearbyPlaces = new NearbyPlaces(placesEntities, placesSearchResponse.nextPageToken);
