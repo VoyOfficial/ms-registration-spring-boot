@@ -137,4 +137,56 @@ public class ExceptionHandlerAdvice {
 
     }
 
+    @ExceptionHandler(PlaceNotFoundApiClientException.class)
+    public ResponseEntity<?> handlePlaceNotFounApiClientdExceptionError(
+            PlaceNotFoundApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Not Found Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.NOT_FOUND;
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Place Not Found")
+                .message(exception.getMessage())
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(PlacesApiClientException.class)
+    public ResponseEntity<?> handlePlacesApiClientException(
+            PlacesApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Places Api Client Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        var message = exception.getMessage().replace("\"", "");
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Internal Server Error")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
 }

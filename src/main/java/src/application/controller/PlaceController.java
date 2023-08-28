@@ -1,6 +1,5 @@
 package src.application.controller;
 
-import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,7 +38,7 @@ public class PlaceController {
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content),
+            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
     })
     @ResponseStatus(OK)
@@ -79,8 +78,16 @@ public class PlaceController {
 
     }
 
+
+    @Operation(summary = "Get Details of a Place by Google ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(implementation = StandardError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
+    })
+    @ResponseStatus(OK)
     @GetMapping("/{placeId}")
-    public PlaceDetails getPlaceDetails(
+    public PlaceResponse getPlaceDetails(
             @PathVariable String placeId
     ) {
 
@@ -88,9 +95,11 @@ public class PlaceController {
 
         var placeDetails = getPlaceDetailsUseCase.getPlaceDetails(placeId);
 
-        logger.info("PLACE CONTROLLER - GET PLACE DETAILS FINISH - Place Details: {}", placeDetails);
+        var placeDetailsResponse = PlaceResponse.toPlaceDetailsResponse(placeDetails);
 
-        return placeDetails;
+        logger.info("PLACE CONTROLLER - GET PLACE DETAILS FINISH - Place Details: {}", placeDetailsResponse);
+
+        return placeDetailsResponse;
 
     }
 

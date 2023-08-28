@@ -1,10 +1,10 @@
 package src.domain.service;
 
-import com.google.maps.model.PlaceDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import src.domain.entity.Place;
 import src.domain.ports.PlacesApiPort;
 import src.domain.usecase.GetPlaceDetailsUseCase;
 
@@ -17,13 +17,15 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
     PlacesApiPort placesApiPort;
 
     @Override
-    public PlaceDetails getPlaceDetails(
+    public Place getPlaceDetails(
             String placeId
     ) {
 
         logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS START - Place Id: {}", placeId);
 
-        var placeDetails = placesApiPort.getPlaceDetails(placeId);
+        var placeDetailsGoogle = placesApiPort.getPlaceDetails(placeId);
+
+        var placeDetails = Place.toPlaceDetails(placeDetailsGoogle);
 
         logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", placeDetails);
 

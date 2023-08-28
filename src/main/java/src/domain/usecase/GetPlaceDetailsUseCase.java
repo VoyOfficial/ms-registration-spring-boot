@@ -1,10 +1,10 @@
 package src.domain.usecase;
 
-import com.google.maps.model.PlaceDetails;
+import src.domain.entity.Place;
 
 public interface GetPlaceDetailsUseCase {
 
-    PlaceDetails getPlaceDetails(
+    Place getPlaceDetails(
             String placeId
     );
 

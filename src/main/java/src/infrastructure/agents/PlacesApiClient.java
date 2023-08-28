@@ -4,6 +4,8 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.NearbySearchRequest;
 import com.google.maps.PlaceDetailsRequest;
 import com.google.maps.PlacesApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.errors.NotFoundException;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
@@ -12,7 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import src.domain.exception.PlaceNotFoundApiClientException;
 import src.domain.exception.PlacesApiClientException;
+
+import java.io.IOException;
 
 @Component
 public class PlacesApiClient {
@@ -84,14 +89,22 @@ public class PlacesApiClient {
 
             return request.await();
 
-        } catch (Exception exception) {
+        } catch (NotFoundException notFoundException) {
 
-            logger.warn("PLACES API CLIENT - Get Place Details - Occured an Error: {}", exception.getMessage());
+            logger.warn("PLACES API CLIENT - Get Place Details - Occurred an Error: {}", notFoundException.getMessage());
 
-            throw new PlacesApiClientException("Occorrude an error while getting Place Details:", exception);
+            throw new PlaceNotFoundApiClientException("Place Not Found: ", notFoundException);
 
+        } catch (ApiException exception) {
+
+            logger.warn("PLACES API CLIENT - Get Place Details - Occurred an Error: {}", exception.getMessage());
+
+            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
+
+        } catch (IOException | InterruptedException exception) {
+
+            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
         }
-
     }
 
 }
