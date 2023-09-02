@@ -2,23 +2,11 @@ package src.domain.exception;
 
 public class PlaceNotFoundApiClientException extends RuntimeException {
 
-    private static final String defaultMessage = "error.places.api.default.message";
+    private static final String defaultMessage = "error.places.api.not.found.message";
 
-    public PlaceNotFoundApiClientException(String message) {
+    public PlaceNotFoundApiClientException(Throwable cause) {
 
-        super(message);
-
-    }
-
-    public PlaceNotFoundApiClientException(String message, Throwable cause) {
-
-        super(message, cause);
-
-    }
-
-    public PlaceNotFoundApiClientException() {
-
-        super(defaultMessage);
+        super(defaultMessage, cause);
 
     }
 
