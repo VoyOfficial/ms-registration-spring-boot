@@ -99,7 +99,7 @@ class InternalizationConfigTest {
     void mustToGetCustomMessageInvalidUserException() {
 
         // cenary
-        var expectedMessage = "Invalid User found, it cannot be are null.";
+        var expectedMessage = "Invalid User found, it cannot be been null.";
 
         // action
         var message = messageSource.getMessage("invalid.user.default.message", null, Locale.getDefault());
@@ -133,6 +133,36 @@ class InternalizationConfigTest {
 
         // action
         var message = messageSource.getMessage("error.places.api.default.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Place Not Found Api Client Exception defined in message.properties")
+    void mustToGetCustomMessagePlaceNotFoundApiClientException() {
+
+        // cenary
+        var expectedMessage = "Place informed not found in Google Places.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.not.found.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Place Invalid Request Api Client Exception defined in message.properties")
+    void mustToGetCustomMessagePlaceInvalidRequestApiClientException() {
+
+        // cenary
+        var expectedMessage = "Invalid Request to Google Places, maybe PlaceId is not a valid.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.invalid.request.message", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
