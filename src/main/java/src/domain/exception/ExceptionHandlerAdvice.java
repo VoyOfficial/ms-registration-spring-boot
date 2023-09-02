@@ -138,7 +138,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(PlaceNotFoundApiClientException.class)
-    public ResponseEntity<?> handlePlaceNotFounApiClientdExceptionError(
+    public ResponseEntity<?> handlePlaceNotFoundApiClientExceptionError(
             PlaceNotFoundApiClientException exception,
             HttpServletRequest request) {
 
@@ -147,13 +147,41 @@ public class ExceptionHandlerAdvice {
         Map<String, String> errors = new HashMap<>();
 
         var httpStatus = HttpStatus.NOT_FOUND;
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
 
         var standardError = StandardError
                 .builder()
                 .timestamp(Instant.now())
                 .status(httpStatus.value())
                 .error("Place Not Found")
-                .message(exception.getMessage())
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(PlaceInvalidRequestApiClientException.class)
+    public ResponseEntity<?> handlePlacePlaceInvalidRequestApiClientExceptionExceptionError(
+            PlaceInvalidRequestApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Invalid Request Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Invalid Request")
+                .message(message)
                 .path(request.getRequestURI())
                 .errors(errors)
                 .build();
