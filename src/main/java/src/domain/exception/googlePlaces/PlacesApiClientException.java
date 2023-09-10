@@ -1,4 +1,4 @@
-package src.domain.exception;
+package src.domain.exception.googlePlaces;
 
 public class PlacesApiClientException extends RuntimeException {
 

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import src.domain.exception.googlePlaces.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -137,9 +138,35 @@ public class ExceptionHandlerAdvice {
 
     }
 
-    @ExceptionHandler(PlaceNotFoundApiClientException.class)
+    @ExceptionHandler(PlaceDetailsZeroResultsApiClientException.class)
+    public ResponseEntity<?> handlePlaceDetailsZeroResultsApiClientExceptionError(
+            PlaceDetailsZeroResultsApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Details Zero Results Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.NO_CONTENT;
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Zero Results")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(PlaceDetailsNotFoundApiClientException.class)
     public ResponseEntity<?> handlePlaceNotFoundApiClientExceptionError(
-            PlaceNotFoundApiClientException exception,
+            PlaceDetailsNotFoundApiClientException exception,
             HttpServletRequest request) {
 
         logger.warn("Exception Handler - Place Not Found Exception");
@@ -163,9 +190,9 @@ public class ExceptionHandlerAdvice {
 
     }
 
-    @ExceptionHandler(PlaceInvalidRequestApiClientException.class)
-    public ResponseEntity<?> handlePlacePlaceInvalidRequestApiClientExceptionExceptionError(
-            PlaceInvalidRequestApiClientException exception,
+    @ExceptionHandler(PlaceDetailsInvalidRequestApiClientException.class)
+    public ResponseEntity<?> handlePlacePlaceInvalidRequestApiClientExceptionError(
+            PlaceDetailsInvalidRequestApiClientException exception,
             HttpServletRequest request) {
 
         logger.warn("Exception Handler - Place Invalid Request Exception");
@@ -181,6 +208,58 @@ public class ExceptionHandlerAdvice {
                 .timestamp(Instant.now())
                 .status(httpStatus.value())
                 .error("Invalid Request")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(OverQueryLimitApiClientException.class)
+    public ResponseEntity<?> handleOverQueryLimitApiClientExceptionError(
+            OverQueryLimitApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Details Over Query Limit Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.TOO_MANY_REQUESTS;
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Over Query Limits")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(RequestDeniedApiClientException.class)
+    public ResponseEntity<?> handleORequestDeniedApiClientExceptionError(
+            RequestDeniedApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Details Over Query Limit Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.FORBIDDEN;
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Request Denied Google Places")
                 .message(message)
                 .path(request.getRequestURI())
                 .errors(errors)
