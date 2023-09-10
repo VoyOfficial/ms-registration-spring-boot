@@ -30,7 +30,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Must to save an User")
     void mustToSaveAnUser() {
 
-        // cenary
+        // scenario
         var expectedUserId = UserDatas.ID;
         var userDomain = UserDatas.makeAnUserDomain(expectedUserId);
 
@@ -54,7 +54,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Don't should to save an User when this is Invalid")
     void dontShouldToSaveAnUser() {
 
-        // cenary
+        // scenario
         var invalidUser = UserDatas.makeAnInvalidUserDomain();
         var expectedMessage = "invalid.user.default.message";
 
@@ -73,7 +73,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Must to Find an User by CPF")
     void mustToFindAnUserByCPF() {
 
-        // cenary
+        // scenario
         var userCpf = UserDatas.CPF;
         var expectedOptionalUser = Optional.of(
                 UserDatas.makeAnUserDomain(UserDatas.ID)
@@ -96,7 +96,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Don't should to Find an User by CPF")
     void dontShouldToFindAnUserByCPF() {
 
-        // cenary
+        // scenario
         var userCpf = UserDatas.CPF;
 
         when(jpaRepository.findByCpf(userCpf)).thenReturn(Optional.empty());
@@ -113,7 +113,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Must to Find an User by ID")
     void mustToFindAnUserByID() {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
         var expectedOptionalUser = Optional.of(
                 UserDatas.makeAnUserDomain(UserDatas.ID)
@@ -136,7 +136,7 @@ class RelationalUserRepositoryTest {
     @DisplayName("Don't should to Find an User by ID")
     void dontShouldToFindAnUserByID() {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
 
         when(jpaRepository.findById(userId)).thenReturn(Optional.empty());

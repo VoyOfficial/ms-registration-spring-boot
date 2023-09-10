@@ -12,7 +12,7 @@ class UserRequestTest {
     @DisplayName("Must to convert UserRequest to UserDomain")
     void mustToConvertRequestToDomain() {
 
-        // cenary
+        // scenario
         var request = UserDatas.makeAnUserRequest();
         var expectedDomain = UserDatas.makeAnUserDomain();
 

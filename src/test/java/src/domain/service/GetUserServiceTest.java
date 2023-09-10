@@ -29,7 +29,7 @@ class GetUserServiceTest {
     @DisplayName("Must to Get User By Id")
     void mustToGetUserById() {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
         var expectedUser = Optional.of(UserDatas.makeAnUserDomain(userId));
 
@@ -47,7 +47,7 @@ class GetUserServiceTest {
     @DisplayName("Don't to Get User By Id when not exists")
     void dontToGetUserByIdWhenNotExists() {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
         var expectedException = new UserNotFoundException();
 

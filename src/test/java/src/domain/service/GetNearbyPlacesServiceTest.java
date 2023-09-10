@@ -36,7 +36,7 @@ public class GetNearbyPlacesServiceTest {
     @DisplayName("Must to Get All Nearby Places given a Coordinates, radius and placeType")
     void mustToGetAllNearbyGivenACoordinatesRadiusPlaceType() {
 
-        // cenary
+        // scenario
         var coordinates = new Coordinates(LATITUDE, LONGITUDE);
         var radius = 3000;
         var placeType = "CAFE";

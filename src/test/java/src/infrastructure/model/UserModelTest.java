@@ -12,7 +12,7 @@ class UserModelTest {
     void mustToConvertDomainToModel() {
 
 
-        // cenary
+        // scenario
         var domain = UserDatas.makeAnUserDomain();
         var expectedModel = new UserModel(domain);
 
@@ -29,7 +29,7 @@ class UserModelTest {
     void mustToConvertModelToDomain() {
 
 
-        // cenary
+        // scenario
         var model = UserDatas.makeAnUserModel();
         var expectedDomain = UserDatas.makeAnUserDomain();
 

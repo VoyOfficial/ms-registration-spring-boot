@@ -23,7 +23,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Default Message of ValueOfEnumAnnotation defined in message.properties")
     void mustToGetDefaultMessageOfValueOfEnumAnnotation() {
 
-        // cenary
+        // scenario
         var expectedMessage = "must be any of enum {enumClass}";
 
         // action
@@ -38,7 +38,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Default Message of CpfAlreadyExist defined in message.properties")
     void mustToGetDefaultMessageOfCpfAlreadyExistAnnotation() {
 
-        // cenary
+        // scenario
         var expectedMessage = "The entered value already exists in the database, enter another one.";
 
         // action
@@ -53,7 +53,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of User Marital Status Invalid defined in message.properties")
     void mustToGetCustomMessageOfUserMaritalStatusInvalid() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Invalid value, accepted values: SINGLE, MARRIED, DIVORCED, SEPARATED, WIDOWED .";
 
         // action
@@ -68,7 +68,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of User Sex Invalid defined in message.properties")
     void mustToGetCustomMessageOfUserSexInvalid() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Invalid value, accepted values: MALE, FEMALE, DO_NOT_INFORM .";
 
         // action
@@ -83,7 +83,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of User CPF Already Exists defined in message.properties")
     void mustToGetCustomMessageOfUserCpfAlreadyExists() {
 
-        // cenary
+        // scenario
         var expectedMessage = "The CPF entered already exists.";
 
         // action
@@ -98,7 +98,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of Invalid User Exception defined in message.properties")
     void mustToGetCustomMessageInvalidUserException() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Invalid User found, it cannot be been null.";
 
         // action
@@ -113,7 +113,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of User Not Found Exception defined in message.properties")
     void mustToGetCustomMessageUserNotFoundException() {
 
-        // cenary
+        // scenario
         var expectedMessage = "User not found.";
 
         // action
@@ -128,7 +128,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of Places API Client Exception defined in message.properties")
     void mustToGetCustomMessagePlacesApiClientException() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Occurred an error while connecting to the Places API.";
 
         // action
@@ -143,7 +143,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of Place Not Found Api Client Exception defined in message.properties")
     void mustToGetCustomMessagePlaceNotFoundApiClientException() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Place informed not found in Google Places.";
 
         // action
@@ -158,7 +158,7 @@ class InternalizationConfigTest {
     @DisplayName("Must to get a Custom Message of Place Invalid Request Api Client Exception defined in message.properties")
     void mustToGetCustomMessagePlaceInvalidRequestApiClientException() {
 
-        // cenary
+        // scenario
         var expectedMessage = "Invalid Request to Google Places, maybe PlaceId is not a valid.";
 
         // action
