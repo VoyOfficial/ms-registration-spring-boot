@@ -29,7 +29,7 @@ class UserRegistryServiceTest {
     @DisplayName("Must to Registry an User")
     void mustToRegistryAnUser() {
 
-        // cenary
+        // scenario
         var expectedUserId = UserDatas.ID;
         var userDomain = UserDatas.makeAnUserDomain(expectedUserId);
 
@@ -49,7 +49,7 @@ class UserRegistryServiceTest {
     @DisplayName("Don't should to Registry an User when this is Invalid")
     void dontShouldRegistryAnUser() {
 
-        // cenary
+        // scenario
         var invalidUser = UserDatas.makeAnInvalidUserDomain();
         var expectedMessage = "invalid.user.default.message";
 

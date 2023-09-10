@@ -49,7 +49,7 @@ class UserControllerTest {
     @DisplayName("Must to Registry User")
     void mustToRegistryUser() throws Exception {
 
-        // cenary
+        // scenario
         var userID = UserDatas.ID;
         var userRequest = UserDatas.makeAnUserRequest();
         var userRequestJson = objectMapper.writeValueAsString(userRequest);
@@ -76,7 +76,7 @@ class UserControllerTest {
     @DisplayName("Don't should to Registry User with invalid datas")
     void dontShouldToRegistryUser() throws Exception {
 
-        // cenary
+        // scenario
         var userRequest = UserRequest.builder().build();
         var userRequestJson = objectMapper.writeValueAsString(userRequest);
 
@@ -108,7 +108,7 @@ class UserControllerTest {
     @DisplayName("Must to Get an User by ID")
     void mustToGetAnUserById() throws Exception {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
         var userDomain = UserDatas.makeAnUserDomain(userId);
         var expectedUserResponse = new UserResponse(userDomain);
@@ -135,7 +135,7 @@ class UserControllerTest {
     @DisplayName("Don't should to Get an User by ID when User not found")
     void dontShouldToGetAnUserByIdWhenUserNotExists() throws Exception {
 
-        // cenary
+        // scenario
         var userId = UserDatas.ID;
 
         var userNotfoundException = new UserNotFoundException();
@@ -159,7 +159,7 @@ class UserControllerTest {
     @DisplayName("Don't should to Get an User by ID when ID is invalid")
     void dontShouldToGetAnUserByIdWhenIdIsInvalid() throws Exception {
 
-        // cenary
+        // scenario
         var invalidId = "id";
 
         // action / validation

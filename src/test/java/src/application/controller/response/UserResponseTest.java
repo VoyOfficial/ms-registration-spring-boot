@@ -12,7 +12,7 @@ class UserResponseTest {
     @DisplayName("Must to convert User to UserResponse")
     void mustToConvertUserToUserResponse() {
 
-        // cenary
+        // scenario
         var domain = UserDatas.makeAnUserDomain();
         var expectedResponse = UserDatas.makeAnUserResponse(domain);
 
