@@ -138,6 +138,86 @@ public class ExceptionHandlerAdvice {
 
     }
 
+    @ExceptionHandler(NearbyPlacesZeroResultsApiClientException.class)
+    public ResponseEntity<?> handleNearbyPlacesZeroResultsApiClientExceptionError(
+            NearbyPlacesZeroResultsApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Nearby Places Zero Results Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.NO_CONTENT;
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Zero Results")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(NearbyPlaceInvalidRequestApiClientException.class)
+    public ResponseEntity<?> handleNearbyPlaceInvalidRequestApiClientExceptionError(
+            NearbyPlaceInvalidRequestApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Nearby Places Invalid Request Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Invalid Request")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
+    @ExceptionHandler(UnknownErrorApiClientException.class)
+    public ResponseEntity<?> handleUnknownErrorApiClientExceptionError(
+            UnknownErrorApiClientException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Unknown Error Api Client Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Unknown Error Google Places")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
     @ExceptionHandler(PlaceDetailsZeroResultsApiClientException.class)
     public ResponseEntity<?> handlePlaceDetailsZeroResultsApiClientExceptionError(
             PlaceDetailsZeroResultsApiClientException exception,
@@ -191,7 +271,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(PlaceDetailsInvalidRequestApiClientException.class)
-    public ResponseEntity<?> handlePlacePlaceInvalidRequestApiClientExceptionError(
+    public ResponseEntity<?> handlePlaceInvalidRequestApiClientExceptionError(
             PlaceDetailsInvalidRequestApiClientException exception,
             HttpServletRequest request) {
 

@@ -39,6 +39,10 @@ public class PlaceController {
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "204", description = "error.places.api.nearby.places.zero.results.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
+            @ApiResponse(responseCode = "403", description = "error.places.api.request.denied.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
+            @ApiResponse(responseCode = "422", description = "error.places.api.details.invalid.request.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
+            @ApiResponse(responseCode = "429", description = "error.places.api.over.query.limit.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
     })
     @ResponseStatus(OK)

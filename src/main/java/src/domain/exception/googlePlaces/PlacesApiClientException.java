@@ -4,9 +4,9 @@ public class PlacesApiClientException extends RuntimeException {
 
     private static final String defaultMessage = "error.places.api.default.message";
 
-    public PlacesApiClientException(String message, Throwable cause) {
+    public PlacesApiClientException(Throwable cause) {
 
-        super(message, cause);
+        super(defaultMessage, cause);
 
     }
 
