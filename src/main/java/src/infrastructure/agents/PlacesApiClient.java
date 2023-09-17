@@ -71,7 +71,7 @@ public class PlacesApiClient {
 
             logger.warn("PLACES API CLIENT - Search For Nearby Places - Invalid Request Error: {}", invalidRequestException.getMessage());
 
-            throw new PlaceDetailsInvalidRequestApiClientException(invalidRequestException);
+            throw new NearbyPlaceInvalidRequestApiClientException(invalidRequestException);
 
         } catch (OverQueryLimitException overQueryLimitException) {
 
@@ -95,11 +95,11 @@ public class PlacesApiClient {
 
             logger.warn("PLACES API CLIENT - Search For Nearby Places - Occurred an Error: {}", exception.getMessage());
 
-            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
+            throw new PlacesApiClientException(exception);
 
         } catch (IOException | InterruptedException exception) {
 
-            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
+            throw new PlacesApiClientException(exception);
 
         }
 
@@ -155,11 +155,11 @@ public class PlacesApiClient {
 
             logger.warn("PLACES API CLIENT - Get Place Details - Occurred an Error: {}", exception.getMessage());
 
-            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
+            throw new PlacesApiClientException(exception);
 
         } catch (IOException | InterruptedException exception) {
 
-            throw new PlacesApiClientException("Occurred an error while getting Place Details:", exception);
+            throw new PlacesApiClientException(exception);
 
         }
     }
