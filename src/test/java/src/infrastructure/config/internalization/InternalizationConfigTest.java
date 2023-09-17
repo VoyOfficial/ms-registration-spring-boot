@@ -162,7 +162,97 @@ class InternalizationConfigTest {
         var expectedMessage = "Invalid Request to Google Places, maybe PlaceId is not a valid.";
 
         // action
-        var message = messageSource.getMessage("error.places.api.invalid.request.message", null, Locale.getDefault());
+        var message = messageSource.getMessage("error.places.api.details.invalid.request.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Nearby Places Invalid Request Api Client Exception defined in message.properties")
+    void mustToGetCustomMessageNearbyPlacesInvalidRequestApiClientException() {
+
+        // scenario
+        var expectedMessage = "Invalid Request to Google Places, maybe coordinates or radius are invalid.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.nearby.place.invalid.request.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Request Denied Api Client Exception defined in message.properties")
+    void mustToGetCustomMessageRequestDeniedApiClientException() {
+
+        // scenario
+        var expectedMessage = "Request Denied to Google Places, maybe your API Key is invalid.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.request.denied.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Unknown Error Api Client Exception defined in message.properties")
+    void mustToGetCustomMessageUnknownErrorApiClientException() {
+
+        // scenario
+        var expectedMessage = "Unknown error while connecting to the Places API.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.unknown.error.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Over Query Limit Api Client Exception defined in message.properties")
+    void mustToGetCustomMessageOverQueryLimitApiClientException() {
+
+        // scenario
+        var expectedMessage = "You have exceeded your daily request quota for Google Places API: Billing has not been enabled on your account, The monthly $200 credit, or a self-imposed usage cap, has been exceeded or The provided method of payment is no longer valid (for example, a credit card has expired).";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.over.query.limit.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Nearby Places Zero Results Api Client Exception defined in message.properties")
+    void mustToGetCustomMessageNearbyPlacesZeroResultsApiClientException() {
+
+        // scenario
+        var expectedMessage = "The search was successful but returned no results. This may occur if the search was passed a latlng in a remote location.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.nearby.places.zero.results.message", null, Locale.getDefault());
+
+        // validation
+        assertEquals(expectedMessage, message);
+
+    }
+
+    @Test
+    @DisplayName("Must to get a Custom Message of Place Details Zero Results Api Client Exception defined in message.properties")
+    void mustToGetCustomMessagePlaceDetailsZeroResultsApiClientException() {
+
+        // scenario
+        var expectedMessage = "PlaceId was valid but no longer refers to a valid result. This maybe occur if the establishment is no longer in business.";
+
+        // action
+        var message = messageSource.getMessage("error.places.api.details.zero.results.message", null, Locale.getDefault());
 
         // validation
         assertEquals(expectedMessage, message);
