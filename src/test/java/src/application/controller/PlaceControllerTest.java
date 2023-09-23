@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PlaceController.class)
@@ -65,29 +66,29 @@ class PlaceControllerTest {
                         .param("placeType", placeType)
                         .param("nextPageToken", nextPageToken))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places", hasSize(20)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[0].name").value(containsString("Place" + 0)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[1].name").value(containsString("Place" + 1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[2].name").value(containsString("Place" + 2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[3].name").value(containsString("Place" + 3)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[4].name").value(containsString("Place" + 4)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[5].name").value(containsString("Place" + 5)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[6].name").value(containsString("Place" + 6)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[7].name").value(containsString("Place" + 7)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[8].name").value(containsString("Place" + 8)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[9].name").value(containsString("Place" + 9)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[10].name").value(containsString("Place" + 10)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[11].name").value(containsString("Place" + 11)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[12].name").value(containsString("Place" + 12)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[13].name").value(containsString("Place" + 13)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[13].name").value(containsString("Place" + 13)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[14].name").value(containsString("Place" + 14)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[15].name").value(containsString("Place" + 15)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[16].name").value(containsString("Place" + 16)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[17].name").value(containsString("Place" + 17)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[18].name").value(containsString("Place" + 18)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.places[19].name").value(containsString("Place" + 19)));
+                .andExpect(jsonPath("$.places").isNotEmpty())
+                .andExpect(jsonPath("$.places", hasSize(20)))
+                .andExpect(jsonPath("$.places[0].name").value(containsString("Place" + 0)))
+                .andExpect(jsonPath("$.places[1].name").value(containsString("Place" + 1)))
+                .andExpect(jsonPath("$.places[2].name").value(containsString("Place" + 2)))
+                .andExpect(jsonPath("$.places[3].name").value(containsString("Place" + 3)))
+                .andExpect(jsonPath("$.places[4].name").value(containsString("Place" + 4)))
+                .andExpect(jsonPath("$.places[5].name").value(containsString("Place" + 5)))
+                .andExpect(jsonPath("$.places[6].name").value(containsString("Place" + 6)))
+                .andExpect(jsonPath("$.places[7].name").value(containsString("Place" + 7)))
+                .andExpect(jsonPath("$.places[8].name").value(containsString("Place" + 8)))
+                .andExpect(jsonPath("$.places[9].name").value(containsString("Place" + 9)))
+                .andExpect(jsonPath("$.places[10].name").value(containsString("Place" + 10)))
+                .andExpect(jsonPath("$.places[11].name").value(containsString("Place" + 11)))
+                .andExpect(jsonPath("$.places[12].name").value(containsString("Place" + 12)))
+                .andExpect(jsonPath("$.places[13].name").value(containsString("Place" + 13)))
+                .andExpect(jsonPath("$.places[13].name").value(containsString("Place" + 13)))
+                .andExpect(jsonPath("$.places[14].name").value(containsString("Place" + 14)))
+                .andExpect(jsonPath("$.places[15].name").value(containsString("Place" + 15)))
+                .andExpect(jsonPath("$.places[16].name").value(containsString("Place" + 16)))
+                .andExpect(jsonPath("$.places[17].name").value(containsString("Place" + 17)))
+                .andExpect(jsonPath("$.places[18].name").value(containsString("Place" + 18)))
+                .andExpect(jsonPath("$.places[19].name").value(containsString("Place" + 19)));
 
     }
 
@@ -264,31 +265,71 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Must to Get Place by Id")
+    void mustToGetPlaceById() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+        var name = "Place0";
+        var contact = "(54) 3286-1362";
+        var rating = 4.7f;
+        var about = new String[]{"Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools."};
+        var userRatingsTotal = 2599;
+        var distanceOfLocal = 0.0;
+        var images = new String[]{"image1", "image2"};
+        var address = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
+
+        var placeDetails = createPlace(placeId, 0);
+
+        doReturn(placeDetails).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.googlePlaceId").value(placeId))
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.about[0]").value(containsString(about[0])))
+                .andExpect(jsonPath("$.contact").value(contact))
+                .andExpect(jsonPath("$.rating").value(rating))
+                .andExpect(jsonPath("$.userRatingsTotal").value(userRatingsTotal))
+                .andExpect(jsonPath("$.distanceOfLocal").value(distanceOfLocal))
+                .andExpect(jsonPath("$.images").isNotEmpty())
+                .andExpect(jsonPath("$.images", hasSize(2)))
+                .andExpect(jsonPath("$.images[0]").value(containsString(images[0])))
+                .andExpect(jsonPath("$.images[1]").value(containsString(images[1])))
+                .andExpect(jsonPath("$.address").value(address));
+
+    }
+
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
 
         for (int index = 0; index <= 19; index++) {
-            placeList.add(createPlace(index));
+            placeList.add(createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b", index));
         }
 
         return new NearbyPlaces(placeList, "AZose0kJX6a...");
 
     }
 
-    private static Place createPlace(int id) {
+    private static Place createPlace(String id, Integer index) {
 
         return new Place(null,
-                "ChIJq6qq6oZJGZURlUgeg2eJ3b" + id,
-                "Place" + id,
-                List.of("lodging", "point_of_interest", "establishment"),
-                null,
+                id,
+                "Place" + index,
+                List.of("Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools."),
+                "(54) 3286-1362",
                 null,
                 4.7f,
                 2599,
                 null,
                 "photoReference",
-                List.of("image1"),
+                List.of("image1", "image2"),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 65.2f);
     }

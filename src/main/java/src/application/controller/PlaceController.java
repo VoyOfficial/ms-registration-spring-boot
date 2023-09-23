@@ -82,8 +82,6 @@ public class PlaceController {
 
     }
 
-
-
     @Operation(summary = "Get Details of a Place by Google ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
