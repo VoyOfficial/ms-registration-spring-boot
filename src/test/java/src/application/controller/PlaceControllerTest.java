@@ -363,6 +363,26 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Don't to get place by id when over query limit error occurs")
+    void dontToGetPlaceByIdWhenOverQueryLimitErrorOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        OverQueryLimitException googleException = new OverQueryLimitException("");
+        OverQueryLimitApiClientException expectedException = new OverQueryLimitApiClientException(googleException);
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isTooManyRequests());
+
+    }
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
