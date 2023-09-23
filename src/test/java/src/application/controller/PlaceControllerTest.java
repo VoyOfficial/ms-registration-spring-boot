@@ -403,6 +403,24 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Don't to get place by id when Api Exception occurs")
+    void dontToGetPlaceByIdWhenApiExceptionOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        PlacesApiClientException expectedException = new PlacesApiClientException(new RuntimeException());
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+
+    }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
