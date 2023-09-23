@@ -383,6 +383,27 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Don't to get place by id when request denied error occurs")
+    void dontToGetPlaceByIdWhenRequestDeniedErrorOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        RequestDeniedException googleException = new RequestDeniedException("");
+        RequestDeniedApiClientException expectedException = new RequestDeniedApiClientException(googleException);
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+    }
+
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
