@@ -343,6 +343,26 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Don't to get place by id when invalid request error occurs")
+    void dontToGetPlaceByIdWhenInvalidRequestErrorOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        ZeroResultsException googleException = new ZeroResultsException("");
+        PlaceDetailsInvalidRequestApiClientException expectedException = new PlaceDetailsInvalidRequestApiClientException(googleException);
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity());
+
+    }
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
