@@ -323,6 +323,25 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Don't to get place by id when Not Found error occurs")
+    void dontToGetPlaceByIdWhenNotFoundErrorOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        ZeroResultsException googleException = new ZeroResultsException("");
+        PlaceDetailsNotFoundApiClientException expectedException = new PlaceDetailsNotFoundApiClientException(googleException);
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+    }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
