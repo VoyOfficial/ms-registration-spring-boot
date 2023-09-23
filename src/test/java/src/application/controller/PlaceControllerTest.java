@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
 import src.domain.exception.googlePlaces.*;
@@ -301,6 +300,26 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.images[0]").value(containsString(images[0])))
                 .andExpect(jsonPath("$.images[1]").value(containsString(images[1])))
                 .andExpect(jsonPath("$.address").value(address));
+
+    }
+
+    @Test
+    @DisplayName("Don't to get place by id when zero results error occurs")
+    void dontToGetPlaceByIdWhenZeroResultsErrorOccurs() throws Exception {
+
+        // scenario
+        var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+
+        ZeroResultsException googleException = new ZeroResultsException("");
+        PlaceDetailsZeroResultsApiClientException expectedException = new PlaceDetailsZeroResultsApiClientException(googleException);
+
+        doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
+
+        // action - validation
+        mockMvc.perform(get(URL + "/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
 
     }
 
