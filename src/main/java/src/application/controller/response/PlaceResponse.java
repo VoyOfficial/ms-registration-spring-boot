@@ -57,6 +57,7 @@ public class PlaceResponse {
                 .rating(place.getRating())
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .images(place.getImages())
+                .address(place.getAddress())
                 .build();
 
     }

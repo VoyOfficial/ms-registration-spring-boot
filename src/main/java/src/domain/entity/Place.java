@@ -69,6 +69,7 @@ public class Place {
                 .rating(placeDetails.rating)
                 .userRatingsTotal(placeDetails.userRatingsTotal)
                 .images(imagesReferenceList)
+                .address(placeDetails.formattedAddress)
                 .build();
 
     }
