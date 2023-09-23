@@ -330,7 +330,7 @@ class PlaceControllerTest {
         // scenario
         var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
 
-        ZeroResultsException googleException = new ZeroResultsException("");
+        NotFoundException googleException = new NotFoundException("");
         PlaceDetailsNotFoundApiClientException expectedException = new PlaceDetailsNotFoundApiClientException(googleException);
 
         doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
@@ -350,7 +350,7 @@ class PlaceControllerTest {
         // scenario
         var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
 
-        ZeroResultsException googleException = new ZeroResultsException("");
+        InvalidRequestException googleException = new InvalidRequestException("");
         PlaceDetailsInvalidRequestApiClientException expectedException = new PlaceDetailsInvalidRequestApiClientException(googleException);
 
         doThrow(expectedException).when(getPlaceDetailsService).getPlaceDetails(any());
