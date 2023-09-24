@@ -61,7 +61,7 @@ class ValueOfEnumValidatorTest {
     @DisplayName("Must check if the given strings exists in SexEnum and return True")
     void mustToCheckIfTheGivenStringsExistsInTheSexEnumAndTrue() {
 
-        // cenary
+        // scenario
         var maleString = "male";
         var femaleString = "female";
         var doNotInformString = "do_not_inform";
@@ -82,7 +82,7 @@ class ValueOfEnumValidatorTest {
     @DisplayName("Must check if the given wrong string exists in SexEnum and Return False")
     void mustToCheckIfTheGivenWrongStringExistsInTheSexEnumToReturnFalse() {
 
-        // cenary
+        // scenario
         var maleString = "malee";
         var femaleString = "ffemalee";
         var doNotInformString = "do not inform";
@@ -103,7 +103,7 @@ class ValueOfEnumValidatorTest {
     @DisplayName("Must check if the given Null Type in SexEnum should to Return False")
     void mustToCheckIfTheGivenNullTypeInTheSexEnumToReturnFalse() {
 
-        // cenary
+        // scenario
         String nullTypeString = null;
 
         // action

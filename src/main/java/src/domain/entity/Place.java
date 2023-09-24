@@ -29,6 +29,7 @@ public class Place {
     private String photoReference; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private List<String> images;
     private String address;
+    private Float distanceOfLocal; // usar outra api do google
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 
@@ -68,6 +69,7 @@ public class Place {
                 .rating(placeDetails.rating)
                 .userRatingsTotal(placeDetails.userRatingsTotal)
                 .images(imagesReferenceList)
+                .address(placeDetails.formattedAddress)
                 .build();
 
     }
