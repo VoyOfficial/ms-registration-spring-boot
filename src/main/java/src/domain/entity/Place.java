@@ -2,6 +2,7 @@ package src.domain.entity;
 
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResult;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.util.Arrays;
@@ -28,7 +29,24 @@ public class Place {
     private Boolean isSaved = false;
     private String photoReference; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private List<String> images;
+    private String addressType;
+    private String addressName;
+    private String addressNumber;
     private String address;
+    @Schema(example = "Jardim do bairro X")
+    private String neighbourhood;
+
+    @Schema(example = "Gramado")
+    private String city;
+
+    @Schema(example = "Rio grande do Sul")
+    private String state;
+
+    @Schema(example = "RS")
+    private String stateCode;
+
+    @Schema(example = "12345-000")
+    private String postcode;
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 

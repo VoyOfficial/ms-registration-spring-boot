@@ -1,5 +1,6 @@
 package src.application.controller;
 
+import com.google.maps.errors.ApiException;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,15 +12,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import src.application.controller.request.PlaceRequest;
 import src.application.controller.response.NearbyPlacesResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
 import src.domain.exception.StandardError;
 import src.domain.usecase.GetNearbyPlacesUseCase;
 import src.domain.usecase.GetPlaceDetailsUseCase;
+import src.domain.usecase.GetRecommendationPlacesUseCase;
+import src.domain.usecase.PlaceRegistryUseCase;
 
+import javax.validation.Valid;
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -36,6 +43,12 @@ public class PlaceController {
 
     @Autowired
     private GetPlaceDetailsUseCase getPlaceDetailsUseCase;
+
+    @Autowired
+    private GetRecommendationPlacesUseCase getRecommendationPlacesUseCase;
+
+    @Autowired
+    private PlaceRegistryUseCase placeRegistryUseCase;
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
@@ -92,6 +105,20 @@ public class PlaceController {
 
         return placeDetails;
 
+    }
+
+    @Operation(summary = "Get 5 recommendations place by location")
+    @GetMapping("/recommendations")
+    public Object getRecommendationsPlaces(@RequestParam double latitude, @RequestParam double longitude) throws IOException, InterruptedException, ApiException {
+        return getRecommendationPlacesUseCase.getRecommendationPlaces(latitude, longitude);
+    }
+
+    @Operation(summary = "Create a new sponsor place in the database")
+    @PostMapping("/recommendations/new")
+    public ResponseEntity createNewRecommendationPlace(@RequestBody @Valid PlaceRequest placeProperties) {
+        placeRegistryUseCase.registry(placeProperties.toDomain());
+
+        return ResponseEntity.status(OK).build();
     }
 
 }
