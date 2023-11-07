@@ -66,7 +66,7 @@ class CpfAlreadyExistValidatorTest {
     @DisplayName("Must check if given cpf already exist and is it Valid - True")
     void mustToCheckIfGivenCpfAlreadyExistAndIsItValidTrue() {
 
-        // cenary
+        // scenario
         var cpf = UserDatas.CPF;
 
         when(userRepository.findByCpf(cpf)).thenReturn(Optional.empty());
@@ -83,7 +83,7 @@ class CpfAlreadyExistValidatorTest {
     @DisplayName("Must check if given cpf already exist and is it Valid - False")
     void mustToCheckIfGivenCpfAlreadyExistAndReturnFalse() {
 
-        // cenary
+        // scenario
         var cpf = UserDatas.CPF;
 
         when(userRepository.findByCpf(cpf)).thenReturn(

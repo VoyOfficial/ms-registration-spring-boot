@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class IntervalHours {
+public class Interval {
 
-    private String id;
     private String startTime;
     private String endTime;
+
 }

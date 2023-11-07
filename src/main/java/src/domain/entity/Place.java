@@ -33,6 +33,7 @@ public class Place {
     private String addressName;
     private String addressNumber;
     private String address;
+
     @Schema(example = "Jardim do bairro X")
     private String neighbourhood;
 
@@ -47,6 +48,9 @@ public class Place {
 
     @Schema(example = "12345-000")
     private String postcode;
+
+    private Float distanceOfLocal; // usar outra api do google
+
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 
@@ -86,6 +90,7 @@ public class Place {
                 .rating(placeDetails.rating)
                 .userRatingsTotal(placeDetails.userRatingsTotal)
                 .images(imagesReferenceList)
+                .address(placeDetails.formattedAddress)
                 .build();
 
     }

@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @Builder
 public class BusinessHours {
+
     private String weekday;
-    private IntervalHours intervalHours;
+    private Interval interval;
+
 }

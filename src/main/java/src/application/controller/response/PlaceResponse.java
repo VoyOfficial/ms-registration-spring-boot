@@ -24,7 +24,9 @@ public class PlaceResponse {
     private Integer userRatingsTotal;
     private Boolean isSaved;
     private String photoReference;
+    private List<String> images;
     private String address;
+    private float distanceOfLocal;
 
     public static PlaceResponse toNearbyPlaceResponse(Place place) {
 
@@ -39,6 +41,23 @@ public class PlaceResponse {
                 .address(place.getAddress())
                 .isSaved(place.getIsSaved())
                 .photoReference(place.getPhotoReference())
+                .build();
+
+    }
+
+    public static PlaceResponse toPlaceDetailsResponse(Place place) {
+
+        return PlaceResponse
+                .builder()
+                .googlePlaceId(place.getGooglePlaceId())
+                .name(place.getName())
+                .about(place.getAbout())
+                .contact(place.getContact())
+                .businessHours(null)
+                .rating(place.getRating())
+                .userRatingsTotal(place.getUserRatingsTotal())
+                .images(place.getImages())
+                .address(place.getAddress())
                 .build();
 
     }
