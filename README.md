@@ -22,7 +22,9 @@ Se você quiser fazer alguma modificação no código precisará ter instalado e
 
 ### 🐳 Docker
 
-Este projeto conta com um **Dockerfile**, com as instruções para realizar o build da aplicação.
+Este projeto conta com um **Dockerfile**, com as instruções para realizar o build da aplicação e subir o banco de dados,
+ao realizar a subida de dados, um banco chamado **voy** será criado, os schemas serão criadas automaticamente utilizando os 
+scripts localizados no caminho /src/main/resources/db.
 
 Os requisitos para isso são:
 
@@ -47,18 +49,17 @@ docker-compose up -d
 
 ## 🔧 Variáveis de Ambiente da Aplicação
 
-| ENV_VARS             | Descrição                                                                                                  |
-|----------------------|------------------------------------------------------------------------------------------------------------|
-| API_PORT             | Porta que a aplicação utilizará em sua execução. (Default: 8080)                                           |
-| ENABLE_MOCK_SERVICES | Flag para habilitar os mocks de integração com serviços externos (google places). (Default: false)         |
-| PLACES_API_KEY       | Chave de API do Google Places.                                                                             |
-| DATABASE_HOST        | Host do banco de dados utilizado. (Default: localhost ; Postgres)                                          |
-| DATABASE_PORT        | Porta do banco de dados utilizado. (Default: 5432 ; Postgres)                                              |
-| DATABASE_DB          | Banco de dados utilizado dentro. (Default: postgres)                                                       |
-| DATABASE_USER        | Usuário do banco de dados. (Default: postgres)                                                             |
-| DATABASE_PASSWORD    | Senha do banco de dados. (Default: password)                                                               |
-| DATABASE_SCHEMA      | Esquema do banco de dados. (Default: registration)                                                         |
-| FLYWAY_ENABLE        | Recebe um valor booleano para ativar ou desativar o Flyway durante a execução da aplicação. (Default: true |
+| ENV_VARS             | Descrição                                                                                          |
+|----------------------|----------------------------------------------------------------------------------------------------|
+| API_PORT             | Porta que a aplicação utilizará em sua execução. (Default: 8080)                                   |
+| ENABLE_MOCK_SERVICES | Flag para habilitar os mocks de integração com serviços externos (google places). (Default: false) |
+| PLACES_API_KEY       | Chave de API do Google Places.                                                                     |
+| DATABASE_HOST        | Host do banco de dados utilizado. (Default: localhost ; Postgres)                                  |
+| DATABASE_PORT        | Porta do banco de dados utilizado. (Default: 5432 ; Postgres)                                      |
+| DATABASE_DB          | Banco de dados utilizado dentro. (Default: voy)                                                    |
+| DATABASE_USER        | Usuário do banco de dados. (Default: postgres)                                                     |
+| DATABASE_PASSWORD    | Senha do banco de dados. (Default: password)                                                       |
+| DATABASE_SCHEMA      | Esquema do banco de dados. (Default: registration)                                                 |
 
 ## 📝Fazendo requisições - Insomnia
 
@@ -97,7 +98,6 @@ As seguintes tecnologias foram utilizadas no desenvolvimento do projeto.
     - Validation
     - Devtools
     - Data JPA
-    - Flyway
     - Postgres
     - Profiles
 - Hibernate-types-52

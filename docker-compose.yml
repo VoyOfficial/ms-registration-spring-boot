@@ -13,7 +13,6 @@ services:
 #      DATABASE_USER: postgres
 #      DATABASE_PASSWORD: password
 #      DATABASE_SCHEMA: registration
-#      FLYWAY_ENABLE: true
 #    ports:
 #      - "8080:8080"
 #    depends_on:
@@ -29,3 +28,4 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - ./src/main/resources/db/create_database_voy.sql:/docker-entrypoint-initdb.d/create_database_voy.sql
+      - ./src/main/resources/db/create_schema_registration.sql:/docker-entrypoint-initdb.d/create_schema_registration.sql
