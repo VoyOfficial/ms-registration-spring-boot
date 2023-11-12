@@ -1,12 +1,8 @@
 package src.infrastructure.agents;
 
-<<<<<<< HEAD
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
-=======
-import com.google.maps.*;
->>>>>>> c528bb8 (:sparkles: feat: creating Get Place By Find Place From Text to Get PlaceID in PlacesApiClient)
 import com.google.maps.errors.*;
 import com.google.maps.model.*;
 import org.slf4j.Logger;
