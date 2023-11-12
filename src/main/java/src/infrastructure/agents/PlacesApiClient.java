@@ -1,13 +1,14 @@
 package src.infrastructure.agents;
 
+<<<<<<< HEAD
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
+=======
+import com.google.maps.*;
+>>>>>>> c528bb8 (:sparkles: feat: creating Get Place By Find Place From Text to Get PlaceID in PlacesApiClient)
 import com.google.maps.errors.*;
-import com.google.maps.model.LatLng;
-import com.google.maps.model.PlaceDetails;
-import com.google.maps.model.PlaceType;
-import com.google.maps.model.PlacesSearchResponse;
+import com.google.maps.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
