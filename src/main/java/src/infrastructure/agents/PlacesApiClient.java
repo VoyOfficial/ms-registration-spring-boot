@@ -30,7 +30,7 @@ public class PlacesApiClient {
 
     }
 
-    public NearbySearchRequest createNearbySearchRequest(
+    public PlacesSearchResponse searchForNearbyPlaces(
             LatLng latLng,
             Integer radius,
             PlaceType placeType,
@@ -39,15 +39,11 @@ public class PlacesApiClient {
 
         logger.info("PLACES API CLIENT - Create Nearby Search Request");
 
-        return PlacesApi.nearbySearchQuery(context, latLng)
+        var request = PlacesApi.nearbySearchQuery(context, latLng)
                 .language("en")
                 .radius(radius)
                 .type(placeType)
                 .pageToken(nextPageToken);
-
-    }
-
-    public PlacesSearchResponse searchForNearbyPlaces(NearbySearchRequest request) {
 
         try {
 
@@ -99,15 +95,11 @@ public class PlacesApiClient {
 
     }
 
-    public PlaceDetailsRequest createPlaceDetailsRequest(String placeId) {
+    public PlaceDetails getPlaceDetails(String placeId) {
 
         logger.info("PLACES API CLIENT - Create Place Details Request");
 
-        return PlacesApi.placeDetails(context, placeId);
-
-    }
-
-    public PlaceDetails getPlaceDetails(PlaceDetailsRequest request) {
+        var request = PlacesApi.placeDetails(context, placeId);
 
         try {
 
