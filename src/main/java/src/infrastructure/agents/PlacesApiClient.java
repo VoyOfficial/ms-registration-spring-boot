@@ -1,6 +1,8 @@
 package src.infrastructure.agents;
 
-import com.google.maps.*;
+import com.google.maps.FindPlaceFromTextRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PlacesApi;
 import com.google.maps.errors.*;
 import com.google.maps.model.*;
 import org.slf4j.Logger;
@@ -235,7 +237,7 @@ public class PlacesApiClient {
         }
     }
 
-    private LatLng getCityCoordinatesByFindPlaceFromText(String city) throws ApiException, InterruptedException, IOException {
+    private LatLng getCityCoordinatesByFindPlaceFromText(String city) {
 
         logger.info("PLACES API CLIENT - Get City Coordinates By Find Place From Text");
 
