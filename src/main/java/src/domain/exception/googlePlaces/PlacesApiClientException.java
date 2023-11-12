@@ -10,4 +10,10 @@ public class PlacesApiClientException extends RuntimeException {
 
     }
 
+    public PlacesApiClientException(String message) {
+
+        super(message);
+
+    }
+
 }
