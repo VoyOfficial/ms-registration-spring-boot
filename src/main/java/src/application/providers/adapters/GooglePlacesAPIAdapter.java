@@ -39,8 +39,7 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
         LatLng latLng = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
         PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
 
-        var request = placesApiClient.createNearbySearchRequest(latLng, radius, placeTypeEnum, nextPageToken);
-        var response = placesApiClient.searchForNearbyPlaces(request);
+        var response = placesApiClient.searchForNearbyPlaces(latLng, radius, placeTypeEnum, nextPageToken);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", response);
 
@@ -55,8 +54,7 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE DETAILS - Place Id: {}", placeId);
 
-        var request = placesApiClient.createPlaceDetailsRequest(placeId);
-        var response = placesApiClient.getPlaceDetails(request);
+        var response = placesApiClient.getPlaceDetails(placeId);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place Id: {}", response);
 
