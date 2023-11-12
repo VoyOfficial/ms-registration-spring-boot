@@ -4,7 +4,10 @@ import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
 import com.google.maps.errors.*;
-import com.google.maps.model.*;
+import com.google.maps.model.LatLng;
+import com.google.maps.model.PlaceDetails;
+import com.google.maps.model.PlaceType;
+import com.google.maps.model.PlacesSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -152,7 +155,7 @@ public class PlacesApiClient {
         }
     }
 
-    public FindPlaceFromText getPlaceByFindPlaceFromText(String placeName, String city) {
+    public PlaceDetails getPlaceByFindPlaceFromText(String placeName, String city) {
 
         logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
 
@@ -192,7 +195,7 @@ public class PlacesApiClient {
                 throw new PlacesApiClientException("An error occurred while trying to get the Place in the response of the Find Place From Text, Place Result Name is different from the Place Name informed");
             }
 
-            return findPlaceFromTextResults;
+            return getPlaceDetails(placeResult.placeId);
 
         } catch (ZeroResultsException zeroResultsException) {
 
