@@ -1,14 +1,8 @@
 package src.infrastructure.agents;
 
-import com.google.maps.GeoApiContext;
-import com.google.maps.NearbySearchRequest;
-import com.google.maps.PlaceDetailsRequest;
-import com.google.maps.PlacesApi;
+import com.google.maps.*;
 import com.google.maps.errors.*;
-import com.google.maps.model.LatLng;
-import com.google.maps.model.PlaceDetails;
-import com.google.maps.model.PlaceType;
-import com.google.maps.model.PlacesSearchResponse;
+import com.google.maps.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -154,6 +148,154 @@ public class PlacesApiClient {
         } catch (ApiException exception) {
 
             logger.warn("PLACES API CLIENT - Get Place Details - Occurred an Error: {}", exception.getMessage());
+
+            throw new PlacesApiClientException(exception);
+
+        } catch (IOException | InterruptedException exception) {
+
+            throw new PlacesApiClientException(exception);
+
+        }
+    }
+
+    public FindPlaceFromText getPlaceByFindPlaceFromText(String placeName, String city) throws IOException, InterruptedException, ApiException {
+
+        logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
+
+        // Selecting Fields what should to returned in the response of the Google Places API
+        FindPlaceFromTextRequest.FieldMask[] desiredFieldsInReturn = {
+//                FindPlaceFromTextRequest.FieldMask.BUSINESS_STATUS,
+//                FindPlaceFromTextRequest.FieldMask.FORMATTED_ADDRESS,
+//                FindPlaceFromTextRequest.FieldMask.GEOMETRY,
+                FindPlaceFromTextRequest.FieldMask.NAME,
+                FindPlaceFromTextRequest.FieldMask.PLACE_ID,
+//                FindPlaceFromTextRequest.FieldMask.RATING,
+//                FindPlaceFromTextRequest.FieldMask.OPENING_HOURS,
+//                FindPlaceFromTextRequest.FieldMask.PHOTOS,
+//                FindPlaceFromTextRequest.FieldMask.PRICE_LEVEL,
+//                FindPlaceFromTextRequest.FieldMask.TYPES
+        };
+
+        // Getting city coordinates to refine search by getting place and finding place from text
+        var cityCoordinates = getCityCoordinatesByFindPlaceFromText(city);
+
+        var request = PlacesApi.findPlaceFromText(context, placeName, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
+                .fields(desiredFieldsInReturn)
+                .locationBias(new FindPlaceFromTextRequest.LocationBiasCircular(cityCoordinates, 5000));
+
+        logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place - Sending Request to Get Place");
+
+        try {
+            var findPlaceFromTextResults = request.await();
+
+            var placeResult = findPlaceFromTextResults.candidates.length > 0 ? findPlaceFromTextResults.candidates[0] : null;
+
+            if (placeResult == null) {
+                throw new PlacesApiClientException("An error occurred while trying to get the placeID in the response of the Find Place From Text");
+            }
+
+            if (!placeResult.name.equals(placeName)) {
+                throw new PlacesApiClientException("An error occurred while trying to get the Place in the response of the Find Place From Text, Place Result Name is different from the Place Name informed");
+            }
+
+            return findPlaceFromTextResults;
+
+        } catch (ZeroResultsException zeroResultsException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Zero Results Error: {}", zeroResultsException.getMessage());
+
+            throw new PlacesApiClientException(zeroResultsException);
+
+        } catch (InvalidRequestException invalidRequestException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Invalid Request Error: {}", invalidRequestException.getMessage());
+
+            throw new PlacesApiClientException(invalidRequestException);
+
+        } catch (OverQueryLimitException overQueryLimitException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Over Query Limit Error: {}", overQueryLimitException.getMessage());
+
+            throw new OverQueryLimitApiClientException(overQueryLimitException);
+
+        } catch (RequestDeniedException requestDeniedException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Request Denied Error: {}", requestDeniedException.getMessage());
+
+            throw new RequestDeniedApiClientException(requestDeniedException);
+
+        } catch (UnknownErrorException unknownErrorException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Unknown Error: {}", unknownErrorException.getMessage());
+
+            throw new UnknownErrorApiClientException(unknownErrorException);
+
+        } catch (ApiException exception) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Occurred an Error: {}", exception.getMessage());
+
+            throw new PlacesApiClientException(exception);
+
+        } catch (IOException | InterruptedException exception) {
+
+            throw new PlacesApiClientException(exception);
+
+        }
+    }
+
+    private LatLng getCityCoordinatesByFindPlaceFromText(String city) throws ApiException, InterruptedException, IOException {
+
+        logger.info("PLACES API CLIENT - Get City Coordinates By Find Place From Text");
+
+        try {
+
+            var cityResults = PlacesApi.findPlaceFromText(context, city, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
+                    .fields(FindPlaceFromTextRequest.FieldMask.GEOMETRY)
+                    .await();
+
+            LatLng cityCoordinates = cityResults.candidates.length > 0 ? cityResults.candidates[0].geometry.location : null;
+
+            if (cityCoordinates == null) {
+                throw new PlacesApiClientException("An error occurred while trying to get the coordinates of the city");
+            }
+
+            logger.info("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Returning City Coordinates");
+
+            return cityCoordinates;
+
+        } catch (ZeroResultsException zeroResultsException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Zero Results Error: {}", zeroResultsException.getMessage());
+
+            throw new PlacesApiClientException(zeroResultsException);
+
+        } catch (InvalidRequestException invalidRequestException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Invalid Request Error: {}", invalidRequestException.getMessage());
+
+            throw new PlacesApiClientException(invalidRequestException);
+
+        } catch (OverQueryLimitException overQueryLimitException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Over Query Limit Error: {}", overQueryLimitException.getMessage());
+
+            throw new OverQueryLimitApiClientException(overQueryLimitException);
+
+        } catch (RequestDeniedException requestDeniedException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Request Denied Error: {}", requestDeniedException.getMessage());
+
+            throw new RequestDeniedApiClientException(requestDeniedException);
+
+        } catch (UnknownErrorException unknownErrorException) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Unknown Error: {}", unknownErrorException.getMessage());
+
+            throw new UnknownErrorApiClientException(unknownErrorException);
+
+        } catch (ApiException exception) {
+
+            logger.warn("PLACES API CLIENT - Get City Coordinates By Find Place From Text - Occurred an Error: {}", exception.getMessage());
 
             throw new PlacesApiClientException(exception);
 
