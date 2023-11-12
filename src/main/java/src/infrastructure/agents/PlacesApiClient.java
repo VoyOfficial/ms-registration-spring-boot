@@ -152,7 +152,7 @@ public class PlacesApiClient {
         }
     }
 
-    public FindPlaceFromText getPlaceByFindPlaceFromText(String placeName, String city) throws IOException, InterruptedException, ApiException {
+    public FindPlaceFromText getPlaceByFindPlaceFromText(String placeName, String city) {
 
         logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
 
