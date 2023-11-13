@@ -62,6 +62,19 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
 
     }
 
+    @Override
+    public PlaceDetails getPlaceFromText(String placeName, String city) {
+
+        logger.info("GOOGLE PLACES API ADAPTER - GET PLACE FROM TEXT - Place Name: {}, City: {}", placeName, city);
+
+        var response = placesApiClient.getPlaceFromText(placeName, city);
+
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE FROM TEXT - Place Response: {}", response);
+
+        return response;
+
+    }
+
     private PlaceType createPlaceTypeEnum(String placeType) {
 
         return Optional.ofNullable(placeType)

@@ -155,7 +155,7 @@ public class PlacesApiClient {
         }
     }
 
-    public PlaceDetails getPlaceByFindPlaceFromText(String placeName, String city) {
+    public PlaceDetails getPlaceFromText(String placeName, String city) {
 
         logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
 
