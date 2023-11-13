@@ -12,12 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import src.application.controller.request.PlaceRequest;
 import src.application.controller.response.NearbyPlacesResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
 import src.domain.exception.StandardError;
 import src.domain.usecase.GetNearbyPlacesUseCase;
 import src.domain.usecase.GetPlaceDetailsUseCase;
+import src.domain.usecase.PlaceRegistryUseCase;
 
 import java.util.stream.Collectors;
 
@@ -35,6 +37,9 @@ public class PlaceController {
 
     @Autowired
     private GetPlaceDetailsUseCase getPlaceDetailsUseCase;
+
+    @Autowired
+    private PlaceRegistryUseCase placeRegistryUseCase;
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
@@ -108,5 +113,18 @@ public class PlaceController {
 
         return placeDetailsResponse;
 
+    }
+
+    @GetMapping("/recommendations")
+    @Operation(summary = "Get recommendations place by coordinates")
+    public Object getPlaceRecommendations(@RequestParam Long latitude, @RequestParam Long longitude) {
+        return null;
+    }
+
+    @PostMapping("/recommendations")
+    @Operation(summary = "Get recommendations place by coordinates")
+    public Long createPlaceRecommendation(@RequestBody PlaceRequest placeRequest) {
+
+        return placeRegistryUseCase.registry(placeRequest.toDomain());
     }
 }
