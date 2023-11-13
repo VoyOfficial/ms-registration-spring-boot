@@ -93,7 +93,13 @@ public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
 
     @Override
     public PlaceDetails getPlaceDetails(String placeId) {
-        return null;
+        return null; // TODO implementar mock
     }
+
+    @Override
+    public PlaceDetails getPlaceFromText(String placeName, String city) {
+        return null; // TODO implementar mock
+    }
+
 
 }
