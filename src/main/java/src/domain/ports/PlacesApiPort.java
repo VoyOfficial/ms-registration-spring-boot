@@ -17,4 +17,9 @@ public interface PlacesApiPort {
             String placeId
     );
 
+    PlaceDetails getPlaceFromText(
+            String placeName,
+            String city
+    );
+
 }
