@@ -10,4 +10,10 @@ public class PlaceDetailsZeroResultsApiClientException extends RuntimeException 
 
     }
 
+    public PlaceDetailsZeroResultsApiClientException() {
+
+        super(defaultMessage);
+
+    }
+
 }

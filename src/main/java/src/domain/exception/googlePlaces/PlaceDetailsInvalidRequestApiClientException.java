@@ -10,4 +10,10 @@ public class PlaceDetailsInvalidRequestApiClientException extends RuntimeExcepti
 
     }
 
+    public PlaceDetailsInvalidRequestApiClientException() {
+
+        super(defaultMessage);
+
+    }
+
 }
