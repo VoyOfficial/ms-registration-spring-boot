@@ -10,4 +10,10 @@ public class RequestDeniedApiClientException extends RuntimeException {
 
     }
 
+    public RequestDeniedApiClientException() {
+
+        super(defaultMessage);
+
+    }
+
 }

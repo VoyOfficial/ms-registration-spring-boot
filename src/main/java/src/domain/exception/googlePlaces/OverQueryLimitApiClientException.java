@@ -10,4 +10,10 @@ public class OverQueryLimitApiClientException extends RuntimeException {
 
     }
 
+    public OverQueryLimitApiClientException() {
+
+        super(defaultMessage);
+
+    }
+
 }
