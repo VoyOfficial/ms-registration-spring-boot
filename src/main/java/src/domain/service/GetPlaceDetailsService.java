@@ -23,13 +23,11 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
 
         logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS START - Place Id: {}", placeId);
 
-        var placeDetailsGoogle = googlePlacesPort.getPlaceDetails(placeId);
+        var place = googlePlacesPort.getPlaceDetails(placeId);
 
-        var placeDetails = Place.toPlaceDetails(placeDetailsGoogle);
+        logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", place);
 
-        logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", placeDetails);
-
-        return placeDetails;
+        return place;
 
     }
 

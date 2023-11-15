@@ -103,8 +103,49 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     }
 
     @Override
-    public PlaceDetails getPlaceDetails(String placeId) {
-        return null; // TODO implementar mock
+    public Place getPlaceDetails(String placeId) {
+
+        PlaceDetails details = new PlaceDetails();
+
+        details.addressComponents = new AddressComponent[]{new AddressComponent()};
+        details.adrAddress = "Adr Address";
+        details.businessStatus = "OPERATIONAL";
+        details.curbsidePickup = true;
+        details.currentOpeningHours = new OpeningHours();
+        details.delivery = true;
+        details.dineIn = true;
+        details.editorialSummary = new PlaceEditorialSummary();
+        details.formattedAddress = "Formatted Address";
+        details.formattedPhoneNumber = "123-456-7890";
+        details.geometry = new Geometry();
+        details.internationalPhoneNumber = "+1 123-456-7890";
+        details.name = "Random Place";
+        details.openingHours = new OpeningHours();
+        details.photos = new Photo[]{new Photo()};
+        details.placeId = "random_place_id";
+        details.plusCode = new PlusCode();
+        details.priceLevel = PriceLevel.MODERATE;
+        details.rating = 4.5f;
+        details.reservable = true;
+        details.reviews = new PlaceDetails.Review[]{new PlaceDetails.Review()};
+        details.secondaryOpeningHours = new OpeningHours();
+        details.servesBeer = true;
+        details.servesBreakfast = true;
+        details.servesBrunch = true;
+        details.servesDinner = true;
+        details.servesLunch = true;
+        details.servesVegetarianFood = true;
+        details.servesWine = true;
+        details.takeout = true;
+        details.types = new AddressType[]{AddressType.LODGING, AddressType.POINT_OF_INTEREST, AddressType.ESTABLISHMENT};
+        details.userRatingsTotal = 100;
+        details.utcOffset = -180;
+        details.vicinity = "Random Vicinity";
+        details.wheelchairAccessibleEntrance = true;
+        details.htmlAttributions = new String[]{"attribution1", "attribution2"};
+
+        return Place.toPlaceDetails(details);
+
     }
 
     @Override

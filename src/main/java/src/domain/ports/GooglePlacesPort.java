@@ -3,6 +3,7 @@ package src.domain.ports;
 import com.google.maps.model.PlaceDetails;
 import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
 
 public interface GooglePlacesPort {
 
@@ -13,9 +14,7 @@ public interface GooglePlacesPort {
             String nextPageToken
     );
 
-    PlaceDetails getPlaceDetails(
-            String placeId
-    );
+    Place getPlaceDetails(String placeId);
 
     PlaceDetails getPlaceFromText(
             String placeName,
