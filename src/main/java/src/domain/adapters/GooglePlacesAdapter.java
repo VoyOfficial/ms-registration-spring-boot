@@ -3,7 +3,6 @@ package src.domain.adapters;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
-import com.google.maps.model.PlacesSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,6 @@ import src.domain.ports.GooglePlacesPort;
 import src.infrastructure.agents.PlacesApiClient;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
