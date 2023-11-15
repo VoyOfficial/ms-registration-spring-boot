@@ -6,16 +6,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
-import src.domain.ports.PlacesApiPort;
+import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
+import src.domain.ports.GooglePlacesPort;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "services.mock.enable", havingValue = "true")
-public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
+public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public PlacesSearchResponse getNearbyPlaces(
+    public NearbyPlaces getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType,
@@ -85,9 +90,15 @@ public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
         placesSearchResponse.results = new PlacesSearchResult[]{result1, result2, result3, result4};
         placesSearchResponse.nextPageToken = "3ee92b07-1305-4d1c-b5bb-b9283e9b1337";
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Places: {}", placesSearchResponse);
+        var places = Arrays.stream(placesSearchResponse.results)
+                .map(Place::toNearbyPlace)
+                .collect(Collectors.toList());
 
-        return placesSearchResponse;
+        var nearbyPlaces = new NearbyPlaces(places, placesSearchResponse.nextPageToken);
+
+        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Nearby Places: {}", nearbyPlaces);
+
+        return nearbyPlaces;
 
     }
 

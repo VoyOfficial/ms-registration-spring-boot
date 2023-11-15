@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import src.domain.entity.Place;
-import src.domain.ports.PlacesApiPort;
+import src.domain.ports.GooglePlacesPort;
 import src.domain.usecase.GetPlaceDetailsUseCase;
 
 @Service
@@ -14,7 +14,7 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    PlacesApiPort placesApiPort;
+    GooglePlacesPort googlePlacesPort;
 
     @Override
     public Place getPlaceDetails(
@@ -23,7 +23,7 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
 
         logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS START - Place Id: {}", placeId);
 
-        var placeDetailsGoogle = placesApiPort.getPlaceDetails(placeId);
+        var placeDetailsGoogle = googlePlacesPort.getPlaceDetails(placeId);
 
         var placeDetails = Place.toPlaceDetails(placeDetailsGoogle);
 

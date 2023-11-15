@@ -76,7 +76,7 @@ public class PlaceController {
 
         var nearbyPlacesResponse = new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());
 
-        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Places Response: {}", nearbyPlacesResponse);
+        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Nearby Places Response: {}", nearbyPlacesResponse);
 
         return ResponseEntity.ok(nearbyPlacesResponse);
 

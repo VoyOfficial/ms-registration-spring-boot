@@ -1,4 +1,4 @@
-package src.application.providers.adapters;
+package src.domain.adapters;
 
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
@@ -11,15 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
-import src.domain.ports.PlacesApiPort;
+import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
+import src.domain.ports.GooglePlacesPort;
 import src.infrastructure.agents.PlacesApiClient;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "services.mock.enable", havingValue = "false")
-public class GooglePlacesAPIAdapter implements PlacesApiPort {
+public class GooglePlacesAdapter implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,7 +32,7 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
     private PlacesApiClient placesApiClient;
 
     @Override
-    public PlacesSearchResponse getNearbyPlaces(
+    public NearbyPlaces getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType,
@@ -41,9 +46,15 @@ public class GooglePlacesAPIAdapter implements PlacesApiPort {
 
         var response = placesApiClient.searchForNearbyPlaces(latLng, radius, placeTypeEnum, nextPageToken);
 
-        logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", response);
+        var places = Arrays.stream(response.results)
+                .map(Place::toNearbyPlace)
+                .collect(Collectors.toList());
 
-        return response;
+        var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
+
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Nearby Places: {}", nearbyPlaces);
+
+        return nearbyPlaces;
 
     }
 
