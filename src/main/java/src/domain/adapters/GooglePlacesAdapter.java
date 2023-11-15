@@ -57,17 +57,17 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     @Override
-    public PlaceDetails getPlaceDetails(
-            String placeId
-    ) {
+    public Place getPlaceDetails(String placeId) {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE DETAILS - Place Id: {}", placeId);
 
         var response = placesApiClient.getPlaceDetails(placeId);
 
-        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place Id: {}", response);
+        var place = Place.toPlaceDetails(response);
 
-        return response;
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place: {}", place);
+
+        return place;
 
     }
 
