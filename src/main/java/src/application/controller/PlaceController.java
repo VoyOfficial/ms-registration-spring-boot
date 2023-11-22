@@ -38,7 +38,7 @@ public class PlaceController {
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = NearbyPlacesResponse.class))),
             @ApiResponse(responseCode = "204", description = "error.places.api.nearby.places.zero.results.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "403", description = "error.places.api.request.denied.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "422", description = "error.places.api.details.invalid.request.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
@@ -76,7 +76,7 @@ public class PlaceController {
 
         var nearbyPlacesResponse = new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());
 
-        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Places Response: {}", nearbyPlacesResponse);
+        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Nearby Places Response: {}", nearbyPlacesResponse);
 
         return ResponseEntity.ok(nearbyPlacesResponse);
 

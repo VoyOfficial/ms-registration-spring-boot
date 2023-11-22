@@ -6,16 +6,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
-import src.domain.ports.PlacesApiPort;
+import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
+import src.domain.ports.GooglePlacesPort;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "services.mock.enable", havingValue = "true")
-public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
+public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public PlacesSearchResponse getNearbyPlaces(
+    public NearbyPlaces getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType,
@@ -85,15 +90,62 @@ public class GooglePlacesAPIAdapterMock implements PlacesApiPort {
         placesSearchResponse.results = new PlacesSearchResult[]{result1, result2, result3, result4};
         placesSearchResponse.nextPageToken = "3ee92b07-1305-4d1c-b5bb-b9283e9b1337";
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Places: {}", placesSearchResponse);
+        var places = Arrays.stream(placesSearchResponse.results)
+                .map(Place::toNearbyPlace)
+                .collect(Collectors.toList());
 
-        return placesSearchResponse;
+        var nearbyPlaces = new NearbyPlaces(places, placesSearchResponse.nextPageToken);
+
+        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Nearby Places: {}", nearbyPlaces);
+
+        return nearbyPlaces;
 
     }
 
     @Override
-    public PlaceDetails getPlaceDetails(String placeId) {
-        return null; // TODO implementar mock
+    public Place getPlaceDetails(String placeId) {
+
+        PlaceDetails details = new PlaceDetails();
+
+        details.addressComponents = new AddressComponent[]{new AddressComponent()};
+        details.adrAddress = "Adr Address";
+        details.businessStatus = "OPERATIONAL";
+        details.curbsidePickup = true;
+        details.currentOpeningHours = new OpeningHours();
+        details.delivery = true;
+        details.dineIn = true;
+        details.editorialSummary = new PlaceEditorialSummary();
+        details.formattedAddress = "Formatted Address";
+        details.formattedPhoneNumber = "123-456-7890";
+        details.geometry = new Geometry();
+        details.internationalPhoneNumber = "+1 123-456-7890";
+        details.name = "Random Place";
+        details.openingHours = new OpeningHours();
+        details.photos = new Photo[]{new Photo()};
+        details.placeId = "random_place_id";
+        details.plusCode = new PlusCode();
+        details.priceLevel = PriceLevel.MODERATE;
+        details.rating = 4.5f;
+        details.reservable = true;
+        details.reviews = new PlaceDetails.Review[]{new PlaceDetails.Review()};
+        details.secondaryOpeningHours = new OpeningHours();
+        details.servesBeer = true;
+        details.servesBreakfast = true;
+        details.servesBrunch = true;
+        details.servesDinner = true;
+        details.servesLunch = true;
+        details.servesVegetarianFood = true;
+        details.servesWine = true;
+        details.takeout = true;
+        details.types = new AddressType[]{AddressType.LODGING, AddressType.POINT_OF_INTEREST, AddressType.ESTABLISHMENT};
+        details.userRatingsTotal = 100;
+        details.utcOffset = -180;
+        details.vicinity = "Random Vicinity";
+        details.wheelchairAccessibleEntrance = true;
+        details.htmlAttributions = new String[]{"attribution1", "attribution2"};
+
+        return Place.toPlaceDetails(details);
+
     }
 
     @Override
