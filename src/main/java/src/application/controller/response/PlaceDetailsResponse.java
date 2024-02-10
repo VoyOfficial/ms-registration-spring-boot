@@ -3,8 +3,10 @@ package src.application.controller.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -12,35 +14,37 @@ import java.util.List;
 @EqualsAndHashCode
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PlaceResponse {
+public class PlaceDetailsResponse {
 
-    private Long id;
     private String googlePlaceId;
     private String name;
     private String about;
     private String contact;
-    private BusinessHoursResponse businessHours;
+    private List<BusinessHoursResponse> businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private Boolean isSaved;
-    private String photoReference;
+    private String principalPhoto;
     private List<String> images;
     private String address;
-    private float distanceOfLocal;
 
-    public static PlaceResponse toNearbyPlaceResponse(Place place) {
+    public static PlaceDetailsResponse toPlaceDetailsResponse(PlaceDetails place) {
 
-        return PlaceResponse
+        List<BusinessHoursResponse> businessHoursResponseList = place.getBusinessHours()
+                .stream()
+                .map(BusinessHoursResponse::toBusinessHoursResponse)
+                .collect(Collectors.toList());
+
+        return PlaceDetailsResponse
                 .builder()
-                .id(place.getId())
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
                 .about(place.getAbout())
+                .contact(place.getContact())
+                .businessHours(businessHoursResponseList)
                 .rating(place.getRating())
                 .userRatingsTotal(place.getUserRatingsTotal())
+                .images(place.getImages())
                 .address(place.getAddress())
-                .isSaved(place.getIsSaved())
-                .photoReference(place.getPrincipalPhoto())
                 .build();
 
     }

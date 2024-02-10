@@ -1,13 +1,15 @@
 package src.domain.entity;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 @Builder
+@ToString
+@AllArgsConstructor
+@EqualsAndHashCode
 public class Interval {
 
-    private String startTime;
-    private String endTime;
+    private String start;
+    private String end;
 
 }
