@@ -8,8 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import src.domain.entity.NearbyPlaces;
-import src.domain.entity.Place;
+import src.domain.entity.*;
 import src.domain.exception.googlePlaces.*;
 import src.domain.service.GetNearbyPlacesService;
 import src.domain.service.GetPlaceDetailsService;
@@ -265,21 +264,20 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Must to Get Place by Id")
+    @DisplayName("Must to Get Place Details by Id")
     void mustToGetPlaceById() throws Exception {
 
         // scenario
         var placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
-        var name = "Place0";
+        var name = "Place";
         var contact = "(54) 3286-1362";
+        var about = "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.";
         var rating = 4.7f;
-        var about = new String[]{"Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools."};
         var userRatingsTotal = 2599;
-        var distanceOfLocal = 0.0;
         var images = new String[]{"image1", "image2"};
         var address = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
 
-        var placeDetails = createPlace(placeId, 0);
+        var placeDetails = createPlaceDetails(placeId);
 
         doReturn(placeDetails).when(getPlaceDetailsService).getPlaceDetails(any());
 
@@ -290,11 +288,10 @@ class PlaceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.googlePlaceId").value(placeId))
                 .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.about[0]").value(containsString(about[0])))
+                .andExpect(jsonPath("$.about").value(containsString(about)))
                 .andExpect(jsonPath("$.contact").value(contact))
                 .andExpect(jsonPath("$.rating").value(rating))
                 .andExpect(jsonPath("$.userRatingsTotal").value(userRatingsTotal))
-                .andExpect(jsonPath("$.distanceOfLocal").value(distanceOfLocal))
                 .andExpect(jsonPath("$.images").isNotEmpty())
                 .andExpect(jsonPath("$.images", hasSize(2)))
                 .andExpect(jsonPath("$.images[0]").value(containsString(images[0])))
@@ -434,12 +431,40 @@ class PlaceControllerTest {
 
     }
 
+    private static PlaceDetails createPlaceDetails(String placeId) {
+
+        Interval interval = new Interval("12:00 AM", "11:59 PM");
+
+        BusinessHours sunday = new BusinessHours("Sunday", interval);
+        BusinessHours monday = new BusinessHours("Monday", interval);
+        BusinessHours tuesday = new BusinessHours("Tuesday", interval);
+        BusinessHours wednesday = new BusinessHours("Wednesday", interval);
+        BusinessHours thursday = new BusinessHours("Thursday", interval);
+        BusinessHours friday = new BusinessHours("Friday", interval);
+        BusinessHours saturday = new BusinessHours("Saturday", interval);
+
+        List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
+
+        return new PlaceDetails(placeId,
+                "Place",
+                //TODO Analisar como o preencher o campo about
+                "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
+                "(54) 3286-1362",
+                businessHours,
+                4.7f,
+                2599,
+                List.of("image1", "image2"),
+                "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil"
+        );
+    }
+
     private static Place createPlace(String id, Integer index) {
 
         return new Place(null,
                 id,
                 "Place" + index,
-                List.of("Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools."),
+                //TODO Analisar como o preencher o campo about
+                "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
                 "(54) 3286-1362",
                 null,
                 4.7f,
