@@ -103,7 +103,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     }
 
     @Override
-    public Place getPlaceDetails(String placeId) {
+    public src.domain.entity.PlaceDetails getPlaceDetails(String placeId) {
 
         PlaceDetails details = new PlaceDetails();
 
@@ -144,7 +144,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.wheelchairAccessibleEntrance = true;
         details.htmlAttributions = new String[]{"attribution1", "attribution2"};
 
-        return Place.toPlaceDetails(details);
+        return src.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
 
     }
 
