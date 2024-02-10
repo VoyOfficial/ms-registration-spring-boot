@@ -163,7 +163,7 @@ public class PlacesApiClient {
         }
     }
 
-    public PlaceDetails getPlaceFromText(String placeName, String city) {
+    public com.google.maps.model.PlaceDetails getPlaceFromText(String placeName, String city) {
 
         logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
 
