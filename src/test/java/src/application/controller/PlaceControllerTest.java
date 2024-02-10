@@ -447,7 +447,6 @@ class PlaceControllerTest {
 
         return new PlaceDetails(placeId,
                 "Place",
-                //TODO Analisar como o preencher o campo about
                 "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
                 "(54) 3286-1362",
                 businessHours,
