@@ -1,10 +1,10 @@
 package src.domain.usecase;
 
-import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
 
 public interface GetPlaceDetailsUseCase {
 
-    Place getPlaceDetails(
+    PlaceDetails getPlaceDetails(
             String placeId
     );
 

@@ -14,7 +14,7 @@ public interface GooglePlacesPort {
             String nextPageToken
     );
 
-    Place getPlaceDetails(String placeId);
+    src.domain.entity.PlaceDetails getPlaceDetails(String placeId);
 
     PlaceDetails getPlaceFromText(
             String placeName,
