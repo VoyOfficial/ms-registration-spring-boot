@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -303,7 +302,7 @@ class PlaceControllerTest {
         var images = new String[]{"image1", "image2"};
         var address = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
 
-        br.voy.domain.entity.PlaceDetails placeDetails = br.voy.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(createPlaceDetails(placeId));
+        var placeDetails = createPlaceDetails(placeId);
 
         doReturn(placeDetails).when(getPlaceDetailsService).getPlaceDetails(anyString());
 
@@ -558,7 +557,6 @@ class PlaceControllerTest {
         List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
 
         var images = new String[]{"image1", "image2"};
-
 
         var place = new PlaceDetails();
         place.photos = new Photo[2];

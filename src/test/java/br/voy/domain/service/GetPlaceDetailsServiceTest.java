@@ -7,9 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import br.voy.domain.entity.Place;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.exception.googlePlaces.*;
+import br.voy.domain.entity.BusinessHours;
+import br.voy.domain.entity.Interval;
 
 import java.util.List;
 
@@ -177,21 +178,30 @@ class GetPlaceDetailsServiceTest {
 
     }
 
-    private Place createPlaceDetails(String placeId) {
+    private PlaceDetails createPlaceDetails(String placeId) {
 
-        return Place
+        Interval interval = new Interval("12:00 AM", "11:59 PM");
+
+        BusinessHours sunday = new BusinessHours("Sunday", interval);
+        BusinessHours monday = new BusinessHours("Monday", interval);
+        BusinessHours tuesday = new BusinessHours("Tuesday", interval);
+        BusinessHours wednesday = new BusinessHours("Wednesday", interval);
+        BusinessHours thursday = new BusinessHours("Thursday", interval);
+        BusinessHours friday = new BusinessHours("Friday", interval);
+        BusinessHours saturday = new BusinessHours("Saturday", interval);
+
+        List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
+
+        return PlaceDetails
                 .builder()
-                .id(null)
                 .googlePlaceId(placeId)
-                .name("Restaurant Fictício")
-                .about("This is a Brazilian Restaurant")
-                .contact("123456789")
-                .businessHours(null)
+                .name("Place")
+                .about("Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.")
+                .contact("(54) 3286-1362")
+                .businessHours(businessHours)
                 .rating(4.5f)
-                .isSaved(false)
-                .images(List.of("photo_reference_1"))
-                .address("123 Rua Fictícia, Cidade Fictícia")
-                .distanceOfLocal(0.0f)
+                .images(List.of("image1", "image2"))
+                .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 
     }
