@@ -1,7 +1,6 @@
 package src.domain.adapters;
 
 import com.google.maps.model.LatLng;
-import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
 import src.domain.ports.GooglePlacesPort;
 import src.infrastructure.agents.PlacesApiClient;
 
@@ -57,13 +57,13 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     @Override
-    public Place getPlaceDetails(String placeId) {
+    public PlaceDetails getPlaceDetails(String placeId) {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE DETAILS - Place Id: {}", placeId);
 
         var response = placesApiClient.getPlaceDetails(placeId);
 
-        var place = Place.toPlaceDetails(response);
+        var place = PlaceDetails.toPlaceDetailsByGoogle(response);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place: {}", place);
 
@@ -72,7 +72,7 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     @Override
-    public PlaceDetails getPlaceFromText(String placeName, String city) {
+    public com.google.maps.model.PlaceDetails getPlaceFromText(String placeName, String city) {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE FROM TEXT - Place Name: {}, City: {}", placeName, city);
 
