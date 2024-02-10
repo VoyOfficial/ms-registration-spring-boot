@@ -1,9 +1,12 @@
-package br.voy.application.controller.response;
+package src.application.controller.response;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-import br.voy.domain.entity.BusinessHours;
-import br.voy.domain.entity.Interval;
+import src.domain.entity.BusinessHours;
+import src.domain.entity.Interval;
+
+import java.util.Map;
 
 @Getter
 @Builder
