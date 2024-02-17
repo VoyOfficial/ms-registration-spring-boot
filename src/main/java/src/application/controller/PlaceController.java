@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import src.application.controller.response.NearbyPlacesResponse;
+import src.application.controller.response.PlaceDetailsResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
 import src.domain.exception.StandardError;
@@ -94,7 +95,7 @@ public class PlaceController {
     })
     @ResponseStatus(OK)
     @GetMapping("/{placeId}")
-    public PlaceResponse getPlaceDetails(
+    public PlaceDetailsResponse getPlaceDetails(
             @PathVariable String placeId
     ) {
 
@@ -102,7 +103,7 @@ public class PlaceController {
 
         var placeDetails = getPlaceDetailsUseCase.getPlaceDetails(placeId);
 
-        var placeDetailsResponse = PlaceResponse.toPlaceDetailsResponse(placeDetails);
+        var placeDetailsResponse = PlaceDetailsResponse.toPlaceDetailsResponse(placeDetails);
 
         logger.info("PLACE CONTROLLER - GET PLACE DETAILS FINISH - Place Details: {}", placeDetailsResponse);
 
