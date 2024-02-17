@@ -17,8 +17,10 @@ public class PlaceRequest extends AbstractRequest {
     @Schema(example = "abc123")
     private String googlePlaceId;
 
+    @Schema(example = "Hard Rock Cafe")
     private String name;
 
+    @Schema(example = "Gramado")
     private String city;
 
     @Schema(example = "true")
@@ -42,6 +44,8 @@ public class PlaceRequest extends AbstractRequest {
     public Place toDomain() {
         return Place.builder()
                 .googlePlaceId(googlePlaceId)
+                .name(name)
+                .city(city)
                 .status(status)
                 .ranking(ranking)
                 .startRecommendation(startRecommendation)
