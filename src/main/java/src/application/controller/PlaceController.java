@@ -85,7 +85,7 @@ public class PlaceController {
 
     @Operation(summary = "Get Details of a Place by Google ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceDetailsResponse.class))),
             @ApiResponse(responseCode = "204", description = "error.places.api.details.zero.results.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "403", description = "error.places.api.request.denied.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "404", description = "error.places.api.not.found.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
