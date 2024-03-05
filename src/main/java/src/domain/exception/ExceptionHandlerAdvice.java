@@ -376,4 +376,31 @@ public class ExceptionHandlerAdvice {
 
     }
 
+    @ExceptionHandler(PlaceAlreadyExistsException.class)
+    public ResponseEntity<?> handlePlaceAlreadyExistsExceptionError(
+            PlaceAlreadyExistsException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Place Already Exists Exception");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.BAD_REQUEST;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("Place Already Exists")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
 }
