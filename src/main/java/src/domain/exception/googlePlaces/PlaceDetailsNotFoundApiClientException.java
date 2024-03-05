@@ -10,4 +10,10 @@ public class PlaceDetailsNotFoundApiClientException extends RuntimeException {
 
     }
 
+    public PlaceDetailsNotFoundApiClientException() {
+
+        super(defaultMessage);
+
+    }
+
 }

@@ -1,21 +1,20 @@
 package src.domain.ports;
 
 import com.google.maps.model.PlaceDetails;
-import com.google.maps.model.PlacesSearchResponse;
 import src.domain.entity.Coordinates;
+import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
 
-public interface PlacesApiPort {
+public interface GooglePlacesPort {
 
-    PlacesSearchResponse getNearbyPlaces(
+    NearbyPlaces getNearbyPlaces(
             Coordinates coordinates,
             Integer radius,
             String placeType,
             String nextPageToken
     );
 
-    PlaceDetails getPlaceDetails(
-            String placeId
-    );
+    src.domain.entity.PlaceDetails getPlaceDetails(String placeId);
 
     PlaceDetails getPlaceFromText(
             String placeName,
