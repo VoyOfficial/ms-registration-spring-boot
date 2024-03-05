@@ -10,6 +10,9 @@ import src.domain.repository.PlaceRepository;
 import src.infrastructure.model.PlaceModel;
 import src.infrastructure.repository.jpa.PlaceJpaRepository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,9 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
     @Autowired
     private PlaceJpaRepository jpaRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     @Transactional
@@ -80,5 +86,15 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         return Optional.empty();
 
+    }
+
+    @Override
+    public boolean findByGooglePlaceId(String googlePlaceId) {
+            try {
+                return jpaRepository.findByGooglePlaceId(googlePlaceId) != null;
+            } catch (NoResultException e) {
+                logger.info(e.getMessage());
+                return false; // No matching entity found
+            }
     }
 }

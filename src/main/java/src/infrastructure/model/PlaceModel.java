@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import src.domain.entity.Place;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity(name = "place")
@@ -22,8 +19,10 @@ public class PlaceModel extends AbstractModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String googlePlaceId;
+    @Column(name = "name")
     private String name;
+    private String googlePlaceId;
+
     private String contact;
     private String address;
     private String city;

@@ -6,12 +6,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import src.domain.entity.Place;
+import src.domain.exception.PlaceAlreadyExistsException;
 import src.domain.repository.PlaceRepository;
 import src.domain.usecase.GetPlaceDetailsUseCase;
 import src.domain.usecase.PlaceRegistryUseCase;
 import src.infrastructure.agents.PlacesApiClient;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -32,7 +34,13 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
     @Override
     public Long registry(Place placeDomain) {
 
-        Place savedPlace = repository.savePlace(mapperPlace(placeDomain));
+        var placeDetails = mapperPlace(placeDomain);
+
+        if(alreadyAtTheDataBase(placeDetails.getGooglePlaceId())) {
+           throw new PlaceAlreadyExistsException();
+        }
+
+        Place savedPlace = repository.savePlace(placeDetails);
 
         logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", savedPlace.getName());
 
@@ -59,13 +67,15 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
         // Extrai o conteúdo entre as tags
         String extractedCity = placeDetails.adrAddress.substring(startIndex + startTag.length(), endIndex);
 
-        Date endRecommendation = Date.from(placeDomain.getStartRecommendation()
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-                .plusMonths(1)
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant());
+        Date endRecommendation = Date.from(
+                placeDomain.getStartRecommendation()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
+                        .plusMonths(1)
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()
+        );
 
         return Place.builder()
                 .googlePlaceId(placeDetails.placeId)
@@ -86,5 +96,9 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
     public static Date converterParaDate(LocalDate localDate) {
         // Converte LocalDate para Instant e, em seguida, para Date
         return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    private boolean alreadyAtTheDataBase(String googlePlaceId) {
+        return repository.findByGooglePlaceId(googlePlaceId);
     }
 }
