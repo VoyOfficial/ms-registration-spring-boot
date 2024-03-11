@@ -3,11 +3,13 @@ package src.domain.mocks;
 import com.google.maps.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
+import src.domain.mapper.PlaceDetailsMapper;
 import src.domain.ports.GooglePlacesPort;
 
 import java.util.Arrays;
@@ -18,6 +20,9 @@ import java.util.stream.Collectors;
 public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private PlaceDetailsMapper placeDetailsMapper;
 
     @Override
     public NearbyPlaces getNearbyPlaces(
@@ -144,7 +149,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.wheelchairAccessibleEntrance = true;
         details.htmlAttributions = new String[]{"attribution1", "attribution2"};
 
-        return src.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
+        return placeDetailsMapper.toPlaceDetailsByGoogle(details);
 
     }
 

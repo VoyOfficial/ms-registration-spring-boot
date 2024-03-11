@@ -12,6 +12,7 @@ import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
 import src.domain.entity.PlaceDetails;
+import src.domain.mapper.PlaceDetailsMapper;
 import src.domain.ports.GooglePlacesPort;
 import src.infrastructure.agents.PlacesApiClient;
 
@@ -28,6 +29,9 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
     @Autowired
     private PlacesApiClient placesApiClient;
+
+    @Autowired
+    private PlaceDetailsMapper placeDetailsMapper;
 
     @Override
     public NearbyPlaces getNearbyPlaces(
@@ -63,7 +67,7 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         var response = placesApiClient.getPlaceDetails(placeId);
 
-        var place = PlaceDetails.toPlaceDetailsByGoogle(response);
+        var place = placeDetailsMapper.toPlaceDetailsByGoogle(response);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place: {}", place);
 
