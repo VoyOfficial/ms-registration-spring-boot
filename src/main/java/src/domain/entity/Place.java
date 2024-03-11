@@ -2,31 +2,44 @@ package src.domain.entity;
 
 import com.google.maps.model.PlacesSearchResult;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 @Getter
-@Builder
 @ToString
-@AllArgsConstructor
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Place {
 
     private Long id;
     private String googlePlaceId;
     private String name;
-    private String about;
-    private String contact; // TODO somente no get place details - nao tem na busca de locais proximos - formatted_phone_number na busca de detalhes do local
-    private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
-    private List<String> images;
-    private String address;
     private Float distanceOfLocal; // usar outra api do google
+
+    @Builder(builderMethodName = "placeBuilder")
+    public Place(Long id,
+                 String googlePlaceId,
+                 String name,
+                 Float rating,
+                 Integer userRatingsTotal,
+                 Boolean isSaved,
+                 String principalPhoto,
+                 Float distanceOfLocal) {
+        this.id = id;
+        this.googlePlaceId = googlePlaceId;
+        this.name = name;
+        this.rating = rating;
+        this.userRatingsTotal = userRatingsTotal;
+        this.isSaved = isSaved;
+        this.principalPhoto = principalPhoto;
+        this.distanceOfLocal = distanceOfLocal;
+    }
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 
@@ -37,16 +50,16 @@ public class Place {
         }
 
         return Place
-                .builder()
+                .placeBuilder()
                 .googlePlaceId(placeSearchResult.placeId)
                 .name(placeSearchResult.name)
-                .about("") // todo refatorar
                 .rating(placeSearchResult.rating)
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
-                .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
                 .build();
 
     }
 
 }
+
+

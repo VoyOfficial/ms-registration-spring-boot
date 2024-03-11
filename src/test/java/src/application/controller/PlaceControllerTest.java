@@ -445,33 +445,31 @@ class PlaceControllerTest {
 
         List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
 
-        return new PlaceDetails(placeId,
+        return new PlaceDetails(null,
+                placeId,
                 "Place",
+                4.7f,
+                2599,
+                false,
+                "PrincipalPhoto",
+                65.2f,
                 "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
                 "(54) 3286-1362",
                 businessHours,
-                4.7f,
-                2599,
                 List.of("image1", "image2"),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil"
         );
     }
 
-    private static Place createPlace(String id, Integer index) {
+    private static Place createPlace(String googlePlaceId, Integer index) {
 
         return new Place(null,
-                id,
+                googlePlaceId,
                 "Place" + index,
-                //TODO Analisar como o preencher o campo about
-                "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
-                "(54) 3286-1362",
-                null,
                 4.7f,
                 2599,
-                null,
+                false,
                 "photoReference",
-                List.of("image1", "image2"),
-                "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 65.2f);
     }
 

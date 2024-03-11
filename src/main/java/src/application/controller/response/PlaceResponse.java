@@ -35,10 +35,10 @@ public class PlaceResponse {
                 .id(place.getId())
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
-                .about(place.getAbout())
+//                .about(place.getAbout())
                 .rating(place.getRating())
                 .userRatingsTotal(place.getUserRatingsTotal())
-                .address(place.getAddress())
+//                .address(place.getAddress())
                 .isSaved(place.getIsSaved())
                 .photoReference(place.getPrincipalPhoto())
                 .build();
