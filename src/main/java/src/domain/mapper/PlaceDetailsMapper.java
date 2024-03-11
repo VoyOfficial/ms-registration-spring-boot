@@ -19,7 +19,7 @@ public class PlaceDetailsMapper {
     private final int MAX_HEIGHT = 1080;
 
     @Value("${places.api.key}")
-    private String API_KEY;
+    public String API_KEY;
 
     public PlaceDetails toPlaceDetailsByGoogle(com.google.maps.model.PlaceDetails googlePlaceDetails) {
 
@@ -37,11 +37,11 @@ public class PlaceDetailsMapper {
                 .about(about)
                 .contact(contact)
                 .businessHours(businessHoursList)
+                .rating(googlePlaceDetails.rating)
+                .userRatingsTotal(googlePlaceDetails.userRatingsTotal)
                 .images(imagesLinks)
                 .address(googlePlaceDetails.formattedAddress)
                 .build();
-
-
     }
 
     private List<String> createImageLinks(Photo[] photos) {
