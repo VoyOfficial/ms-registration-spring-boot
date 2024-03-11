@@ -2,7 +2,6 @@ package src.domain.entity;
 
 import com.google.maps.model.PlacesSearchResult;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.util.Objects;
 import java.util.stream.Stream;
