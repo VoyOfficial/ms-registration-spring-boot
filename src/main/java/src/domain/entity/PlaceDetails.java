@@ -13,7 +13,7 @@ public class PlaceDetails extends Place {
     private String about;
     private String contact;
     private List<BusinessHours> businessHours;
-    private List<String> images;// TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private List<String> images;
     private String address;
 
     @Builder
