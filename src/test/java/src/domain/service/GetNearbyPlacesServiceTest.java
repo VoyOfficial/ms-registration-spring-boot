@@ -11,9 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import src.domain.entity.Coordinates;
-import src.domain.ports.PlacesApiPort;
+import src.domain.entity.NearbyPlaces;
+import src.domain.entity.Place;
+import src.domain.ports.GooglePlacesPort;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,7 +30,7 @@ public class GetNearbyPlacesServiceTest {
     public static final String NEXT_PAGE_TOKEN = "AZose0kAquvI0OxlfS1GiCgQUr2zxeuhP_W0vjpKo9to093vL3mgI0vpTVhfNlYfKo-jka5cthTv9TJmv27TTP8wvN5qMS3VGGxoR9N6ZR_eBytNfrbCKrevuoPrFIeKwiSBxsKuVAM7LfM6xFxON1mZIZus0Qpd9claswgZKz0-Pj0WkvXoAN9KuqNzdYpyDXsBnTiwSd3aCuyXSkaN_T3JQL8IkS-GxzddSFweguWTG0IPojXqE3gTF3gHGdsTQJ2FxuxFOx3i_Hy0JMQpoolLZMDUaBgYkig8ASMLysVf-WQnF4nBeQdMwF0Dh4zl8sxLfTuE4Dk0YwArXHJklv-4oDsF6JttwZCSdilkv3XudKqpditzDjRbOeUtxenCNUAh_BSEo4nrZo2BrAww3nlkyu58Pe2MHtN8QtV6gnTd";
 
     @Mock
-    PlacesApiPort placesApiPort;
+    GooglePlacesPort googlePlacesPort;
 
     @InjectMocks
     GetNearbyPlacesService service;
@@ -41,9 +44,9 @@ public class GetNearbyPlacesServiceTest {
         var radius = 3000;
         var placeType = "CAFE";
 
-        PlacesSearchResponse placesSearchResponse = createPlacesSearchResponseMock();
+        NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(placesSearchResponse).when(placesApiPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -52,11 +55,11 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
         assertEquals(NEXT_PAGE_TOKEN, nearbyPlaces.getNextTokenPage());
-        verify(placesApiPort, times(1)).getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
+        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
 
     }
 
-    private PlacesSearchResponse createPlacesSearchResponseMock() {
+    private NearbyPlaces createNearbyPlacesMock() {
 
         PlacesSearchResponse placesSearchResponse = new PlacesSearchResponse();
 
@@ -65,7 +68,12 @@ public class GetNearbyPlacesServiceTest {
 
         placesSearchResponse.results = Arrays.asList(result1, result2).toArray(new PlacesSearchResult[0]);
         placesSearchResponse.nextPageToken = NEXT_PAGE_TOKEN;
-        return placesSearchResponse;
+
+        var places = Arrays.stream(placesSearchResponse.results)
+                .map(Place::toNearbyPlace)
+                .collect(Collectors.toList());
+
+        return new NearbyPlaces(places, placesSearchResponse.nextPageToken);
 
     }
 

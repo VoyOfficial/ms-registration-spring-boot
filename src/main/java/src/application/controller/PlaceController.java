@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import src.application.controller.request.PlaceRequest;
 import src.application.controller.response.NearbyPlacesResponse;
+import src.application.controller.response.PlaceDetailsResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
 import src.domain.exception.PlaceAlreadyExistsException;
@@ -44,7 +45,7 @@ public class PlaceController {
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Getting 20 Nearby Places ", content = @Content(schema = @Schema(implementation = NearbyPlacesResponse.class))),
             @ApiResponse(responseCode = "204", description = "error.places.api.nearby.places.zero.results.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "403", description = "error.places.api.request.denied.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "422", description = "error.places.api.details.invalid.request.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
@@ -82,7 +83,7 @@ public class PlaceController {
 
         var nearbyPlacesResponse = new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());
 
-        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Places Response: {}", nearbyPlacesResponse);
+        logger.info("PLACE CONTROLLER - GET NEARBY PLACES FINISH - Nearby Places Response: {}", nearbyPlacesResponse);
 
         return ResponseEntity.ok(nearbyPlacesResponse);
 
@@ -90,7 +91,7 @@ public class PlaceController {
 
     @Operation(summary = "Get Details of a Place by Google ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Getting Details of a Place", content = @Content(schema = @Schema(implementation = PlaceDetailsResponse.class))),
             @ApiResponse(responseCode = "204", description = "error.places.api.details.zero.results.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "403", description = "error.places.api.request.denied.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
             @ApiResponse(responseCode = "404", description = "error.places.api.not.found.message", content = @Content(schema = @Schema(implementation = StandardError.class))),
@@ -100,7 +101,7 @@ public class PlaceController {
     })
     @ResponseStatus(OK)
     @GetMapping("/{placeId}")
-    public PlaceResponse getPlaceDetails(
+    public PlaceDetailsResponse getPlaceDetails(
             @PathVariable String placeId
     ) {
 
@@ -108,7 +109,7 @@ public class PlaceController {
 
         var placeDetails = getPlaceDetailsUseCase.getPlaceDetails(placeId);
 
-        var placeDetailsResponse = PlaceResponse.toPlaceDetailsResponse(placeDetails);
+        var placeDetailsResponse = PlaceDetailsResponse.toPlaceDetailsResponse(placeDetails);
 
         logger.info("PLACE CONTROLLER - GET PLACE DETAILS FINISH - Place Details: {}", placeDetailsResponse);
 
