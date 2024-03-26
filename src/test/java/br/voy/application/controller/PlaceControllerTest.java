@@ -517,6 +517,16 @@ class PlaceControllerTest {
 
         doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
 
+    }
+
+    @Test
+    @DisplayName("Don't should to Registry Recommendation Place")
+    void dontShouldToRegistryRecommendationPlace() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest.builder().build();
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
         // action - validation
         mockMvc.perform(
                         post(URL)
@@ -526,6 +536,10 @@ class PlaceControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("City informed is different of city registered in Google Place"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.endRecommendation").value("must not be null"))
                 .andReturn();
 
     }
@@ -581,26 +595,27 @@ class PlaceControllerTest {
         return new Place(null,
                 id,
                 "Place" + index,
-                //TODO Analisar como o preencher o campo about
                 "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
                 "(54) 3286-1362",
-                null,
+                null, // businessHours
                 4.7f,
                 2599,
-                null,
+                false, // isSaved
                 "photoReference",
                 List.of("image1", "image2"),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 "Gramado",
-                true,
-                1,
-                null,
-                null,
-                null,
-                null,
-                65.2f,
-                65.2f,
-                65.2f, "");
+                true, // status
+                1, // ranking
+                null, // startRecommendation
+                null, // endRecommendation
+                null, // createdAt
+                null, // createdDate
+                null, // lastCancel
+                65.2f, // distanceOfLocal
+                65.2, // latitude
+                65.2, // longitude
+                ""); // distanceFromUserLocation
     }
 
 }

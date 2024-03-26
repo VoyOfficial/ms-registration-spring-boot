@@ -44,6 +44,7 @@ public class Place {
 
     @Setter
     private LocalDate createdAt;
+    private LocalDate createdDate;
     private LocalDate lastCancel;
     private Float distanceOfLocal; // usar outra api do google
     private double latitude;

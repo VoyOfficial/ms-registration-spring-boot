@@ -200,10 +200,6 @@ public class GetRecommendedPlacesServiceTest {
         assertEquals("não encontrado", exception.getReason());
     }
 
-    private BoundingBox generateBoudingBox() {
-        return new BoundingBox(-29.449882160591873, -29.270017839408126, -50.951235663360585, -50.744864336639424);
-    }
-
     private Place generateFarPlace() {
         return Place.builder()
                 .id(123L)
@@ -288,7 +284,7 @@ public class GetRecommendedPlacesServiceTest {
                 .build();
     }
 
-    public static Place createPlace(
+    private static Place createPlace(
             Long id, String googlePlaceId, String name, String about, String contact,
             BusinessHours businessHours, Float rating, Integer userRatingsTotal, Boolean isSaved,
             String principalPhoto, List<String> images, String address, String city,
