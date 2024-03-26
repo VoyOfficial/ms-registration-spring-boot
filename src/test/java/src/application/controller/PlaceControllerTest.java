@@ -1,28 +1,43 @@
 package src.application.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import src.application.controller.request.PlaceRequest;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
 import src.domain.exception.googlePlaces.*;
 import src.domain.service.GetNearbyPlacesService;
 import src.domain.service.GetPlaceDetailsService;
+import src.domain.usecase.PlaceRegistryUseCase;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +54,20 @@ class PlaceControllerTest {
 
     @MockBean
     GetPlaceDetailsService getPlaceDetailsService;
+
+    @MockBean
+    PlaceRegistryUseCase placeRegistryUseCase;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @InjectMocks
+    PlaceController placeController;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     @DisplayName("Must to Get 20 Nearby Places")
@@ -422,6 +451,53 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Controller Should Return Status Ok")
+    void testControllerShouldReturnStatusOk() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = new PlaceRequest();
+        placeRequest.setName("Hard Rock Cafe Gramado");
+        placeRequest.setCity("Gramado");
+        placeRequest.setStatus(true);
+        placeRequest.setRanking(2);
+        placeRequest.setStartRecommendation(Date.from(Instant.now()));
+
+        doReturn(1L).when(placeRegistryUseCase).registry(placeRequest.toDomain());
+
+        // action - validation
+        mockMvc.perform(
+                post(URL+"/registry-places")
+                        .content(objectMapper.writeValueAsString(placeRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("Experado que o PlaceController.createPlaceRecommendation retorne 200 com uma response valida do placeRegistryUseCase.registry")
+    void testExpectedPlaceControllerCreatePlaceRecommendationMethodCallsPlaceRegistryUseCaseRegistryMethodAndReturnValidResponse() {
+        PlaceRequest placeRequest = new PlaceRequest();
+        placeRequest.setName("Hard Rock Cafe Gramado");
+        placeRequest.setCity("Gramado");
+        placeRequest.setStatus(true);
+        placeRequest.setRanking(2);
+        placeRequest.setStartRecommendation(Date.from(Instant.now()));
+
+        when(placeRegistryUseCase.registry(placeRequest.toDomain()))
+                .thenReturn(1L);
+
+        ResponseEntity<Long> response = this.placeController.createPlaceRecommendation(placeRequest);
+
+        assertTrue(response.hasBody(), "esperado que a response tenha response body");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "esperado que o status seja ok");
+
+        verify(this.placeRegistryUseCase, VerificationModeFactory
+                .times(1))
+                .registry(placeRequest.toDomain());
+    }
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
@@ -448,6 +524,15 @@ class PlaceControllerTest {
                 "photoReference",
                 List.of("image1", "image2"),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
+                "Gramado",
+                true,
+                1,
+                null,
+                null,
+                null,
+                null,
+                65.2f,
+                65.2f,
                 65.2f);
     }
 

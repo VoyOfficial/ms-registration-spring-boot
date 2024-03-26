@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 @ToString
 @AllArgsConstructor
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Place {
 
     private Long id;

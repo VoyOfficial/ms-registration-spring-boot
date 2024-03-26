@@ -13,7 +13,6 @@ import src.domain.usecase.PlaceRegistryUseCase;
 import src.infrastructure.agents.PlacesApiClient;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -24,9 +23,6 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
     @Autowired
     private PlaceRepository repository;
-
-    @Autowired
-    private GetPlaceDetailsUseCase getPlaceDetailsUseCase;
 
     @Autowired
     private PlacesApiClient placesApiClient;
@@ -43,8 +39,6 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
         Place savedPlace = repository.savePlace(placeDetails);
 
         logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", savedPlace.getName());
-
-        System.out.println("savedPlace: " + savedPlace);
 
         return savedPlace.getId();
 
@@ -91,11 +85,6 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
                 .latitude(placeDetails.geometry.location.lat)
                 .longitude(placeDetails.geometry.location.lng)
                 .build();
-    }
-
-    public static Date converterParaDate(LocalDate localDate) {
-        // Converte LocalDate para Instant e, em seguida, para Date
-        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
     private boolean alreadyAtTheDataBase(String googlePlaceId) {
