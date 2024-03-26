@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import src.application.controller.request.PlaceRequest;
-import src.domain.entity.NearbyPlaces;
-import src.domain.entity.Place;
 import src.domain.entity.*;
 import src.domain.exception.googlePlaces.*;
 import src.domain.service.GetNearbyPlacesService;
 import src.domain.service.GetPlaceDetailsService;
-import src.domain.usecase.PlaceRegistryUseCase;
+import src.domain.service.PlaceRegistryService;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -58,7 +54,7 @@ class PlaceControllerTest {
     GetPlaceDetailsService getPlaceDetailsService;
 
     @MockBean
-    PlaceRegistryUseCase placeRegistryUseCase;
+    PlaceRegistryService placeRegistryService;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -452,50 +448,59 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Controller Should Return Status Ok")
-    void testControllerShouldReturnStatusOk() throws Exception {
+    @DisplayName("Must to Registry Recommendation Place")
+    void mustToRegistryRecommendationPlace() throws Exception {
 
         // scenario
-        PlaceRequest placeRequest = new PlaceRequest();
-        placeRequest.setName("Hard Rock Cafe Gramado");
-        placeRequest.setCity("Gramado");
-        placeRequest.setStatus(true);
-        placeRequest.setRanking(2);
-        placeRequest.setStartRecommendation(Date.from(Instant.now()));
+        var placeId = 1L;
 
-        doReturn(1L).when(placeRegistryUseCase).registry(placeRequest.toDomain());
+        PlaceRequest placeRequest = PlaceRequest
+                .builder()
+                .name("Hard Rock Cafe Gramado")
+                .city("Gramado")
+                .ranking(2)
+                .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+        var expectedLocationHeader = "http://localhost/v1/places/" + placeId;
+
+        doReturn(placeId).when(placeRegistryService).registry(placeRequest.toDomain());
 
         // action - validation
-        mockMvc.perform(
-                post(URL+"/registry-places")
-                        .content(objectMapper.writeValueAsString(placeRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isOk())
+        var mvcResult = mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isCreated())
                 .andReturn();
+
+        String locationHeader = mvcResult.getResponse().getHeader("Location");
+
+        assertEquals(expectedLocationHeader, locationHeader);
 
     }
 
     @Test
-    @DisplayName("Experado que o PlaceController.createPlaceRecommendation retorne 200 com uma response valida do placeRegistryUseCase.registry")
-    void testExpectedPlaceControllerCreatePlaceRecommendationMethodCallsPlaceRegistryUseCaseRegistryMethodAndReturnValidResponse() {
-        PlaceRequest placeRequest = new PlaceRequest();
-        placeRequest.setName("Hard Rock Cafe Gramado");
-        placeRequest.setCity("Gramado");
-        placeRequest.setStatus(true);
-        placeRequest.setRanking(2);
-        placeRequest.setStartRecommendation(Date.from(Instant.now()));
+    @DisplayName("Don't should to Registry Recommendation Place")
+    void dontShouldToRegistryRecommendationPlace() throws Exception {
 
-        when(placeRegistryUseCase.registry(placeRequest.toDomain()))
-                .thenReturn(1L);
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest.builder().build();
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
 
-        ResponseEntity<Long> response = this.placeController.createPlaceRecommendation(placeRequest);
+        // action - validation
+        mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.endRecommendation").value("must not be null"))
+                .andReturn();
 
-        assertTrue(response.hasBody(), "esperado que a response tenha response body");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "esperado que o status seja ok");
-
-        verify(this.placeRegistryUseCase, VerificationModeFactory
-                .times(1))
-                .registry(placeRequest.toDomain());
     }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {

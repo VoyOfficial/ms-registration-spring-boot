@@ -1,44 +1,38 @@
 package src.application.controller.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import src.domain.entity.Place;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Builder
 public class PlaceRequest extends AbstractRequest {
 
     @Schema(example = "abc123")
     private String googlePlaceId;
 
     @Schema(example = "Hard Rock Cafe")
+    @NotBlank
     private String name;
 
     @Schema(example = "Gramado")
+    @NotBlank
     private String city;
 
-    @Schema(example = "true")
-    private boolean status;
-
     @Schema(example = "5")
+    @NotNull
     private Integer ranking;
 
     @Schema(example = "01/01/2000")
-    @NotBlank
-    private Date startRecommendation;
-
-    @Schema(example = "01/01/2000")
-    @NotBlank
-    private Date endRecommendation; // o banco pode preencher automático (startRecommendation + 1 mês)
-
-    @Schema(example = "01/01/2000")
-    private Date createdDate;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
+    private LocalDate endRecommendation; // o banco pode preencher automático (startRecommendation + 1 mês)
 
     @Override
     public Place toDomain() {
@@ -46,11 +40,8 @@ public class PlaceRequest extends AbstractRequest {
                 .googlePlaceId(googlePlaceId)
                 .name(name)
                 .city(city)
-                .status(status)
                 .ranking(ranking)
-                .startRecommendation(startRecommendation)
                 .endRecommendation(endRecommendation)
-                .createdDate(createdDate)
                 .build();
     }
 

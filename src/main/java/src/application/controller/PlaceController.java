@@ -2,6 +2,7 @@ package src.application.controller;
 
 import com.google.maps.model.PlaceType;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 import src.application.controller.request.PlaceRequest;
 import src.application.controller.response.NearbyPlacesResponse;
 import src.application.controller.response.PlaceDetailsResponse;
@@ -23,8 +25,10 @@ import src.domain.usecase.GetNearbyPlacesUseCase;
 import src.domain.usecase.GetPlaceDetailsUseCase;
 import src.domain.usecase.PlaceRegistryUseCase;
 
+import javax.validation.Valid;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @Tag(name = "Place", description = "Endpoint with all operations of Places")
@@ -118,15 +122,31 @@ public class PlaceController {
     }
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Registry place", content = @Content(schema = @Schema(implementation = Long.class))),
-            @ApiResponse(responseCode = "400", description = "place.already.exists.default.message", content = @Content(schema = @Schema(implementation = PlaceAlreadyExistsException.class))),
+            @ApiResponse(responseCode = "201", description = "Registry place", content = @Content, headers = @Header(name = "Location", description = "Url to access the created resource")),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = PlaceAlreadyExistsException.class))),
+            @ApiResponse(responseCode = "422", description = "Unprocessable Entity", content = @Content(schema = @Schema(implementation = PlaceAlreadyExistsException.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
     })
-    @ResponseStatus(OK)
-    @PostMapping("/registry-places")
+    @ResponseStatus(CREATED)
+    @PostMapping
     @Operation(summary = "Registry recommendations place")
-    public ResponseEntity<Long> createPlaceRecommendation(@RequestBody PlaceRequest placeRequest) {
+    public ResponseEntity<Long> createPlaceRecommendation(
+            @RequestBody @Valid PlaceRequest request,
+            UriComponentsBuilder uriBuilder
+    ) {
 
-        return ResponseEntity.ok().body(placeRegistryUseCase.registry(placeRequest.toDomain()));
+        logger.info("PLACE CONTROLLER - REGISTRY - Place: {}", request.getName());
+
+        var placeId = placeRegistryUseCase.registry(request.toDomain());
+
+        var uri = uriBuilder
+                .path("/v1/places/{placeId}")
+                .buildAndExpand(placeId)
+                .toUri();
+
+        logger.info("PLACE CONTROLLER - REGISTERED PLACE - Place: {}", placeId);
+
+        return ResponseEntity.created(uri).build();
+
     }
 }
