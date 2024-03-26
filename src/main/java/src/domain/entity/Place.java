@@ -3,7 +3,7 @@ package src.domain.entity;
 import com.google.maps.model.PlacesSearchResult;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -31,10 +31,10 @@ public class Place {
     private String city;
     private boolean status;
     private Integer ranking;
-    private Date startRecommendation;
-    private Date endRecommendation;
-    private Date createdDate;
-    private Date lastCancel;
+    private LocalDate startRecommendation;
+    private LocalDate endRecommendation;
+    private LocalDate createdDate;
+    private LocalDate lastCancel;
     private Float distanceOfLocal; // usar outra api do google
     private double latitude;
     private double longitude;
