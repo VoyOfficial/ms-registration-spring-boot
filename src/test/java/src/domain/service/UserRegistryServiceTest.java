@@ -66,4 +66,26 @@ class UserRegistryServiceTest {
 
     }
 
+    @Test
+    @DisplayName("Don't should to Registry an User when this is Null")
+    void dontShouldRegistryAnUserWhenUserIsNull() {
+
+        // scenario
+        User invalidUser = null;
+
+        var expectedMessage = "invalid.user.default.message";
+
+        // action
+
+        var raisedException = assertThrows(InvalidUserException.class,
+                () -> service.registry(invalidUser)
+        );
+
+
+        // validation
+        assertEquals(InvalidUserException.class, raisedException.getClass());
+        assertEquals(expectedMessage, raisedException.getMessage());
+
+    }
+
 }

@@ -16,6 +16,7 @@ import src.application.controller.request.PlaceRequest;
 import src.application.controller.response.NearbyPlacesResponse;
 import src.application.controller.response.PlaceResponse;
 import src.domain.entity.Coordinates;
+import src.domain.exception.PlaceAlreadyExistsException;
 import src.domain.exception.StandardError;
 import src.domain.usecase.GetNearbyPlacesUseCase;
 import src.domain.usecase.GetPlaceDetailsUseCase;
@@ -115,16 +116,16 @@ public class PlaceController {
 
     }
 
-    @GetMapping("/recommendations")
-    @Operation(summary = "Get recommendations place by coordinates")
-    public Object getPlaceRecommendations(@RequestParam Long latitude, @RequestParam Long longitude) {
-        return null;
-    }
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Registry place", content = @Content(schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "400", description = "place.already.exists.default.message", content = @Content(schema = @Schema(implementation = PlaceAlreadyExistsException.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
+    })
+    @ResponseStatus(OK)
+    @PostMapping("/registry-places")
+    @Operation(summary = "Registry recommendations place")
+    public ResponseEntity<Long> createPlaceRecommendation(@RequestBody PlaceRequest placeRequest) {
 
-    @PostMapping("/recommendations")
-    @Operation(summary = "Get recommendations place by coordinates")
-    public Long createPlaceRecommendation(@RequestBody PlaceRequest placeRequest) {
-
-        return placeRegistryUseCase.registry(placeRequest.toDomain());
+        return ResponseEntity.ok().body(placeRegistryUseCase.registry(placeRequest.toDomain()));
     }
 }
