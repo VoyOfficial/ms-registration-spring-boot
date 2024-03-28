@@ -33,7 +33,7 @@ public class PlaceModel extends AbstractModel {
     private Integer ranking;
     private LocalDate startRecommendation;
     private LocalDate endRecommendation;
-    private LocalDate createdDate;
+    private LocalDate createdAt;
     private LocalDate lastCancel;
     private double latitude;
     private double longitude;
@@ -49,7 +49,7 @@ public class PlaceModel extends AbstractModel {
         this.ranking = placeDomain.getRanking();
         this.startRecommendation = placeDomain.getStartRecommendation();
         this.endRecommendation = placeDomain.getEndRecommendation();
-        this.createdDate = placeDomain.getCreatedDate();
+        this.createdAt = placeDomain.getCreatedAt();
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
@@ -68,7 +68,7 @@ public class PlaceModel extends AbstractModel {
                 .ranking(ranking)
                 .startRecommendation(startRecommendation)
                 .endRecommendation(endRecommendation)
-                .createdDate(createdDate)
+                .createdAt(createdAt)
                 .lastCancel(lastCancel)
                 .latitude(latitude)
                 .longitude(longitude)

@@ -36,10 +36,12 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
         var statusRecommendedPlace = true;
         var startRecommendation = LocalDate.now();
+        var createdAt = LocalDate.now();
         var endRecommendation = startRecommendation.plusMonths(1);
 
         recommendedPlace.setStatus(statusRecommendedPlace);
         recommendedPlace.setStartRecommendation(startRecommendation);
+        recommendedPlace.setCreatedAt(createdAt);
         recommendedPlace.setEndRecommendation(endRecommendation);
 
         Place savedPlace = repository.savePlace(recommendedPlace);

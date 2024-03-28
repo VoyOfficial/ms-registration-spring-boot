@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-@Data
+
+@Getter
 @Builder
 @ToString
 @AllArgsConstructor
 @EqualsAndHashCode
-@NoArgsConstructor
 public class Place {
 
     private Long id;
@@ -31,11 +31,20 @@ public class Place {
     private List<String> images;
     private String address;
     private String city;
+
+    @Setter
     private boolean status;
+
     private Integer ranking;
+
+    @Setter
     private LocalDate startRecommendation;
+
+    @Setter
     private LocalDate endRecommendation;
-    private LocalDate createdDate;
+
+    @Setter
+    private LocalDate createdAt;
     private LocalDate lastCancel;
     private Float distanceOfLocal; // usar outra api do google
     private double latitude;
