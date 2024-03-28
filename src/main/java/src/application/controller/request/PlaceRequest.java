@@ -1,14 +1,12 @@
 package src.application.controller.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
 import src.domain.entity.Place;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
-import java.util.Date;
 
 @Getter
 @Builder
@@ -29,19 +27,14 @@ public class PlaceRequest extends AbstractRequest {
     @NotNull
     private Integer ranking;
 
-    @Schema(example = "01/01/2000")
-    @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
-    private LocalDate endRecommendation; // o banco pode preencher automático (startRecommendation + 1 mês)
-
     @Override
     public Place toDomain() {
-        return Place.builder()
+        return Place
+                .builder()
                 .googlePlaceId(googlePlaceId)
                 .name(name)
                 .city(city)
                 .ranking(ranking)
-                .endRecommendation(endRecommendation)
                 .build();
     }
 

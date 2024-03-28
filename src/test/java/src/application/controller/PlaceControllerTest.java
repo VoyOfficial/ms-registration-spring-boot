@@ -7,33 +7,29 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import src.application.controller.request.PlaceRequest;
 import src.domain.entity.*;
+import src.domain.exception.CityDifferentPlaceRecommendationException;
 import src.domain.exception.googlePlaces.*;
 import src.domain.service.GetNearbyPlacesService;
 import src.domain.service.GetPlaceDetailsService;
 import src.domain.service.PlaceRegistryService;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -481,8 +477,8 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Don't should to Registry Recommendation Place")
-    void dontShouldToRegistryRecommendationPlace() throws Exception {
+    @DisplayName("Don't should to Registry Recommendation Place when to Receive Invalid Request")
+    void dontShouldToRegistryRecommendationPlaceWhenToReceiveInvalidRequest() throws Exception {
 
         // scenario
         PlaceRequest placeRequest = PlaceRequest.builder().build();
@@ -498,7 +494,37 @@ class PlaceControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.endRecommendation").value("must not be null"))
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("Don't should to Registry Recommendation Place When City of Request is different between GooglePlace")
+    void dontShouldToRegistryRecommendationPlaceWhenCityOfRequestIsDifferentBetweenGooglePlace() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest
+                .builder()
+                .name("Hard Rock Cafe Gramado")
+                .city("Test City")
+                .ranking(2)
+                .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        var expectedException = new CityDifferentPlaceRecommendationException();
+
+        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
+
+        // action - validation
+        mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("City informed is different of city registered in Google Place"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
                 .andReturn();
 
     }
