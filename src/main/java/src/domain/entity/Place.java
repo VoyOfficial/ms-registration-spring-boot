@@ -3,9 +3,13 @@ package src.domain.entity;
 import com.google.maps.model.PlacesSearchResult;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+
 
 @Getter
 @Builder
@@ -26,7 +30,25 @@ public class Place {
     private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private List<String> images;
     private String address;
+    private String city;
+
+    @Setter
+    private boolean status;
+
+    private Integer ranking;
+
+    @Setter
+    private LocalDate startRecommendation;
+
+    @Setter
+    private LocalDate endRecommendation;
+
+    @Setter
+    private LocalDate createdAt;
+    private LocalDate lastCancel;
     private Float distanceOfLocal; // usar outra api do google
+    private double latitude;
+    private double longitude;
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 

@@ -1,27 +1,37 @@
 package src.application.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import src.application.controller.request.PlaceRequest;
 import src.domain.entity.*;
+import src.domain.exception.CityDifferentPlaceRecommendationException;
 import src.domain.exception.googlePlaces.*;
 import src.domain.service.GetNearbyPlacesService;
 import src.domain.service.GetPlaceDetailsService;
+import src.domain.service.PlaceRegistryService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +48,20 @@ class PlaceControllerTest {
 
     @MockBean
     GetPlaceDetailsService getPlaceDetailsService;
+
+    @MockBean
+    PlaceRegistryService placeRegistryService;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @InjectMocks
+    PlaceController placeController;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     @DisplayName("Must to Get 20 Nearby Places")
@@ -419,6 +443,92 @@ class PlaceControllerTest {
 
     }
 
+    @Test
+    @DisplayName("Must to Registry Recommendation Place")
+    void mustToRegistryRecommendationPlace() throws Exception {
+
+        // scenario
+        var placeId = 1L;
+
+        PlaceRequest placeRequest = PlaceRequest
+                .builder()
+                .name("Hard Rock Cafe Gramado")
+                .city("Gramado")
+                .ranking(2)
+                .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+        var expectedLocationHeader = "http://localhost/v1/places/" + placeId;
+
+        doReturn(placeId).when(placeRegistryService).registry(placeRequest.toDomain());
+
+        // action - validation
+        var mvcResult = mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isCreated())
+                .andReturn();
+
+        String locationHeader = mvcResult.getResponse().getHeader("Location");
+
+        assertEquals(expectedLocationHeader, locationHeader);
+
+    }
+
+    @Test
+    @DisplayName("Don't should to Registry Recommendation Place when to Receive Invalid Request")
+    void dontShouldToRegistryRecommendationPlaceWhenToReceiveInvalidRequest() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest.builder().build();
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        // action - validation
+        mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("Don't should to Registry Recommendation Place When City of Request is different between GooglePlace")
+    void dontShouldToRegistryRecommendationPlaceWhenCityOfRequestIsDifferentBetweenGooglePlace() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest
+                .builder()
+                .name("Hard Rock Cafe Gramado")
+                .city("Test City")
+                .ranking(2)
+                .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        var expectedException = new CityDifferentPlaceRecommendationException();
+
+        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
+
+        // action - validation
+        mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("City informed is different of city registered in Google Place"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
+                .andReturn();
+
+    }
+
     private static NearbyPlaces createNearbyPlacesWith20Places() {
 
         List<Place> placeList = new ArrayList<>();
@@ -472,6 +582,15 @@ class PlaceControllerTest {
                 "photoReference",
                 List.of("image1", "image2"),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
+                "Gramado",
+                true,
+                1,
+                null,
+                null,
+                null,
+                null,
+                65.2f,
+                65.2f,
                 65.2f);
     }
 
