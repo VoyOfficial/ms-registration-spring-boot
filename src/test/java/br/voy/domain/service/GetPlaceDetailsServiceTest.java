@@ -1,11 +1,13 @@
 package br.voy.domain.service;
 
 import br.voy.domain.entity.PlaceDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.exception.googlePlaces.*;
@@ -26,6 +28,11 @@ class GetPlaceDetailsServiceTest {
 
     @InjectMocks
     GetPlaceDetailsService service;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     @DisplayName("Must to Get Place Details given a placeId")
