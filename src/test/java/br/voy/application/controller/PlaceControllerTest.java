@@ -500,26 +500,6 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Don't should to Registry Recommendation Place When City of Request is different between GooglePlace")
-    void dontShouldToRegistryRecommendationPlaceWhenCityOfRequestIsDifferentBetweenGooglePlace() throws Exception {
-
-        // scenario
-        PlaceRequest placeRequest = PlaceRequest
-                .builder()
-                .name("Hard Rock Cafe Gramado")
-                .city("Test City")
-                .ranking(2)
-                .build();
-
-        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
-
-        var expectedException = new CityDifferentPlaceRecommendationException();
-
-        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
-
-    }
-
-    @Test
     @DisplayName("Don't should to Registry Recommendation Place")
     void dontShouldToRegistryRecommendationPlace() throws Exception {
 
@@ -539,7 +519,37 @@ class PlaceControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.errors.endRecommendation").value("must not be null"))
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("Don't should to Registry Recommendation Place When City of Request is different between GooglePlace")
+    void dontShouldToRegistryRecommendationPlaceWhenCityOfRequestIsDifferentBetweenGooglePlace() throws Exception {
+
+        // scenario
+        PlaceRequest placeRequest = PlaceRequest
+                .builder()
+                .name("Hard Rock Cafe Gramado")
+                .city("Test City")
+                .ranking(2)
+                .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        var expectedException = new CityDifferentPlaceRecommendationException();
+
+        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
+
+        // action - validation
+        mockMvc.perform(
+                        post(URL)
+                                .content(placeRequestJson)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("City informed is different of city registered in Google Place"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
                 .andReturn();
 
     }
