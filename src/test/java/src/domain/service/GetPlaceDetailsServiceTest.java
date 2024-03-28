@@ -1,9 +1,5 @@
 package src.domain.service;
 
-import com.google.maps.model.Geometry;
-import com.google.maps.model.LatLng;
-import com.google.maps.model.Photo;
-import com.google.maps.model.PlaceEditorialSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import src.domain.entity.BusinessHours;
 import src.domain.entity.Interval;
-import src.domain.entity.Place;
 import src.domain.entity.PlaceDetails;
 import src.domain.exception.googlePlaces.*;
 import src.domain.ports.GooglePlacesPort;
@@ -22,14 +17,11 @@ import src.domain.ports.GooglePlacesPort;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class GetPlaceDetailsServiceTest {
-
-    @Mock
-    private PlacesApiPort placesApiPort;
 
     @Mock
     GooglePlacesPort googlePlacesPort;
@@ -41,7 +33,6 @@ class GetPlaceDetailsServiceTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
-
 
     @Test
     @DisplayName("Must to Get Place Details given a placeId")
@@ -221,55 +212,6 @@ class GetPlaceDetailsServiceTest {
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 
-    }
-
-    @Test
-    public void testGetPlaceDetails() {
-        // Mocking the response from the PlacesApiPort
-        com.google.maps.model.PlaceDetails placeDetailsGoogle = placeDetailsGenerator();
-        when(placesApiPort.getPlaceDetails(anyString())).thenReturn(placeDetailsGoogle);
-
-        // Invoking the method under test
-        String placeId = "ChIJPQmNhEMyGZURxuHk44vIaIw";
-        Place actualPlaceDetails = service.getPlaceDetails(placeId);
-
-        // Asserting the result
-        assertNotNull(actualPlaceDetails);
-    }
-
-    com.google.maps.model.PlaceDetails placeDetailsGenerator() {
-        com.google.maps.model.PlaceDetails placeDetails = new com.google.maps.model.PlaceDetails();
-
-        Geometry geometry = new Geometry();
-        geometry.location = new LatLng(-29.38101710,-50.87110530);
-
-        placeDetails.name = "Hard Rock Cafe";
-        placeDetails.placeId = "ChIJPQmNhEMyGZURxuHk44vIaIw";
-        placeDetails.formattedAddress = "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil";
-        placeDetails.adrAddress = "<span class=\"street-address\">R. Wilma Dinnebier</span> - <span class=\"extended-address\">Bairro Belverede</span>, <span class=\"locality\">Gramado</span> - <span class=\"region\">RS</span>, <span class=\"postal-code\">95670-192</span>, <span class=\"country-name\">Brazil</span>";
-        placeDetails.businessStatus = "OPERATIONAL";
-        placeDetails.curbsidePickup = false;
-        placeDetails.geometry = geometry;
-        placeDetails.photos = new Photo[0];
-        placeDetails.vicinity = "Rua Wilma Dinnebier - Bairro Belverede, Gramado";
-        placeDetails.formattedPhoneNumber = "(54) 3286-4040";
-        placeDetails.internationalPhoneNumber = "+55 54 3286-4040";
-        placeDetails.icon = null;
-        placeDetails.openingHours = null;
-        placeDetails.utcOffset = -180;
-        placeDetails.userRatingsTotal = 13611;
-        placeDetails.reservable = true;
-        placeDetails.servesBeer = true;
-        placeDetails.servesBreakfast = false;
-        placeDetails.editorialSummary = new PlaceEditorialSummary();
-        placeDetails.editorialSummary.overview = "";
-        placeDetails.servesDinner = true;
-        placeDetails.servesLunch = true;
-        placeDetails.servesVegetarianFood = false;
-        placeDetails.servesWine = true;
-        placeDetails.wheelchairAccessibleEntrance = true;
-
-        return placeDetails;
     }
 
 }
