@@ -1,9 +1,8 @@
 package src.domain.ports;
 
-import com.google.maps.model.PlaceDetails;
 import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
-import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
 
 public interface GooglePlacesPort {
 
@@ -14,7 +13,7 @@ public interface GooglePlacesPort {
             String nextPageToken
     );
 
-    src.domain.entity.PlaceDetails getPlaceDetails(String placeId);
+    PlaceDetails getPlaceDetails(String placeId);
 
     PlaceDetails getPlaceFromText(
             String placeName,

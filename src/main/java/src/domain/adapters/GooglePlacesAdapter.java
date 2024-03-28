@@ -72,15 +72,16 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     @Override
-    public com.google.maps.model.PlaceDetails getPlaceFromText(String placeName, String city) {
+    public PlaceDetails getPlaceFromText(String placeName, String city) {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE FROM TEXT - Place Name: {}, City: {}", placeName, city);
 
         var response = placesApiClient.getPlaceFromText(placeName, city);
+        var place = PlaceDetails.toPlaceDetailsByGoogle(response);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE FROM TEXT - Place Response: {}", response);
 
-        return response;
+        return place;
 
     }
 
