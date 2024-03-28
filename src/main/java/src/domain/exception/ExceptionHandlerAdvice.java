@@ -385,7 +385,7 @@ public class ExceptionHandlerAdvice {
 
         Map<String, String> errors = new HashMap<>();
 
-        var httpStatus = HttpStatus.BAD_REQUEST;
+        var httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
 
         var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
 
@@ -402,5 +402,33 @@ public class ExceptionHandlerAdvice {
         return ResponseEntity.status(httpStatus).body(standardError);
 
     }
+
+    @ExceptionHandler(CityDifferentPlaceRecommendationException.class)
+    public ResponseEntity<?> handlePCityDifferentPlaceRecommendationExceptionError(
+            CityDifferentPlaceRecommendationException exception,
+            HttpServletRequest request) {
+
+        logger.warn("Exception Handler - City of Recommended Place is Different between Google Place");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.BAD_REQUEST;
+
+        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError = StandardError
+                .builder()
+                .timestamp(Instant.now())
+                .status(httpStatus.value())
+                .error("City informed is different of city registered in Google Place")
+                .message(message)
+                .path(request.getRequestURI())
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+
+    }
+
 
 }

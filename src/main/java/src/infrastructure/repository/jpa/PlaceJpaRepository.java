@@ -15,4 +15,7 @@ public interface PlaceJpaRepository extends JpaRepository<PlaceModel, Long> {
 
     @Query("SELECT p FROM place p WHERE p.googlePlaceId = :googlePlaceId")
     PlaceModel findByGooglePlaceId(String googlePlaceId);
+
+    Optional<PlaceModel> findPlaceByGooglePlaceId(String googlePlaceId);
+
 }

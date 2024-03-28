@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import src.domain.entity.Place;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity(name = "place")
 @Getter
@@ -19,8 +19,11 @@ public class PlaceModel extends AbstractModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "name")
     private String name;
+
+    @Column(unique = true)
     private String googlePlaceId;
 
     private String contact;
@@ -28,17 +31,16 @@ public class PlaceModel extends AbstractModel {
     private String city;
     private boolean status;
     private Integer ranking;
-    private Date startRecommendation;
-    private Date endRecommendation;
-    private Date createdDate;
-    private Date lastCancel;
+    private LocalDate startRecommendation;
+    private LocalDate endRecommendation;
+    private LocalDate createdDate;
+    private LocalDate lastCancel;
     private double latitude;
     private double longitude;
 
     public PlaceModel(Place placeDomain) {
         this.id = placeDomain.getId();
         this.googlePlaceId = placeDomain.getGooglePlaceId();
-        ;
         this.name = placeDomain.getName();
         this.contact = placeDomain.getContact();
         this.address = placeDomain.getAddress();

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import src.domain.entity.Coordinates;
 import src.domain.entity.NearbyPlaces;
 import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
 import src.domain.ports.GooglePlacesPort;
 
 import java.util.Arrays;
@@ -103,9 +104,9 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     }
 
     @Override
-    public src.domain.entity.PlaceDetails getPlaceDetails(String placeId) {
+    public PlaceDetails getPlaceDetails(String placeId) {
 
-        PlaceDetails details = new PlaceDetails();
+        com.google.maps.model.PlaceDetails details = new com.google.maps.model.PlaceDetails();
 
         details.addressComponents = new AddressComponent[]{new AddressComponent()};
         details.adrAddress = "Adr Address";
@@ -127,7 +128,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.priceLevel = PriceLevel.MODERATE;
         details.rating = 4.5f;
         details.reservable = true;
-        details.reviews = new PlaceDetails.Review[]{new PlaceDetails.Review()};
+        details.reviews = new com.google.maps.model.PlaceDetails.Review[]{new com.google.maps.model.PlaceDetails.Review()};
         details.secondaryOpeningHours = new OpeningHours();
         details.servesBeer = true;
         details.servesBreakfast = true;
@@ -144,7 +145,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.wheelchairAccessibleEntrance = true;
         details.htmlAttributions = new String[]{"attribution1", "attribution2"};
 
-        return src.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
+        return PlaceDetails.toPlaceDetailsByGoogle(details);
 
     }
 

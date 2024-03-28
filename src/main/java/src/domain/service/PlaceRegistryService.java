@@ -1,20 +1,18 @@
 package src.domain.service;
 
-import com.google.maps.model.PlaceDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import src.domain.entity.Place;
+import src.domain.entity.PlaceDetails;
+import src.domain.exception.CityDifferentPlaceRecommendationException;
 import src.domain.exception.PlaceAlreadyExistsException;
+import src.domain.ports.GooglePlacesPort;
 import src.domain.repository.PlaceRepository;
-import src.domain.usecase.GetPlaceDetailsUseCase;
 import src.domain.usecase.PlaceRegistryUseCase;
-import src.infrastructure.agents.PlacesApiClient;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Service
 public class PlaceRegistryService implements PlaceRegistryUseCase {
@@ -25,69 +23,83 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
     private PlaceRepository repository;
 
     @Autowired
-    private PlacesApiClient placesApiClient;
+    private GooglePlacesPort googlePlacesPort;
 
     @Override
     public Long registry(Place placeDomain) {
 
-        var placeDetails = mapperPlace(placeDomain);
+        logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", placeDomain.getName());
 
-        if(alreadyAtTheDataBase(placeDetails.getGooglePlaceId())) {
-           throw new PlaceAlreadyExistsException();
-        }
+        var recommendedPlace = processingDataPlace(placeDomain);
 
-        Place savedPlace = repository.savePlace(placeDetails);
+        verifyIfPlaceAlreadyExistsInDatabase(recommendedPlace.getGooglePlaceId());
 
-        logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", savedPlace.getName());
+        var statusRecommendedPlace = true;
+        var startRecommendation = LocalDate.now();
+        var endRecommendation = startRecommendation.plusMonths(1);
+
+        recommendedPlace.setStatus(statusRecommendedPlace);
+        recommendedPlace.setStartRecommendation(startRecommendation);
+        recommendedPlace.setEndRecommendation(endRecommendation);
+
+        Place savedPlace = repository.savePlace(recommendedPlace);
+
+        logger.info("PLACE REGISTRY SERVICE - REGISTRY - Registered Recommended Place: {}", savedPlace.getName());
 
         return savedPlace.getId();
 
     }
 
-    Place mapperPlace(Place placeDomain){
-        //metodo para obter os detalhes do lugar
-        PlaceDetails placeDetails = placesApiClient.getPlaceFromText(placeDomain.getName(), placeDomain.getCity());
+    private Place processingDataPlace(Place placeDomain) {
 
-        // Define as tags de início e fim
-        String startTag = "<span class=\"locality\">";
-        String endTag = "</span>";
+        logger.info("PLACE REGISTRY SERVICE - Starting processing Data of Place");
 
-        // Encontra a posição inicial da tag de início
-        int startIndex = placeDetails.adrAddress.indexOf(startTag);
+        PlaceDetails placeDetails = googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity());
 
-        // Encontra a posição final da tag de fim, começando a busca após a tag de início
-        int endIndex = placeDetails.adrAddress.indexOf(endTag, startIndex + startTag.length());
+        String city = extractCityOfPlaceDetails(placeDomain.getCity(), placeDetails.getAddress());
 
-        // Extrai o conteúdo entre as tags
-        String extractedCity = placeDetails.adrAddress.substring(startIndex + startTag.length(), endIndex);
+        logger.info("PLACE REGISTRY SERVICE - Ending processing Data of Place");
 
-        Date endRecommendation = Date.from(
-                placeDomain.getStartRecommendation()
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime()
-                        .plusMonths(1)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()
-        );
-
-        return Place.builder()
-                .googlePlaceId(placeDetails.placeId)
-                .name(placeDetails.name)
-                .contact(placeDetails.formattedPhoneNumber)
-                .address(placeDetails.formattedAddress)
-                .city(extractedCity)
-                .status(placeDomain.isStatus())
+        return Place
+                .builder()
+                .googlePlaceId(placeDetails.getGooglePlaceId())
+                .name(placeDetails.getName())
+                .contact(placeDetails.getContact())
+                .address(placeDetails.getAddress())
+                .city(city)
                 .ranking(placeDomain.getRanking())
-                .startRecommendation(placeDomain.getStartRecommendation())
-                .endRecommendation(endRecommendation)
-                .createdDate(placeDomain.getStartRecommendation())
-                .latitude(placeDetails.geometry.location.lat)
-                .longitude(placeDetails.geometry.location.lng)
+//                .latitude(placeDetails.geometry.location.lat) TODO Verificar necessidade
+//                .longitude(placeDetails.geometry.location.lng)
                 .build();
     }
 
-    private boolean alreadyAtTheDataBase(String googlePlaceId) {
-        return repository.findByGooglePlaceId(googlePlaceId);
+
+    private String extractCityOfPlaceDetails(String placeDomainCity, String googlePlaceAddress) {
+
+        // The number 1 in split(", ") is used to retrieve the second part of the split string,
+        // which should contain the city and state.
+        // Then, the number 0 in split(" - ") is used to extract only the city.
+        String extractedCity = googlePlaceAddress.split(", ")[1].split(" - ")[0].trim();
+
+        if (!extractedCity.contentEquals(placeDomainCity)) {
+            throw new CityDifferentPlaceRecommendationException();
+        }
+
+        return extractedCity;
+
     }
+
+    private void verifyIfPlaceAlreadyExistsInDatabase(String googlePlaceId) {
+
+        logger.info("PLACE REGISTRY SERVICE - Verify If Place Already Exists In Database");
+
+        if (repository.findPlaceByGooglePlaceId(googlePlaceId).isPresent()) {
+
+            logger.info("PLACE REGISTRY SERVICE - Place Already Exists In Database");
+            throw new PlaceAlreadyExistsException();
+
+        }
+
+    }
+
 }

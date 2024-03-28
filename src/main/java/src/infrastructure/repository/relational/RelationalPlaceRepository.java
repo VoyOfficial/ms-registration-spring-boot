@@ -11,7 +11,6 @@ import src.infrastructure.model.PlaceModel;
 import src.infrastructure.repository.jpa.PlaceJpaRepository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,11 +47,11 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         var optionalPlaceModel = jpaRepository.findById(placeId);
 
-        if(optionalPlaceModel.isPresent()){
+        if (optionalPlaceModel.isPresent()) {
 
             var userModel = optionalPlaceModel.get();
 
-            logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - ID: {}", placeId);
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY ID - ID: {}", placeId);
 
             return Optional.of(userModel.toDomain());
 
@@ -71,12 +70,12 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         var optionalPlaceModel = jpaRepository.findByCity(city);
 
-        if(optionalPlaceModel.isPresent()) {
+        if (optionalPlaceModel.isPresent()) {
 
             var placesModel = optionalPlaceModel.get();
             List<Place> placesDomain = new ArrayList<>();
 
-            for(PlaceModel placeModel : placesModel) {
+            for (PlaceModel placeModel : placesModel) {
                 placesDomain.add(placeModel.toDomain());
             }
 
@@ -89,12 +88,26 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
-    public boolean findByGooglePlaceId(String googlePlaceId) {
-            try {
-                return jpaRepository.findByGooglePlaceId(googlePlaceId) != null;
-            } catch (NoResultException e) {
-                logger.info(e.getMessage());
-                return false; // No matching entity found
-            }
+    public Optional<Place> findPlaceByGooglePlaceId(String googlePlaceId) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+
+        var optionalPlaceModel = jpaRepository.findPlaceByGooglePlaceId(googlePlaceId);
+
+        if (optionalPlaceModel.isPresent()) {
+
+            var placeModel = optionalPlaceModel.get();
+
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+
+            return Optional.of(placeModel.toDomain());
+
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - PLACE NOT FOUND - Google Place ID : {}", googlePlaceId);
+
+        return Optional.empty();
+
     }
+
 }

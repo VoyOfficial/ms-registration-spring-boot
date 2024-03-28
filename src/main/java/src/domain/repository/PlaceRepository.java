@@ -13,6 +13,6 @@ public interface PlaceRepository {
 
     Optional<List<Place>> findByCity(String city);
 
-    boolean findByGooglePlaceId(String googlePlaceId);
+    Optional<Place> findPlaceByGooglePlaceId(String googlePlaceId);
 
 }
