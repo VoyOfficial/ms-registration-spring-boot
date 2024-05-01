@@ -13,6 +13,8 @@ import src.domain.repository.PlaceRepository;
 import src.domain.usecase.PlaceRegistryUseCase;
 
 import java.time.LocalDate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PlaceRegistryService implements PlaceRegistryUseCase {
@@ -78,12 +80,17 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
     private String extractCityOfPlaceDetails(String placeDomainCity, String googlePlaceAddress) {
 
-        // The number 1 in split(", ") is used to retrieve the second part of the split string,
-        // which should contain the city and state.
-        // Then, the number 0 in split(" - ") is used to extract only the city.
-        String extractedCity = googlePlaceAddress.split(", ")[1].split(" - ")[0].trim();
+        String regex = ",\\s*([^,]+)\\s*-\\s*[A-Z]{2},";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(googlePlaceAddress);
 
-        if (!extractedCity.contentEquals(placeDomainCity)) {
+        if(!matcher.find()){
+            throw new CityDifferentPlaceRecommendationException();
+        }
+
+        String extractedCity = matcher.group(1).trim();
+
+        if (!extractedCity.equals(placeDomainCity)) {
             throw new CityDifferentPlaceRecommendationException();
         }
 
