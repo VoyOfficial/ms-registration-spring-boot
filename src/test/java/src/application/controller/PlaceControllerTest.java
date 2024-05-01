@@ -57,14 +57,6 @@ class PlaceControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @InjectMocks
-    PlaceController placeController;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
     @DisplayName("Must to Get 20 Nearby Places")
     void mustToGet20NearbyPlaces() throws Exception {
