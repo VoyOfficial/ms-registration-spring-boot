@@ -1,0 +1,26 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="voy-registration-qa" type="Application" factoryName="Application">
+    <envs>
+      <env name="API_PORT" value="8080" />
+      <env name="DATABASE_DB" value="voy" />
+      <env name="DATABASE_HOST" value="localhost" />
+      <env name="DATABASE_PASSWORD" value="password" />
+      <env name="DATABASE_PORT" value="5432" />
+      <env name="DATABASE_SCHEMA" value="registration" />
+      <env name="DATABASE_USER" value="postgres" />
+      <env name="EARTH_RADIUS_KM" value="6371.0" />
+      <env name="ENABLE_MOCK_SERVICES" value="false" />
+      <env name="INCREMENTAL_BOUNDING_BOX_RADIUS_KM" value="5.0" />
+      <env name="INITIAL_BOUNDING_BOX_RADIUS_KM" value="10.0" />
+      <env name="LIMIT_MAX_BOUNDING_BOX" value="50" />
+      <env name="MAX_PLACE_SIZE_LIST" value="5" />
+      <env name="PLACES_API_KEY" value="fake_key" />
+      <env name="PROFILE_ACTIVE" value="qa" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="br.voy.MsRegistrationSpringBootApplication" />
+    <module name="ms-registration-spring-boot" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
