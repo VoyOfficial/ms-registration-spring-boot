@@ -18,7 +18,7 @@ public class OpenApiConfig {
                 .builder()
                 .displayName("Ms Registration")
                 .group("v1")
-                .packagesToScan("src.application.controller")
+                .packagesToScan("by.voy.application.controller")
                 .build();
 
     }

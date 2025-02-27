@@ -1,19 +1,12 @@
 package br.voy.domain.exception;
 
-public class UserNotFoundException extends RuntimeException {
+import org.springframework.beans.factory.annotation.Value;
 
-    private static final String defaultMessage = "user.not.found.default.message";
+public class UserNotFoundException extends RuntimeException {
 
     public UserNotFoundException(String message) {
 
         super(message);
 
     }
-
-    public UserNotFoundException() {
-
-        super(defaultMessage);
-
-    }
-
 }

@@ -6,12 +6,17 @@ import br.voy.application.controller.response.UserResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.repository.UserRepository;
@@ -25,7 +30,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class UserControllerTest {
 
     private final String URL = "/v1/users";
@@ -44,6 +50,9 @@ class UserControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Value("${user.not.found.default.message}")
+    private String defaultMessage;
 
     @Test
     @DisplayName("Must to Registry User")
@@ -138,7 +147,7 @@ class UserControllerTest {
         // scenario
         var userId = UserDatas.ID;
 
-        var userNotfoundException = new UserNotFoundException();
+        var userNotfoundException = new UserNotFoundException(defaultMessage);
 
         doThrow(userNotfoundException).when(getUserService).getUserById(userId);
 
@@ -152,7 +161,6 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/v1/users/" + userId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors").isEmpty());
 
-
     }
 
     @Test
@@ -161,6 +169,10 @@ class UserControllerTest {
 
         // scenario
         var invalidId = "id";
+
+        MvcResult result = mockMvc.perform(get(URL + "/" + invalidId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn(); // Captura o resultado da requisição
 
         // action / validation
         mockMvc.perform(get(URL + "/" + invalidId)

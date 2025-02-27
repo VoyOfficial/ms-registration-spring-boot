@@ -1,5 +1,6 @@
 package br.voy.domain.exception;
 
+import br.voy.application.controller.response.DefaultResponse;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
@@ -14,11 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import br.voy.domain.exception.googlePlaces.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,8 +30,9 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+//@RestControllerAdvice
 @RequiredArgsConstructor
+@ControllerAdvice
 public class ExceptionHandlerAdvice {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -104,14 +109,12 @@ public class ExceptionHandlerAdvice {
 
         var httpStatus = HttpStatus.NOT_FOUND;
 
-        var message = messageSource.getMessage(exception.getMessage(), null, LocaleContextHolder.getLocale());
-
         var standardError = StandardError
                 .builder()
                 .timestamp(Instant.now())
                 .status(httpStatus.value())
                 .error("User Not Found")
-                .message(message)
+                .message(exception.getMessage())
                 .path(request.getRequestURI())
                 .errors(errors)
                 .build();
@@ -125,25 +128,53 @@ public class ExceptionHandlerAdvice {
             NumberFormatException exception,
             HttpServletRequest request) {
 
-        logger.warn("Exception Handler - Number Format Exception");
+        String path = request.getRequestURI(); // Obtém a URL completa
 
-        Map<String, String> errors = Map.of("userId", "Should be a number");
+        if (path.startsWith("/api/registration/")) {
+            path = path.substring(17); // Remove os primeiros 17 caracteres
+        }
 
-        var httpStatus = HttpStatus.BAD_REQUEST;
+        // Normaliza qualquer ID numérico no path para "/api/registration/v1/users/{userId}"
+        if (path.matches("^/v1/users/[^/]+$")) {
+            path = "/v1/users/{userId}";
+        }
 
-        var message = exception.getMessage().replace("\"", "");
+        switch(path) {
+            case "v1/places/recommendations" -> {
+                logger.warn("Exception Handler - Number Format Exception");
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new DefaultResponse<>("latitude e/ou longitude no formato errado", null));
+            }
+            case "/v1/users/{userId}" -> {
+                logger.warn("Exception Handler - Number Format Exception");
 
-        var standardError = StandardError
-                .builder()
-                .timestamp(Instant.now())
-                .status(httpStatus.value())
-                .error("Invalid ID - Should be only numbers")
-                .message(message)
-                .path(request.getRequestURI())
-                .errors(errors)
-                .build();
+                Map<String, String> errors = Map.of("userId", "Should be a number");
 
-        return ResponseEntity.status(httpStatus).body(standardError);
+                var httpStatus = HttpStatus.BAD_REQUEST;
+
+                var message = exception.getMessage().replace("\"", "");
+
+                var standardError = StandardError
+                        .builder()
+                        .timestamp(Instant.now())
+                        .status(httpStatus.value())
+                        .error("Invalid ID - Should be only numbers")
+                        .message(message)
+                        .path(request.getRequestURI())
+                        .errors(errors)
+                        .build();
+
+                return ResponseEntity.status(httpStatus).body(standardError);
+            }
+            default -> {
+                logger.warn("Exception Handler - Number Format Exception");
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new DefaultResponse<>("formato errado", null));
+            }
+
+        }
 
     }
 
@@ -437,6 +468,31 @@ public class ExceptionHandlerAdvice {
 
         return ResponseEntity.status(httpStatus).body(standardError);
 
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public final ResponseEntity<DefaultResponse<String>> handleResponseStatusException(ResponseStatusException ex) {
+        //log.error(ex.getMessage());
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(new DefaultResponse<>(ex.getReason(), null));
+    }
+
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public final ResponseEntity<DefaultResponse<String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        //log.error(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new DefaultResponse<>(ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(DataAccessResourceFailureException.class)
+    public final ResponseEntity<DefaultResponse<String>> handleDataAccessResourceFailureException(DataAccessResourceFailureException ex) {
+        //log.error(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new DefaultResponse<>(ex.getMessage(), null));
     }
 
 

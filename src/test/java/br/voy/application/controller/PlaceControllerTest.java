@@ -1,45 +1,43 @@
 package br.voy.application.controller;
 
-import br.voy.application.controller.request.PlaceRequest;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Interval;
-import br.voy.domain.entity.PlaceDetails;
-import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
-import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
-import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
-import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsInvalidRequestApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsNotFoundApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsZeroResultsApiClientException;
-import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
-import br.voy.domain.exception.googlePlaces.RequestDeniedApiClientException;
-import br.voy.domain.exception.googlePlaces.UnknownErrorApiClientException;
+import br.voy.domain.repository.PlaceRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.*;
+import com.google.maps.model.Photo;
+import com.google.maps.model.PlaceDetails;
+import com.google.maps.model.PlaceEditorialSummary;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import br.voy.domain.entity.NearbyPlaces;
-import br.voy.domain.entity.Place;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import br.voy.application.controller.request.PlaceRequest;
 import br.voy.domain.entity.*;
+import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.googlePlaces.*;
 import br.voy.domain.service.GetNearbyPlacesService;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,13 +45,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PlaceController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class PlaceControllerTest {
 
     public static final String URL = "/v1/places";
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockBean
+    private PlaceRepository placeRepository;
 
     @MockBean
     GetNearbyPlacesService getNearbyPlacesService;
@@ -305,9 +307,9 @@ class PlaceControllerTest {
         var images = new String[]{"image1", "image2"};
         var address = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
 
-        var placeDetails = createPlaceDetails(placeId);
+        br.voy.domain.entity.PlaceDetails placeDetails = br.voy.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(createPlaceDetails(placeId));
 
-        doReturn(placeDetails).when(getPlaceDetailsService).getPlaceDetails(any());
+        doReturn(placeDetails).when(getPlaceDetailsService).getPlaceDetails(anyString());
 
         // action - validation
         mockMvc.perform(get(URL + "/" + placeId)
@@ -559,16 +561,25 @@ class PlaceControllerTest {
 
         List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
 
-        return new PlaceDetails(placeId,
-                "Place",
-                "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
-                "(54) 3286-1362",
-                businessHours,
-                4.7f,
-                2599,
-                List.of("image1", "image2"),
-                "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil"
-        );
+        var images = new String[]{"image1", "image2"};
+
+
+        var place = new PlaceDetails();
+        place.photos = new Photo[2];
+        place.photos[0] = new Photo();
+        place.photos[0].photoReference = "image1";
+        place.photos[1] = new Photo();
+        place.photos[1].photoReference = "image2";
+        place.placeId = "ChIJq6qq6oZJGZURlUgeg2eJ3b0";
+        place.name = "Place";
+        place.formattedPhoneNumber = "(54) 3286-1362";
+        place.editorialSummary = new PlaceEditorialSummary();
+        place.editorialSummary.overview = "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.";
+        place.rating = 4.7f;
+        place.userRatingsTotal = 2599;
+        place.formattedAddress = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
+
+        return place;
     }
 
     private static Place createPlace(String id, Integer index) {
@@ -595,7 +606,7 @@ class PlaceControllerTest {
                 null,
                 65.2f,
                 65.2f,
-                65.2f);
+                65.2f, "");
     }
 
 }

@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import br.voy.UserDatas;
 import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Optional;
 
@@ -25,6 +26,9 @@ class GetUserServiceTest {
 
     @InjectMocks
     GetUserService service;
+
+    @Value("${user.not.found.default.message}")
+    private String defaultMessage;
 
     @Test
     @DisplayName("Must to Get User By Id")
@@ -50,7 +54,7 @@ class GetUserServiceTest {
 
         // scenario
         var userId = UserDatas.ID;
-        var expectedException = new UserNotFoundException();
+        var expectedException = new UserNotFoundException(defaultMessage);
 
         // action
         var raisedException = assertThrows(UserNotFoundException.class,

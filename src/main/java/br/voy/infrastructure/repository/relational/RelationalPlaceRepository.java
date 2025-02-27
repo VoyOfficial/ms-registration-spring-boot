@@ -1,5 +1,8 @@
 package br.voy.infrastructure.repository.relational;
 
+import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.utils.BoundingBox;
+import br.voy.infrastructure.model.PlaceModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import br.voy.domain.entity.Place;
-import br.voy.domain.repository.PlaceRepository;
-import br.voy.infrastructure.model.PlaceModel;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -107,6 +108,24 @@ public class RelationalPlaceRepository implements PlaceRepository {
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - PLACE NOT FOUND - Google Place ID : {}", googlePlaceId);
 
         return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<List<Place>> findPlacesWithinBoundingBox(BoundingBox boundingBox) {
+
+        var placeModelList = jpaRepository.findByBoundingBox(boundingBox.getMinLat(),
+                boundingBox.getMaxLat(),
+                boundingBox.getMinLon(),
+                boundingBox.getMaxLon());
+
+        List<Place> placesDomain = new ArrayList<>();
+
+        for (PlaceModel placeModel : placeModelList) {
+            placesDomain.add(placeModel.toDomain());
+        }
+
+        return Optional.of(placesDomain);
 
     }
 

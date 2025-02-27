@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 @Builder
 @ToString
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 public class Place {
 
@@ -47,6 +48,8 @@ public class Place {
     private Float distanceOfLocal; // usar outra api do google
     private double latitude;
     private double longitude;
+    @Setter
+    private String distanceFromUserLocation;
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 

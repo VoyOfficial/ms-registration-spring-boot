@@ -1,15 +1,16 @@
 package br.voy.infrastructure.model;
 
-import br.voy.domain.entity.Place;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import br.voy.domain.entity.Place;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 
-@Entity(name = "place")
+@Entity
+@Table(name = "place", schema = "registration")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -19,11 +20,9 @@ public class PlaceModel extends AbstractModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "name")
     private String name;
 
-    @Column(unique = true)
+    @Column(name = "google_place_id", unique = true)
     private String googlePlaceId;
 
     private String contact;
@@ -31,9 +30,13 @@ public class PlaceModel extends AbstractModel {
     private String city;
     private boolean status;
     private Integer ranking;
+    @Column(name = "start_recommendation")
     private LocalDate startRecommendation;
+    @Column(name = "end_recommendation")
     private LocalDate endRecommendation;
-    private LocalDate createdAt;
+    @Column(name = "created_date")
+    private LocalDate createdDate;
+    @Column(name = "last_cancel")
     private LocalDate lastCancel;
     private double latitude;
     private double longitude;
@@ -49,7 +52,7 @@ public class PlaceModel extends AbstractModel {
         this.ranking = placeDomain.getRanking();
         this.startRecommendation = placeDomain.getStartRecommendation();
         this.endRecommendation = placeDomain.getEndRecommendation();
-        this.createdAt = placeDomain.getCreatedAt();
+        this.createdDate = placeDomain.getCreatedAt();
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
@@ -68,12 +71,10 @@ public class PlaceModel extends AbstractModel {
                 .ranking(ranking)
                 .startRecommendation(startRecommendation)
                 .endRecommendation(endRecommendation)
-                .createdAt(createdAt)
+                .createdAt(createdDate)
                 .lastCancel(lastCancel)
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();
     }
 }
-
-

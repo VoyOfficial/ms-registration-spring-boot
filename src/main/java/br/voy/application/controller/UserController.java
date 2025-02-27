@@ -6,6 +6,7 @@ import br.voy.domain.exception.StandardError;
 import br.voy.domain.usecase.GetUserUseCase;
 import br.voy.domain.usecase.UserRegistryUseCase;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -46,6 +47,7 @@ public class UserController {
     @ResponseStatus(CREATED)
     @PostMapping
     public ResponseEntity<Void> registry(
+            @Parameter(description = "request para criar um usuário", required = true)
             @RequestBody @Valid UserRequest request,
             UriComponentsBuilder uriBuilder
     ) {
@@ -74,6 +76,7 @@ public class UserController {
     @ResponseStatus(OK)
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(
+            @Parameter(description = "id para obter o usuário", required = true)
             @Schema(example = "1", type = "Long")
             @PathVariable
             Long userId
