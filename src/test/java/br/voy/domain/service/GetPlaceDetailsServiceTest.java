@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +49,7 @@ class GetPlaceDetailsServiceTest {
 
         var expectedPlaceDetails = createPlaceDetails(placeId);
         Mockito.doReturn(expectedPlaceDetails).when(googlePlacesPort).getPlaceDetails(placeId);
+        doReturn(expectedPlaceDetails).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
         PlaceDetails placeDetails = service.getPlaceDetails(placeId);

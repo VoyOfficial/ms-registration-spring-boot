@@ -1,12 +1,12 @@
 package br.voy.infrastructure.model;
 
+import br.voy.domain.entity.User;
+import br.voy.infrastructure.model.enums.MaritalStatusEnum;
+import br.voy.infrastructure.model.enums.SexEnum;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import br.voy.domain.entity.User;
-import br.voy.infrastructure.model.enums.MaritalStatusEnum;
-import br.voy.infrastructure.model.enums.SexEnum;
 
 import javax.persistence.*;
 import java.time.LocalDate;

@@ -4,11 +4,11 @@ import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.PlaceRegistryUseCase;
+import br.voy.domain.entity.Place;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.ports.GooglePlacesPort;
 

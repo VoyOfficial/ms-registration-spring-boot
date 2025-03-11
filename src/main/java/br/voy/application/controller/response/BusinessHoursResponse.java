@@ -1,6 +1,5 @@
 package br.voy.application.controller.response;
 
-
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Interval;
 import com.fasterxml.jackson.annotation.JsonInclude;

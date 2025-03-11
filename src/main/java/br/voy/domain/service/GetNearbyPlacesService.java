@@ -1,13 +1,13 @@
 package br.voy.domain.service;
 
 import br.voy.domain.usecase.GetNearbyPlacesUseCase;
+import br.voy.domain.entity.Coordinates;
+import br.voy.domain.entity.NearbyPlaces;
+import br.voy.domain.ports.GooglePlacesPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import br.voy.domain.entity.Coordinates;
-import br.voy.domain.entity.NearbyPlaces;
-import br.voy.domain.ports.GooglePlacesPort;
 
 @Service
 public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {

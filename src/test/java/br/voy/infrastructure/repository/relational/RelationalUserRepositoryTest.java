@@ -2,14 +2,14 @@ package br.voy.infrastructure.repository.relational;
 
 import br.voy.domain.exception.InvalidUserException;
 import br.voy.infrastructure.model.UserModel;
+import br.voy.UserDatas;
+import br.voy.infrastructure.repository.jpa.UserJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import br.voy.UserDatas;
-import br.voy.infrastructure.repository.jpa.UserJpaRepository;
 
 import java.util.Optional;
 

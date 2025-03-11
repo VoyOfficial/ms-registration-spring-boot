@@ -9,12 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import br.voy.domain.entity.PlaceDetails;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Component
-@ConditionalOnProperty(name = "services.mock.enable", havingValue = "true")
+@ConditionalOnProperty(name = "voy.services.mock.enable", havingValue = "true")
 public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -145,13 +146,11 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.htmlAttributions = new String[]{"attribution1", "attribution2"};
 
         return br.voy.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
-
     }
 
     @Override
     public br.voy.domain.entity.PlaceDetails getPlaceFromText(String placeName, String city) {
         return null; // TODO implementar mock
     }
-
 
 }

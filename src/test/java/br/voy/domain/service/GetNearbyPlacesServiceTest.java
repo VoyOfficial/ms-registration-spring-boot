@@ -54,8 +54,8 @@ public class GetNearbyPlacesServiceTest {
 
         // validation
         assertNotNull(nearbyPlaces);
-        Assertions.assertEquals(2, nearbyPlaces.getPlaces().size());
-        Assertions.assertEquals(NEXT_PAGE_TOKEN, nearbyPlaces.getNextTokenPage());
+        assertEquals(2, nearbyPlaces.getPlaces().size());
+        assertEquals(NEXT_PAGE_TOKEN, nearbyPlaces.getNextTokenPage());
         verify(googlePlacesPort, times(1)).getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
 
     }

@@ -1,18 +1,15 @@
 package br.voy.application.validation.valueOfEnum;
 
 import org.junit.jupiter.api.Assertions;
+import br.voy.infrastructure.model.enums.SexEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import br.voy.infrastructure.model.enums.SexEnum;
 
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
 import java.lang.annotation.Annotation;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ValueOfEnumValidatorTest {
 

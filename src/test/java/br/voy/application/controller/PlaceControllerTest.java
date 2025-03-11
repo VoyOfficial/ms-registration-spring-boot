@@ -14,16 +14,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import br.voy.application.controller.request.PlaceRequest;
+import br.voy.domain.entity.*;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.googlePlaces.*;
 import br.voy.domain.service.GetNearbyPlacesService;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
-import br.voy.domain.entity.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;

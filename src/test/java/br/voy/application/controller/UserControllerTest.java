@@ -5,6 +5,8 @@ import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.repository.UserRepository;
 import br.voy.domain.service.GetUserService;
 import br.voy.domain.service.UserRegistryService;
+import br.voy.UserDatas;
+import br.voy.application.controller.response.UserResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,8 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import br.voy.UserDatas;
-import br.voy.application.controller.response.UserResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;

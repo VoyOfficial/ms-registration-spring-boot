@@ -1,10 +1,9 @@
 package br.voy.application.controller.response;
 
+import br.voy.UserDatas;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import br.voy.UserDatas;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserResponseTest {
 
@@ -20,7 +19,7 @@ class UserResponseTest {
         var response = new UserResponse(domain);
 
         // validation
-        assertEquals(expectedResponse, response);
+        Assertions.assertEquals(expectedResponse, response);
 
     }
 

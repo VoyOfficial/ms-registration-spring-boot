@@ -1,9 +1,9 @@
 package br.voy.infrastructure.model;
 
+import br.voy.UserDatas;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import br.voy.UserDatas;
 
 class UserModelTest {
 

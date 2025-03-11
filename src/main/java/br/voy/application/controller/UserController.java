@@ -1,6 +1,10 @@
 package br.voy.application.controller;
 
 import br.voy.application.controller.request.UserRequest;
+import br.voy.application.controller.response.UserResponse;
+import br.voy.domain.exception.StandardError;
+import br.voy.domain.usecase.GetUserUseCase;
+import br.voy.domain.usecase.UserRegistryUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -15,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-import br.voy.application.controller.response.UserResponse;
-import br.voy.domain.exception.StandardError;
-import br.voy.domain.usecase.GetUserUseCase;
-import br.voy.domain.usecase.UserRegistryUseCase;
 
 import javax.validation.Valid;
 

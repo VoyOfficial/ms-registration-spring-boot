@@ -1,8 +1,8 @@
 package br.voy.application.controller.request;
 
+import br.voy.UserDatas;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import br.voy.UserDatas;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
