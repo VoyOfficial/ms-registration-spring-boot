@@ -1,0 +1,181 @@
+# Web
+server:
+  port: ${API_PORT:8080}
+  servlet:
+    context-path: /api/registration
+
+# Spring Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, flyway, env
+      base-path: /actuator/portal-admin
+  server:
+    port: 2022
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+
+# Info
+info:
+  app:
+    name: ${spring.application.name}
+    description: "This application is responsible for User Operations"
+    version: "0.0.1"
+    developer-name: "Matheus Carvalho"
+
+# Places API
+places:
+  api:
+    key: ${PLACES_API_KEY:fake_key}
+
+spring:
+  profiles:
+    active: ${PROFILE_ACTIVE:local}
+  # Application
+  application:
+    name: ms-registration
+  jackson:
+    default-property-inclusion: non_null
+  # Datasource
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  # JPA
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ${DATABASE_SCHEMA:registration}
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+    show-sql: false
+  # flyway
+  flyway:
+    enabled: false
+
+springdoc:
+  packages-to-scan: br.voy.application.controller
+
+voy:
+  services:
+    # Mock External Services
+    mock:
+      enable: ${ENABLE_MOCK_SERVICES:false}
+    places:
+      initialDefaultBoundingBoxRadiusKM: ${INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM:10.0}
+      incrementalBoundingBoxRadiusKM: ${INCREMENTAL_BOUNDING_BOX_RADIUS_KM:5.0}
+      maxPlaceSizeList: ${MAX_PLACE_SIZE_LIST:5}
+      limitMaxBoundingBox: ${LIMIT_MAX_BOUNDING_BOX:50}
+      earthRadiusKM: ${EARTH_RADIUS_KM:6371.0}
+      google:
+        api_key: ${PLACES_API_KEY:fake_key}
+
+# Messages
+# Default Messages to Custom Annotations
+custom:
+  annotation:
+    value:
+      of:
+        enum:
+          default:
+            message: "must be any of enum {enumClass}"
+    cpf:
+      already:
+        exists:
+          default:
+            message: "The entered value already exists in the database, enter another one."
+
+# Custom Messages for User Request Validations
+user:
+  marital:
+    status:
+      message:
+        invalid: "Invalid value, accepted values: SINGLE, MARRIED, DIVORCED, SEPARATED, WIDOWED."
+  sex:
+    message:
+      invalid: "Invalid value, accepted values: MALE, FEMALE, DO_NOT_INFORM."
+  cpf:
+    field:
+      message:
+        already:
+          exists: "The CPF entered already exists."
+  not:
+    found:
+      default:
+        message: "User not found."
+invalid:
+  user:
+    default:
+      message: "Invalid User found, it cannot be been null."
+
+# Place Domain
+place:
+  already:
+    exists:
+      default:
+        message: "The specified place is already present in the database."
+  with:
+    city:
+      different:
+        google:
+          default:
+            message: "The Place contains a city different of city registered in google place."
+
+# Places API
+error:
+  places:
+    api:
+      default:
+        message: "Occurred an error while connecting to the Places API."
+      request:
+        denied:
+          message: "Request Denied to Google Places, maybe your API Key is invalid."
+      unknown:
+        error:
+          message: "Unknown error while connecting to the Places API."
+      over:
+        query:
+          limit:
+            message: "You have exceeded your daily request quota for Google Places API: Billing has not been enabled on your account, The monthly $200 credit, or a self-imposed usage cap, has been exceeded or The provided method of payment is no longer valid (for example, a credit card has expired)."
+
+      # Get Nearby Places
+      nearby:
+        places:
+          zero:
+            results:
+              message: "The search was successful but returned no results. This may occur if the search was passed a latlng in a remote location."
+        place:
+          invalid:
+            request:
+              message: "Invalid Request to Google Places, maybe coordinates or radius are invalid."
+
+      # Get Places Details
+      details:
+        zero:
+          results:
+            message: "PlaceId was valid but no longer refers to a valid result. This maybe occur if the establishment is no longer in business."
+      not:
+        found:
+          message: "Place informed not found in Google Places."
+        invalid:
+          request:
+            message: "Invalid Request to Google Places, maybe PlaceId is not a valid."
+    recommendation:
+      status404:
+        message: "Recommended places not found"
+      status400:
+        outOfRangeRequest:
+          message: "raio de busca máxima é de "
+          km: " km"

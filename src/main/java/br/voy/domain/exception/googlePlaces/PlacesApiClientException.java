@@ -1,0 +1,19 @@
+package br.voy.domain.exception.googlePlaces;
+
+public class PlacesApiClientException extends RuntimeException {
+
+    private static final String defaultMessage = "error.places.api.default.message";
+
+    public PlacesApiClientException(Throwable cause) {
+
+        super(defaultMessage, cause);
+
+    }
+
+    public PlacesApiClientException(String message) {
+
+        super(message);
+
+    }
+
+}

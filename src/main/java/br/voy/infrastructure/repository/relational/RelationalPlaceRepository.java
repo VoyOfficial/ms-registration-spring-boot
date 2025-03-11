@@ -1,0 +1,132 @@
+package br.voy.infrastructure.repository.relational;
+
+import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.utils.BoundingBox;
+import br.voy.infrastructure.model.PlaceModel;
+import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import br.voy.domain.entity.Place;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public class RelationalPlaceRepository implements PlaceRepository {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private PlaceJpaRepository jpaRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    @Transactional
+    public Place savePlace(Place placeDomain) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - SAVE PLACE - Place: {}", placeDomain.getName());
+
+        var placeModel = new PlaceModel(placeDomain);
+
+        placeModel = jpaRepository.save(placeModel);
+
+        return placeModel.toDomain();
+    }
+
+    @Override
+    public Optional<Place> findById(Long placeId) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - Place ID: {}", placeId);
+
+        var optionalPlaceModel = jpaRepository.findById(placeId);
+
+        if (optionalPlaceModel.isPresent()) {
+
+            var userModel = optionalPlaceModel.get();
+
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY ID - ID: {}", placeId);
+
+            return Optional.of(userModel.toDomain());
+
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - PLACE NOT FOUND - ID : {}", placeId);
+
+        return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<List<Place>> findByCity(String city) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY CITY - Place: {}", city);
+
+        var optionalPlaceModel = jpaRepository.findByCity(city);
+
+        if (optionalPlaceModel.isPresent()) {
+
+            var placesModel = optionalPlaceModel.get();
+            List<Place> placesDomain = new ArrayList<>();
+
+            for (PlaceModel placeModel : placesModel) {
+                placesDomain.add(placeModel.toDomain());
+            }
+
+            return Optional.of(placesDomain);
+
+        }
+
+        return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<Place> findPlaceByGooglePlaceId(String googlePlaceId) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+
+        var optionalPlaceModel = jpaRepository.findPlaceByGooglePlaceId(googlePlaceId);
+
+        if (optionalPlaceModel.isPresent()) {
+
+            var placeModel = optionalPlaceModel.get();
+
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+
+            return Optional.of(placeModel.toDomain());
+
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - PLACE NOT FOUND - Google Place ID : {}", googlePlaceId);
+
+        return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<List<Place>> findPlacesWithinBoundingBox(BoundingBox boundingBox) {
+
+        var placeModelList = jpaRepository.findByBoundingBox(boundingBox.getMinLat(),
+                boundingBox.getMaxLat(),
+                boundingBox.getMinLon(),
+                boundingBox.getMaxLon());
+
+        List<Place> placesDomain = new ArrayList<>();
+
+        for (PlaceModel placeModel : placeModelList) {
+            placesDomain.add(placeModel.toDomain());
+        }
+
+        return Optional.of(placesDomain);
+
+    }
+
+}
