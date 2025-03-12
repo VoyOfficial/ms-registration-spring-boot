@@ -1,4 +1,4 @@
-package br.voy.domain.adapters;
+package br.voy.infrastructure.agents.adapters;
 
 import br.voy.infrastructure.agents.PlacesApiClient;
 import com.google.maps.model.LatLng;
@@ -63,9 +63,11 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         var response = placesApiClient.getPlaceDetails(placeId);
 
-        var place = PlaceDetails.toPlaceDetailsByGoogle(response);
+        var photos = placesApiClient.getPlacePhotos(response.photos);
 
-        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place: {}", place);
+        var place = PlaceDetails.toPlaceDetailsByGoogleAndPhotos(response, photos);
+
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE DETAILS - Place: {}", place.getName());
 
         return place;
 

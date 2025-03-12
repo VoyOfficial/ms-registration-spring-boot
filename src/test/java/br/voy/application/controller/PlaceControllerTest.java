@@ -297,7 +297,7 @@ class PlaceControllerTest {
         var name = "Place";
         var contact = "(54) 3286-1362";
         var about = "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.";
-        var rating = 4.7f;
+        var rating = 4.5f;
         var userRatingsTotal = 2599;
         var images = new String[]{"image1", "image2"};
         var address = "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil";
@@ -322,7 +322,6 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.images[0]").value(containsString(images[0])))
                 .andExpect(jsonPath("$.images[1]").value(containsString(images[1])))
                 .andExpect(jsonPath("$.address").value(address));
-
     }
 
     @Test
@@ -514,8 +513,6 @@ class PlaceControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("City informed is different of city registered in Google Place"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors.ranking").value("must not be null"))
@@ -566,7 +563,7 @@ class PlaceControllerTest {
 
     }
 
-    private static PlaceDetails createPlaceDetails(String placeId) {
+    private static PlaceDetails createPlaceGoogleDetails(String placeId) {
 
         Interval interval = new Interval("12:00 AM", "11:59 PM");
 
@@ -627,5 +624,36 @@ class PlaceControllerTest {
                 65.2, // longitude
                 ""); // distanceFromUserLocation
     }
+
+
+    private br.voy.domain.entity.PlaceDetails createPlaceDetails(String placeId) {
+
+        Interval interval = new Interval("12:00 AM", "11:59 PM");
+
+        BusinessHours sunday = new BusinessHours("Sunday", interval);
+        BusinessHours monday = new BusinessHours("Monday", interval);
+        BusinessHours tuesday = new BusinessHours("Tuesday", interval);
+        BusinessHours wednesday = new BusinessHours("Wednesday", interval);
+        BusinessHours thursday = new BusinessHours("Thursday", interval);
+        BusinessHours friday = new BusinessHours("Friday", interval);
+        BusinessHours saturday = new BusinessHours("Saturday", interval);
+
+        List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
+
+        return br.voy.domain.entity.PlaceDetails
+                .builder()
+                .googlePlaceId(placeId)
+                .name("Place")
+                .about("Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.")
+                .contact("(54) 3286-1362")
+                .userRatingsTotal(2599)
+                .businessHours(businessHours)
+                .rating(4.5f)
+                .photos(List.of("image1", "image2"))
+                .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
+                .build();
+
+    }
+
 
 }

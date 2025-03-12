@@ -207,7 +207,7 @@ class GetPlaceDetailsServiceTest {
                 .contact("(54) 3286-1362")
                 .businessHours(businessHours)
                 .rating(4.5f)
-                .images(List.of("image1", "image2"))
+                .photos(List.of("image1", "image2"))
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 

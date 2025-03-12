@@ -54,7 +54,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.5.1</version>
+            <version>42.7.5</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -97,6 +97,11 @@
             <version>0.10.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>9.5.1</version>
+        </dependency>
 
         <!--  Google Maps Integration - Places API -->
         <dependency>

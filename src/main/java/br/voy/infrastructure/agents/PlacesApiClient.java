@@ -1,5 +1,6 @@
 package br.voy.infrastructure.agents;
 
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
@@ -14,6 +15,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
 import com.google.maps.errors.*;
 import com.google.maps.model.LatLng;
+import com.google.maps.model.Photo;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
@@ -23,6 +25,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 @Component
 public class PlacesApiClient {
@@ -308,6 +316,60 @@ public class PlacesApiClient {
 
             throw new PlacesApiClientException(exception);
 
+        }
+    }
+
+    public List<PlacePhoto> getPlacePhotos(Photo[] photos) {
+        List<PlacePhoto> placePhotos = new ArrayList<>();
+
+        if (photos != null) {
+            for (int i = 0; i <= 3; i++) {
+                Photo photo = photos[i];
+                String photoReference = photo.photoReference;
+                String photoUrl = buildPhotoUrl(photoReference, photo.width);
+
+                try {
+                    byte[] imageBytes = downloadPhoto(photoUrl);
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes); // Converte para Base64
+
+                    PlacePhoto placePhoto = new PlacePhoto();
+                    placePhoto.setPhotoReference(photoReference);
+                    placePhoto.setImageBase64(base64Image); // Salva como String Base64
+                    placePhoto.setHeight(photo.height);
+                    placePhoto.setWidth(photo.width);
+                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions)); // Junta as atribuições em uma string
+
+                    placePhotos.add(placePhoto);
+
+                } catch (IOException e) {
+                    System.err.println("Erro ao baixar foto: " + e.getCause());
+                    // Trate o erro apropriadamente, talvez logando ou retornando uma lista vazia
+                }
+            }
+        }
+
+        return placePhotos;
+    }
+
+    private String buildPhotoUrl(String photoReference, int width) {
+
+        int maxWidth;
+
+        if(width > 1600) {
+            maxWidth = 800;
+        } else {
+            maxWidth = width;
+        }
+
+        return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=" + maxWidth + "&photoreference=" +
+               photoReference + "&key=" + "AIzaSyBR-yGbZ19UHqTDT8vlSKtCuKmbUUCGOJs";
+    }
+
+    private byte[] downloadPhoto(String photoUrl) throws IOException {
+        URL url = new URL(photoUrl);
+        URLConnection connection = url.openConnection();
+        try (InputStream in = connection.getInputStream()) {
+            return in.readAllBytes();
         }
     }
 

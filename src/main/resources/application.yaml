@@ -49,6 +49,11 @@ spring:
     url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_DB:voy}
     username: ${DATABASE_USER:postgres}
     password: ${DATABASE_PASSWORD:password}
+  flyway:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_DB:voy}
+    user: postgres
+    password: password
+    locations: classpath:db/migration
 
   # JPA
   jpa:

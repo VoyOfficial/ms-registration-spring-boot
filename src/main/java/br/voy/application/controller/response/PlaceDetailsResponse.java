@@ -1,8 +1,9 @@
 package br.voy.application.controller.response;
 
-import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import br.voy.domain.entity.PlaceDetails;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class PlaceDetailsResponse {
     private Float rating;
     private Integer userRatingsTotal;
     private String principalPhoto;
-    private List<String> images;
+    private List<PlacePhoto> photos;
     private String address;
 
     public static PlaceDetailsResponse toPlaceDetailsResponse(PlaceDetails place) {
@@ -41,8 +42,8 @@ public class PlaceDetailsResponse {
                 .contact(place.getContact())
                 .businessHours(businessHoursResponseList)
                 .rating(place.getRating())
+                .photos(place.getPhotos())
                 .userRatingsTotal(place.getUserRatingsTotal())
-                .images(place.getImages())
                 .address(place.getAddress())
                 .build();
 
