@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "services.mock.enable", havingValue = "false")
+@ConditionalOnProperty(name = "voy.services.mock.enable", havingValue = "false")
 public class GooglePlacesAdapter implements GooglePlacesPort {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
