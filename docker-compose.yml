@@ -1,22 +1,22 @@
 version: '3.9'
-
 services:
-#  api-registration:
-#    build:
-#      dockerfile: Dockerfile
-#      context: .
-#    container_name: api-registration
-#    environment:
-#      API_PORT: 8080
-#      DATABASE_URL: postgres:5432
-#      DATABASE_DB: "voy"
-#      DATABASE_USER: postgres
-#      DATABASE_PASSWORD: password
-#      DATABASE_SCHEMA: registration
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
+  app:
+    build: .
+    container_name: ms_registration_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      PROFILE_ACTIVE: dev
+      API_PORT: 8080
+      DATABASE_DB: voy
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_SCHEMA: registration
+      PLACES_API_KEY: "AIzaSyBR-yGbZ19UHqTDT8vlSKtCuKmbUUCGOJs"
 
   postgres:
     container_name: postgres_registration
@@ -26,6 +26,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: voy
     volumes:
-      - ./src/main/resources/db/create_database_voy.sql:/docker-entrypoint-initdb.d/create_database_voy.sql
       - ./src/main/resources/db/create_schema_registration.sql:/docker-entrypoint-initdb.d/create_schema_registration.sql
