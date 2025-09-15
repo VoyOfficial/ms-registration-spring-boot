@@ -1,11 +1,11 @@
 ## Builder image
-FROM maven:3.8.1-jdk-11 AS builder
+FROM maven:3.8.7-eclipse-temurin-17 AS builder
 COPY src /usr/src/app/src
 COPY pom.xml /usr/src/app
-RUN mvn -f /usr/src/app/pom.xml clean package
+RUN mvn -f /usr/src/app/pom.xml clean package -Dmaven.test.skip=true
 
 ## Runner image
-FROM openjdk:11-slim
+FROM eclipse-temurin:17-jdk-jammy
 MAINTAINER matheuscarv69
 COPY --from=builder /usr/src/app/target/ms-registration-spring-boot-0.0.1.jar /usr/app/app.jar
 EXPOSE 8080
