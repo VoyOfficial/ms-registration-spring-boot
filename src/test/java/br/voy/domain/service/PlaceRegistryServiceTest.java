@@ -77,6 +77,8 @@ public class PlaceRegistryServiceTest {
                 .id(expectedRecommendedPlaceId)
                 .name("Test Recommended Place")
                 .city("Gramado")
+                .latitude(-23.55)
+                .longitude(-46.66)
                 .ranking(2)
                 .build();
 
@@ -133,6 +135,8 @@ public class PlaceRegistryServiceTest {
                 .googlePlaceId("ChIJPQmNhEMyGZURxuHk44vIaIw")
                 .name("Test Recommended Place")
                 .contact("(54) 3286-4040")
+                .latitude(-23.55)
+                .longitude(-46.66)
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
                 .build();
 

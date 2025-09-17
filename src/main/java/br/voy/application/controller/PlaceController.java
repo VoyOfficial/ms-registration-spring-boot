@@ -168,7 +168,7 @@ public class PlaceController {
         var placeId = placeRegistryUseCase.registry(request.toDomain());
 
         var uri = uriBuilder
-                .path("/v1/places/{placeId}")
+                .path("/v1/places/{place}")
                 .buildAndExpand(placeId)
                 .toUri();
 

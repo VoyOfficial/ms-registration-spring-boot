@@ -79,7 +79,8 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE FROM TEXT - Place Name: {}, City: {}", placeName, city);
 
         var response = placesApiClient.getPlaceFromText(placeName, city);
-        var place = PlaceDetails.toPlaceDetailsByGoogle(response);
+        var photos = placesApiClient.getPlacePhotos(response.photos);
+        var place = PlaceDetails.toPlaceDetailsByGoogleAndPhotos(response, photos);
 
         logger.info("GOOGLE PLACES API ADAPTER - FINISH GET PLACE FROM TEXT - Place Response: {}", response);
 

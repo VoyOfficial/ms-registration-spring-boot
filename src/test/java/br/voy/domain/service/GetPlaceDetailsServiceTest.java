@@ -1,6 +1,7 @@
 package br.voy.domain.service;
 
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.PlacePhoto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class GetPlaceDetailsServiceTest {
     }
 
     @Test
-    @DisplayName("Must to Get Place Details given a placeId")
+    @DisplayName("Must to Get Place Details given a place")
     void mustToGetPlaceDetailsGivenAPlaceId() {
 
         // scenario
@@ -207,7 +208,7 @@ class GetPlaceDetailsServiceTest {
                 .contact("(54) 3286-1362")
                 .businessHours(businessHours)
                 .rating(4.5f)
-                .photos(List.of("image1", "image2"))
+                .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 

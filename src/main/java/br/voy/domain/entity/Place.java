@@ -27,7 +27,7 @@ public class Place {
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
-    private List<String> images;
+    private List<PlacePhoto> photos;
     private String address;
     private String city;
 

@@ -3,6 +3,7 @@ package br.voy.application.controller;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Interval;
 import br.voy.domain.repository.PlaceRepository;
+import br.voy.infrastructure.agents.PlacesApiClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.*;
 import com.google.maps.model.Photo;
@@ -25,6 +26,7 @@ import br.voy.domain.service.GetNearbyPlacesService;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,6 +54,9 @@ class PlaceControllerTest {
 
     @MockBean
     private PlaceRepository placeRepository;
+
+    @MockBean
+    private PlacesApiClient placesApiClient;
 
     @MockBean
     GetNearbyPlacesService getNearbyPlacesService;
@@ -310,6 +316,7 @@ class PlaceControllerTest {
         mockMvc.perform(get(URL + "/" + placeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.googlePlaceId").value(placeId))
                 .andExpect(jsonPath("$.name").value(name))
@@ -317,10 +324,10 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.contact").value(contact))
                 .andExpect(jsonPath("$.rating").value(rating))
                 .andExpect(jsonPath("$.userRatingsTotal").value(userRatingsTotal))
-                .andExpect(jsonPath("$.images").isNotEmpty())
-                .andExpect(jsonPath("$.images", hasSize(2)))
-                .andExpect(jsonPath("$.images[0]").value(containsString(images[0])))
-                .andExpect(jsonPath("$.images[1]").value(containsString(images[1])))
+                .andExpect(jsonPath("$.photos").isNotEmpty())
+                .andExpect(jsonPath("$.photos", hasSize(2)))
+                .andExpect(jsonPath("$.photos[0]").value(new PlacePhoto()))
+                .andExpect(jsonPath("$.photos[1]").value(new PlacePhoto()))
                 .andExpect(jsonPath("$.address").value(address));
     }
 
@@ -454,6 +461,7 @@ class PlaceControllerTest {
                 .builder()
                 .name("Hard Rock Cafe Gramado")
                 .city("Gramado")
+                .startRecommendation(LocalDateTime.now())
                 .ranking(2)
                 .build();
 
@@ -529,6 +537,7 @@ class PlaceControllerTest {
                 .builder()
                 .name("Hard Rock Cafe Gramado")
                 .city("Test City")
+                .startRecommendation(LocalDateTime.now())
                 .ranking(2)
                 .build();
 
@@ -609,7 +618,7 @@ class PlaceControllerTest {
                 2599,
                 false, // isSaved
                 "photoReference",
-                List.of("image1", "image2"),
+                List.of(new PlacePhoto(), new PlacePhoto()),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 "Gramado",
                 true, // status
@@ -649,7 +658,7 @@ class PlaceControllerTest {
                 .userRatingsTotal(2599)
                 .businessHours(businessHours)
                 .rating(4.5f)
-                .photos(List.of("image1", "image2"))
+                .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 

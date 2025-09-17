@@ -1,9 +1,12 @@
 package br.voy.infrastructure.repository.relational;
 
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.utils.BoundingBox;
 import br.voy.infrastructure.model.PlaceModel;
+import br.voy.infrastructure.model.PlacePhotoModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
+import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +26,12 @@ public class RelationalPlaceRepository implements PlaceRepository {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private PlaceJpaRepository jpaRepository;
+    private PlaceJpaRepository placeJpaRepository;
+
+    @Autowired
+    private PlacePhotoJpaRepository placePhotoJpaRepository;
+
+
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -31,30 +39,72 @@ public class RelationalPlaceRepository implements PlaceRepository {
     @Override
     @Transactional
     public Place savePlace(Place placeDomain) {
-
         logger.info("RELATIONAL PLACE REPOSITORY - SAVE PLACE - Place: {}", placeDomain.getName());
 
         var placeModel = new PlaceModel(placeDomain);
 
-        placeModel = jpaRepository.save(placeModel);
+        placeModel = placeJpaRepository.save(placeModel);
+
+        List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
+        for(PlacePhoto photo : placeDomain.getPhotos()) {
+            PlacePhotoModel photoModel = new PlacePhotoModel();
+            photoModel.setPhotoReference(photo.getPhotoReference());
+            photoModel.setHeight(photo.getHeight());
+            photoModel.setWidth(photo.getWidth());
+            photoModel.setImageBase64(photo.getImageBase64().getBytes());
+            photoModel.setPlace(placeModel);
+            placePhotoModelList.add(photoModel);
+        }
+
+        placePhotoJpaRepository.saveAll(placePhotoModelList);
 
         return placeModel.toDomain();
     }
 
     @Override
-    public Optional<Place> findById(Long placeId) {
+    public PlacePhoto savePlacePhoto(PlaceModel place, PlacePhoto placePhoto) {
+        logger.info("RELATIONAL PLACE REPOSITORY - SAVE PLACE PHOTO - Place: {}", place.getName());
+
+        var placePhotoModel = new PlacePhotoModel(placePhoto);
+
+        placePhotoModel = placePhotoJpaRepository.save(placePhotoModel);
+
+        return placePhotoModel.toDomain();
+    }
+
+    @Override
+    public List<PlacePhoto> saveAllPlacePhoto(PlaceModel place, List<PlacePhoto> placePhotos) {
+        logger.info("RELATIONAL PLACE REPOSITORY - SAVE ALL PLACE PHOTOS - Place: {}", place.getName());
+
+        List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
+        for(PlacePhoto placePhoto: placePhotos) {
+            placePhotoModelList.add(new PlacePhotoModel(placePhoto));
+        }
+
+        placePhotoModelList = placePhotoJpaRepository.saveAll(placePhotoModelList);
+
+        List<PlacePhoto> placePhotoList = new ArrayList<>();
+        for(PlacePhotoModel placePhotoModel : placePhotoModelList) {
+            placePhotoList.add(placePhotoModel.toDomain());
+        }
+
+        return placePhotoList;
+    }
+
+    @Override
+    public Optional<Place> findPlaceById(Long placeId) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - Place ID: {}", placeId);
 
-        var optionalPlaceModel = jpaRepository.findById(placeId);
+        var optionalPlaceModel = placeJpaRepository.findById(placeId);
 
         if (optionalPlaceModel.isPresent()) {
 
-            var userModel = optionalPlaceModel.get();
+            var placeModel = optionalPlaceModel.get();
 
             logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY ID - ID: {}", placeId);
 
-            return Optional.of(userModel.toDomain());
+            return Optional.of(placeModel.toDomain());
 
         }
 
@@ -65,15 +115,62 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
-    public Optional<List<Place>> findByCity(String city) {
+    public Optional<PlacePhoto> findPlacePhotoById(Long photoId) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
+
+        var optionalPlacePhotoModel = placePhotoJpaRepository.findById(photoId);
+
+        if (optionalPlacePhotoModel.isPresent()) {
+
+            var placePhotoModel = optionalPlacePhotoModel.get();
+
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND PLACE PHOTO BY ID");
+
+            return Optional.of(placePhotoModel.toDomain());
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
+
+        return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<List<PlacePhoto>> findAllPlacePhotoById(Long placeId) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
+
+        List<PlacePhotoModel> placePhotoModelList = placePhotoJpaRepository.findByPlaceId(placeId);
+
+        if (!placePhotoModelList.isEmpty()) {
+
+            logger.info("RELATIONAL PLACE REPOSITORY - FOUND PLACE PHOTO BY ID");
+
+            placePhotoModelList = placePhotoJpaRepository.saveAll(placePhotoModelList);
+
+            List<PlacePhoto> placePhotoList = new ArrayList<>();
+            for(PlacePhotoModel placePhotoModel : placePhotoModelList) {
+                placePhotoList.add(placePhotoModel.toDomain());
+            }
+
+            return Optional.of(placePhotoList);
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<List<Place>> findPlaceByCity(String city) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY CITY - Place: {}", city);
 
-        var optionalPlaceModel = jpaRepository.findByCity(city);
+        var placesModel = placeJpaRepository.findByCity(city);
 
-        if (optionalPlaceModel.isPresent()) {
+        if (!placesModel.isEmpty()) {
 
-            var placesModel = optionalPlaceModel.get();
             List<Place> placesDomain = new ArrayList<>();
 
             for (PlaceModel placeModel : placesModel) {
@@ -93,7 +190,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
 
-        var optionalPlaceModel = jpaRepository.findPlaceByGooglePlaceId(googlePlaceId);
+        var optionalPlaceModel = placeJpaRepository.findByGooglePlaceId(googlePlaceId);
 
         if (optionalPlaceModel.isPresent()) {
 
@@ -114,7 +211,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     @Override
     public Optional<List<Place>> findPlacesWithinBoundingBox(BoundingBox boundingBox) {
 
-        var placeModelList = jpaRepository.findByBoundingBox(boundingBox.getMinLat(),
+        var placeModelList = placeJpaRepository.findByBoundingBox(boundingBox.getMinLat(),
                 boundingBox.getMaxLat(),
                 boundingBox.getMinLon(),
                 boundingBox.getMaxLon());

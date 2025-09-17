@@ -39,10 +39,10 @@ public class PlacesApiClient {
 
     private final GeoApiContext context;
 
-    public PlacesApiClient(
-            @Value("${places.api.key}")
-            String apiKey
-    ) {
+    @Value("${places.api.key}")
+    private String apiKey;
+
+    public PlacesApiClient(String apiKey) {
 
         this.context = new GeoApiContext
                 .Builder()
@@ -323,27 +323,25 @@ public class PlacesApiClient {
         List<PlacePhoto> placePhotos = new ArrayList<>();
 
         if (photos != null) {
-            for (int i = 0; i <= 3; i++) {
+            for (int i = 0; i < photos.length; i++) {
                 Photo photo = photos[i];
                 String photoReference = photo.photoReference;
                 String photoUrl = buildPhotoUrl(photoReference, photo.width);
 
                 try {
-                    byte[] imageBytes = downloadPhoto(photoUrl);
-                    String base64Image = Base64.getEncoder().encodeToString(imageBytes); // Converte para Base64
-
+                    byte[] imageBytes = downloadPhoto(photoUrl); // Mantenha como byte[]
+                    String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
                     PlacePhoto placePhoto = new PlacePhoto();
                     placePhoto.setPhotoReference(photoReference);
-                    placePhoto.setImageBase64(base64Image); // Salva como String Base64
+                    placePhoto.setImageBase64(imageBase64); // Salve o byte[] diretamente
                     placePhoto.setHeight(photo.height);
                     placePhoto.setWidth(photo.width);
-                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions)); // Junta as atribuições em uma string
+                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions));
 
                     placePhotos.add(placePhoto);
 
                 } catch (IOException e) {
                     System.err.println("Erro ao baixar foto: " + e.getCause());
-                    // Trate o erro apropriadamente, talvez logando ou retornando uma lista vazia
                 }
             }
         }
@@ -355,14 +353,16 @@ public class PlacesApiClient {
 
         int maxWidth;
 
-        if(width > 1600) {
-            maxWidth = 800;
+        if (width > 1600) {
+            maxWidth = 800; // Reduz imagens muito grandes
+        } else if (width < 400) {
+            maxWidth = 400; // Garante que imagens pequenas fiquem aceitáveis no celular
         } else {
-            maxWidth = width;
+            maxWidth = width; // Mantém o tamanho normal
         }
 
         return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=" + maxWidth + "&photoreference=" +
-               photoReference + "&key=" + "AIzaSyBR-yGbZ19UHqTDT8vlSKtCuKmbUUCGOJs";
+               photoReference + "&key=" + apiKey;
     }
 
     private byte[] downloadPhoto(String photoUrl) throws IOException {

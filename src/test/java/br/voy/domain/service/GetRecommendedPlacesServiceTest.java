@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Place;
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.utils.BoundingBox;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +115,7 @@ public class GetRecommendedPlacesServiceTest {
     }
 
     @Test
-    @DisplayName("O método GetRecommendedPlaces deve lançar uma exceção quando o end date for antes de hoje")
+    @DisplayName("O método GetRecommendedPlaces deve remover o place quando o end date for antes de hoje")
     void testGetRecommendedPlacesShouldRemovePlacesEndRecommendationDateBeforeToday() {
 
         List<Place> placeList = new ArrayList<>();
@@ -212,7 +213,7 @@ public class GetRecommendedPlacesServiceTest {
                 .userRatingsTotal(null)
                 .isSaved(false)
                 .principalPhoto("photoString")
-                .images(new ArrayList<>())
+                .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
                 .city("Gramado")
                 .status(false)
@@ -240,7 +241,7 @@ public class GetRecommendedPlacesServiceTest {
                 .userRatingsTotal(null)
                 .isSaved(false)
                 .principalPhoto("photoString")
-                .images(new ArrayList<>())
+                .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
                 .city("Gramado")
                 .status(false)
@@ -268,7 +269,7 @@ public class GetRecommendedPlacesServiceTest {
                 .userRatingsTotal(null)
                 .isSaved(false)
                 .principalPhoto("photoString")
-                .images(new ArrayList<>())
+                .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
                 .city("Gramado")
                 .status(false)
@@ -304,7 +305,7 @@ public class GetRecommendedPlacesServiceTest {
                 .userRatingsTotal(userRatingsTotal)
                 .isSaved(isSaved)
                 .principalPhoto(principalPhoto)
-                .images(images)
+                .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address(address)
                 .city(city)
                 .status(status)
@@ -322,66 +323,69 @@ public class GetRecommendedPlacesServiceTest {
 
     public static List<Place> generatePlaceList() {
         List<Place> places = new ArrayList<>();
+        LocalDate startDateRecommendation = LocalDate.now().minusMonths(1);
+        LocalDate endDateRecommendation = LocalDate.now();
+        LocalDate createdDate = startDateRecommendation.minusDays(1);
 
         places.add(createPlace(1L, "ChIJPQmNhEMyGZURxuHk44vIaIw", "Hard Rock Cafe",
                 "cafeteria do Hard Rock café", "(54) 3286-4040", null, null, null, false,
                 "photoString", new ArrayList<>(), "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil",
-                "Gramado", false, 2, LocalDate.of(2023, 11, 17), LocalDate.of(2023, 12, 17),
-                LocalDate.of(2023, 11, 17), null, null, -29.3810171, -50.8711053, null));
+                "Gramado", false, 2, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.3810171, -50.8711053, null));
 
         places.add(createPlace(2L, "ChIJsdUuyRc1GZURg7Hy1kfaAeU", "Fonte do Amor Eterno",
                 null, "(54) 3286-1055", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
-                "Gramado", false, 1, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.37855, -50.8744, null));
+                "Gramado", false, 1, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.37855, -50.8744, null));
 
         places.add(createPlace(3L, "ChIJkT12uPczGZURcExGzF48AoI", "Pórtico Gramado Estilo Bávaro",
                 null, "(54) 3036-4050", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. das Hortênsias - Portico, Gramado - RS, 95670-000",
-                "Gramado", false, 2, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.38969, -50.88495, null));
+                "Gramado", false, 2, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.38969, -50.88495, null));
 
         places.add(createPlace(4L, "ChIJoW5_xxs2GZURGyI9uVrtAeY", "Mini Mundo",
                 null, "(54) 3286-4055", null, null, null, false,
                 "photoString", new ArrayList<>(), "R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062",
-                "Gramado", false, 3, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.38304, -50.87568, null));
+                "Gramado", false, 3, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.38304, -50.87568, null));
 
         places.add(createPlace(5L, "ChIJWzOwRXM1GZURgCqEqfAbAiE", "Garden Park Gramado",
                 null, "(54) 3286-4051", null, null, null, false,
                 "photoString", new ArrayList<>(), "Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899",
-                "Gramado", false, 4, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.37264, -50.85285, null));
+                "Gramado", false, 4, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.37264, -50.85285, null));
 
         places.add(createPlace(6L, "ChIJpQLdRlMzGZURHGysIJMbi3I", "Lago Negro",
                 null, "(54) 3286-4052", null, null, null, false,
                 "photoString", new ArrayList<>(), "R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000",
-                "Gramado", false, 5, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.39351, -50.87833, null));
+                "Gramado", false, 5, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.39351, -50.87833, null));
 
         places.add(createPlace(7L, "ChIJIYpuLR8xGZURIDT2A5S6Vog", "Expogramado",
                 null, "(54) 3286-4053", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000",
-                "Gramado", false, 1, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.36883, -50.88178, null));
+                "Gramado", false, 1, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.36883, -50.88178, null));
 
         places.add(createPlace(8L, "ChIJ-ZdZYBc1GZURaaRRs7WmIAg", "Belvedere Vale do Quilombo",
                 null, "(54) 3286-4054", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
-                "Gramado", false, 2, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.37812, -50.86689, null));
+                "Gramado", false, 2, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.37812, -50.86689, null));
 
         places.add(createPlace(9L, "ChIJc9xQaBk1GZURAzZGz7paAeQ", "NBA Park Gramado | Parque Temático",
                 null, "(54) 3286-4056", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880",
-                "Gramado", false, 3, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.35966, -50.85485, null));
+                "Gramado", false, 3, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.35966, -50.85485, null));
 
         places.add(createPlace(10L, "ChIJYZJhix41GZURPZQ1hcAfIIo", "Jardim do Amor",
                 null, "(54) 3286-4057", null, null, null, false,
                 "photoString", new ArrayList<>(), "Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000",
-                "Gramado", false, 4, LocalDate.of(2025, 2, 18), LocalDate.of(2025, 3, 18),
-                LocalDate.of(2025, 2, 18), null, null, -29.38436, -50.8815, null));
+                "Gramado", false, 4, startDateRecommendation, endDateRecommendation,
+                createdDate, null, null, -29.38436, -50.8815, null));
 
         return places;
     }

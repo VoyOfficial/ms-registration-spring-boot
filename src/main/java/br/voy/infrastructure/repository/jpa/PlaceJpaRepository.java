@@ -12,9 +12,9 @@ public interface PlaceJpaRepository extends JpaRepository<PlaceModel, Long> {
 
     Optional<PlaceModel> findById(Long placeId);
 
-    Optional<List<PlaceModel>> findByCity(String city);
+    List<PlaceModel> findByCity(String city);
 
-    Optional<PlaceModel> findPlaceByGooglePlaceId(String googlePlaceId);
+    Optional<PlaceModel> findByGooglePlaceId(String googlePlaceId);
 
     @Query("SELECT p FROM PlaceModel p WHERE p.latitude BETWEEN :minLat AND :maxLat AND p.longitude BETWEEN :minLon AND :maxLon")
     List<PlaceModel> findByBoundingBox(@Param("minLat") double minLat,
