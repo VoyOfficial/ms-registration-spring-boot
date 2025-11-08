@@ -39,11 +39,10 @@ public class PlacesApiClient {
 
     private final GeoApiContext context;
 
-    @Value("${places.api.key}")
-    private String apiKey;
+    private final String apiKey;
 
-    public PlacesApiClient(String apiKey) {
-
+    public PlacesApiClient(@Value("${places.api.key}") String apiKey) {
+        this.apiKey = apiKey;
         this.context = new GeoApiContext
                 .Builder()
                 .apiKey(apiKey)
