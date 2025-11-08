@@ -17,6 +17,11 @@ services:
       DATABASE_PASSWORD: password
       DATABASE_SCHEMA: registration
       PLACES_API_KEY: "AIzaSyBR-yGbZ19UHqTDT8vlSKtCuKmbUUCGOJs"
+      EARTH_RADIUS_KM: 6371
+      INCREMENTAL_BOUNDING_BOX_RADIUS_KM: 5
+      INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM: 10
+      LIMIT_MAX_BOUNDING_BOX: 100
+      MAX_PLACE_SIZE_LIST: 5
 
   postgres:
     container_name: postgres_registration
