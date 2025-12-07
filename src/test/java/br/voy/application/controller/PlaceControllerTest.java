@@ -25,6 +25,7 @@ import br.voy.domain.exception.googlePlaces.*;
 import br.voy.domain.service.GetNearbyPlacesService;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
+import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -66,6 +67,9 @@ class PlaceControllerTest {
 
     @MockBean
     PlaceRegistryService placeRegistryService;
+
+    @MockBean
+    GetRecommendedPlacesUseCase placeRecommendationUseCase;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -558,6 +562,148 @@ class PlaceControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("The Place contains a city different of city registered in google place."))
                 .andReturn();
 
+    }
+
+    @Test
+    @DisplayName("Must to Get Recommended Places with pagination")
+    void mustToGetRecommendedPlacesWithPagination() throws Exception {
+        // scenario
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var range = 10.0;
+        var pageSize = 5;
+        var nextPageToken = "";
+
+        var recommendedPlaces = createRecommendedPlacesResponse(pageSize, true);
+
+        doReturn(recommendedPlaces).when(placeRecommendationUseCase).getRecommendedPlaces(latitude, longitude, range, pageSize, nextPageToken);
+
+        // action - validation
+        mockMvc.perform(get(URL + "/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("latitude", String.valueOf(latitude))
+                        .param("longitude", String.valueOf(longitude))
+                        .param("range", String.valueOf(range))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("nextPageToken", nextPageToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("ok"))
+                .andExpect(jsonPath("$.data.places").isNotEmpty())
+                .andExpect(jsonPath("$.data.places", hasSize(5)))
+                .andExpect(jsonPath("$.data.nextTokenPage").value("next-page-token-123"));
+    }
+
+    @Test
+    @DisplayName("Must to Get Recommended Places without nextPageToken")
+    void mustToGetRecommendedPlacesWithoutNextPageToken() throws Exception {
+        // scenario
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var range = 10.0;
+        var pageSize = 5;
+        var nextPageToken = "";
+
+        var recommendedPlaces = createRecommendedPlacesResponse(5, false);
+
+        doReturn(recommendedPlaces).when(placeRecommendationUseCase).getRecommendedPlaces(latitude, longitude, range, pageSize, nextPageToken);
+
+        // action - validation
+        mockMvc.perform(get(URL + "/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("latitude", String.valueOf(latitude))
+                        .param("longitude", String.valueOf(longitude))
+                        .param("range", String.valueOf(range))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("nextPageToken", nextPageToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("ok"))
+                .andExpect(jsonPath("$.data.places").isNotEmpty())
+                .andExpect(jsonPath("$.data.places", hasSize(5)))
+                .andExpect(jsonPath("$.data.nextTokenPage").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Must to Get Recommended Places with default pageSize")
+    void mustToGetRecommendedPlacesWithDefaultPageSize() throws Exception {
+        // scenario
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var range = 10.0;
+
+        var recommendedPlaces = createRecommendedPlacesResponse(5, false);
+
+        doReturn(recommendedPlaces).when(placeRecommendationUseCase).getRecommendedPlaces(latitude, longitude, range, 5, "");
+
+        // action - validation
+        mockMvc.perform(get(URL + "/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("latitude", String.valueOf(latitude))
+                        .param("longitude", String.valueOf(longitude))
+                        .param("range", String.valueOf(range)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("ok"))
+                .andExpect(jsonPath("$.data.places").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when no recommended places found")
+    void shouldReturn404WhenNoRecommendedPlacesFound() throws Exception {
+        // scenario
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+
+        var emptyResponse = new br.voy.application.controller.response.RecommendedPlacesResponse(new ArrayList<>(), null);
+
+        doReturn(emptyResponse).when(placeRecommendationUseCase).getRecommendedPlaces(latitude, longitude, null, 5, "");
+
+        // action - validation
+        mockMvc.perform(get(URL + "/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("latitude", String.valueOf(latitude))
+                        .param("longitude", String.valueOf(longitude)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should navigate to next page with nextPageToken")
+    void shouldNavigateToNextPageWithNextPageToken() throws Exception {
+        // scenario
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var nextPageToken = "page-token-from-previous-request";
+        var pageSize = 5;
+
+        var nextPagePlaces = createRecommendedPlacesResponse(5, false);
+
+        doReturn(nextPagePlaces).when(placeRecommendationUseCase).getRecommendedPlaces(latitude, longitude, null, pageSize, nextPageToken);
+
+        // action - validation
+        mockMvc.perform(get(URL + "/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("latitude", String.valueOf(latitude))
+                        .param("longitude", String.valueOf(longitude))
+                        .param("nextPageToken", nextPageToken)
+                        .param("pageSize", String.valueOf(pageSize)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("ok"))
+                .andExpect(jsonPath("$.data.places").isNotEmpty());
+    }
+
+    private static br.voy.application.controller.response.RecommendedPlacesResponse createRecommendedPlacesResponse(int size, boolean hasNextPage) {
+        List<br.voy.application.controller.response.PlaceResponse> placeResponses = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+            var place = createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i);
+            placeResponses.add(br.voy.application.controller.response.PlaceResponse.fromDomain(place));
+        }
+
+        String nextToken = hasNextPage ? "next-page-token-123" : null;
+        return new br.voy.application.controller.response.RecommendedPlacesResponse(placeResponses, nextToken);
     }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {
