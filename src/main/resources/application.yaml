@@ -89,6 +89,9 @@ voy:
       earthRadiusKM: ${EARTH_RADIUS_KM:6371.0}
       google:
         api_key: ${PLACES_API_KEY:fake_key}
+  security:
+    pagination:
+      secret-key: ${PAGINATION_SECRET_KEY:voy-pagination-secret-2024}
 
 # Messages
 # Default Messages to Custom Annotations

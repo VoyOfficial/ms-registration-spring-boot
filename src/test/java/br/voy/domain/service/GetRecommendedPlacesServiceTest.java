@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +20,7 @@ import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.utils.BoundingBox;
+import br.voy.domain.utils.PaginationTokenEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -199,6 +201,145 @@ public class GetRecommendedPlacesServiceTest {
 
         assertTrue(exception.getStatus() == HttpStatus.NOT_FOUND);
         assertEquals("não encontrado", exception.getReason());
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve retornar a primeira página de resultados")
+    void testGetRecommendedPlacesWithPaginationShouldReturnFirstPage() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, null);
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertNotNull(response.getPlaces(), "esperado que a lista de lugares não seja null");
+        assertFalse(response.getPlaces().isEmpty(), "esperado que a response não seja vazio");
+        assertEquals(3, response.getPlaces().size(), "esperado que a response tenha 3 lugares");
+        assertNotNull(response.getNextTokenPage(), "esperado que tenha um token para a próxima página");
+
+        assertTrue(response.getNextTokenPage().length() > 10, "esperado que o token seja maior que 10 caracteres");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve decodificar o token corretamente")
+    void testGetRecommendedPlacesWithPaginationShouldDecodeTokenCorrectly() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        String token = PaginationTokenEncoder.encode(3);
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, token);
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertNotNull(response.getPlaces(), "esperado que a lista de lugares não seja null");
+        assertFalse(response.getPlaces().isEmpty(), "esperado que a response não seja vazio");
+        assertEquals(3, response.getPlaces().size(), "esperado que a response tenha 3 lugares");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve retornar token codificado")
+    void testGetRecommendedPlacesWithPaginationShouldReturnEncodedToken() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, null);
+
+        assertNotNull(response.getNextTokenPage(), "esperado que tenha um token para a próxima página");
+
+        int decodedOffset = PaginationTokenEncoder.decode(response.getNextTokenPage());
+        assertEquals(3, decodedOffset, "esperado que o token decodificado seja '3'");
+
+        assertTrue(response.getNextTokenPage().length() > 10, "esperado que o token seja opaco e longo");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação não deve retornar token quando não houver mais páginas")
+    void testGetRecommendedPlacesWithPaginationShouldNotReturnTokenWhenNoMorePages() {
+        List<Place> fivePlaces = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            fivePlaces.add(generatePlaceList().get(i));
+        }
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(fivePlaces));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertEquals(5, response.getPlaces().size(), "esperado que a response tenha 5 lugares");
+        assertNull(response.getNextTokenPage(), "esperado que não tenha token quando não há mais páginas");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve usar pageSize padrão quando não providenciado")
+    void testGetRecommendedPlacesWithPaginationShouldUseDefaultPageSize() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, null, null);
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertTrue(response.getPlaces().size() <= 5, "esperado que a response use o pageSize padrão de 5");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve lidar com token inválido")
+    void testGetRecommendedPlacesWithPaginationShouldHandleInvalidToken() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, "invalid-token");
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertNotNull(response.getPlaces(), "esperado que comece da primeira página com token inválido");
+        assertEquals(3, response.getPlaces().size(), "esperado que a response tenha 3 lugares");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve navegar por múltiplas páginas")
+    void testGetRecommendedPlacesWithPaginationShouldNavigateThroughMultiplePages() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+
+        var page1 = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, null);
+        assertNotNull(page1, "esperado que a primeira página não seja null");
+        assertEquals(3, page1.getPlaces().size(), "esperado que a primeira página tenha 3 lugares");
+        assertNotNull(page1.getNextTokenPage(), "esperado que tenha token para próxima página");
+
+        var page2 = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, page1.getNextTokenPage());
+        assertNotNull(page2, "esperado que a segunda página não seja null");
+        assertEquals(3, page2.getPlaces().size(), "esperado que a segunda página tenha 3 lugares");
+
+        assertNotEquals(page1.getPlaces().get(0).getGooglePlaceId(),
+                        page2.getPlaces().get(0).getGooglePlaceId(),
+                        "esperado que as páginas tenham lugares diferentes");
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve lançar exceção quando raio exceder limite")
+    void testGetRecommendedPlacesWithPaginationThrowsExceptionWhenRadiusExceedsLimit() {
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, 130.0, 5, null)
+        );
+
+        assertTrue(exception.getStatus() == HttpStatus.BAD_REQUEST);
+        assertEquals("raio de busca máxima é de 50.0 km", exception.getReason());
+    }
+
+    @Test
+    @DisplayName("O método GetRecommendedPlaces com paginação deve remover lugares expirados")
+    void testGetRecommendedPlacesWithPaginationShouldRemoveExpiredPlaces() {
+        List<Place> placeList = new ArrayList<>();
+        placeList.add(generateEndRecommendationBeforeTodayPlace());
+        for(int i = 0; i < 5; i++) {
+            placeList.add(generatePlaceList().get(i));
+        }
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(placeList));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response, "esperado que a response não seja null");
+        assertFalse(response.getPlaces().isEmpty(), "esperado que a response não seja vazio");
+        assertTrue(response.getPlaces().size() <= 5, "esperado que a response tenha no máximo 5 lugares");
+
+        boolean hasExpiredPlace = response.getPlaces().stream()
+                .anyMatch(place -> "generateEndRecommendationBeforeTodayPlace".equals(place.getName()));
+        assertFalse(hasExpiredPlace, "esperado que o lugar expirado seja removido");
     }
 
     private Place generateFarPlace() {

@@ -262,7 +262,7 @@ public class PlaceController {
             @RequestParam @Parameter(description = "User's longitude (required)", required = true) @Schema(example = "-50.84805", type = "Double") Double longitude,
             @RequestParam(required = false) @Parameter(description = "Optional search radius in kilometers") @Schema(example = "10", type = "Double") Double range,
             @RequestParam(required = false, defaultValue = "5") @Parameter(description = "Number of results per page") @Schema(example = "5", type = "Integer") Integer pageSize,
-            @RequestParam(required = false, defaultValue = "") @Parameter(description = "Token for pagination") @Schema(example = "offset-5", type = "String") String nextPageToken) {
+            @RequestParam(required = false, defaultValue = "") @Parameter(description = "Token for pagination (opaque string)") @Schema(example = "MzoxNzMzNjg5MjQ1Njc4OmFCY0RlRmdIaUprTG1Obw:dGVzdGNoZWM", type = "String") String nextPageToken) {
 
         logger.info("PLACE CONTROLLER - GET RECOMMENDED PLACES - lat: {} | lon: {} | pageSize: {} | nextPageToken: {}", latitude, longitude, pageSize, nextPageToken);
 

@@ -11,6 +11,7 @@ import br.voy.domain.entity.Place;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.domain.utils.BoundingBox;
+import br.voy.domain.utils.PaginationTokenEncoder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -87,15 +88,8 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
         // Default pageSize to MAX_PLACE_SIZE_LIST if not provided
         int effectivePageSize = (pageSize != null && pageSize > 0) ? pageSize : (int) MAX_PLACE_SIZE_LIST;
 
-        // Parse offset from nextPageToken (format: "offset-{number}")
-        int offset = 0;
-        if (nextPageToken != null && !nextPageToken.isEmpty() && nextPageToken.startsWith("offset-")) {
-            try {
-                offset = Integer.parseInt(nextPageToken.substring(7));
-            } catch (NumberFormatException e) {
-                offset = 0;
-            }
-        }
+        // Decode offset from nextPageToken using PaginationTokenEncoder
+        int offset = PaginationTokenEncoder.decode(nextPageToken);
 
         double radius = (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
 
@@ -146,10 +140,10 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
 
         List<Place> paginatedPlaces = orderedPlaces.subList(offset, endIndex);
 
-        // Generate next page token if there are more results
+        // Generate next page token if there are more results using PaginationTokenEncoder
         String nextToken = null;
         if (endIndex < totalPlaces) {
-            nextToken = "offset-" + endIndex;
+            nextToken = PaginationTokenEncoder.encode(endIndex);
         }
 
         // Convert to PlaceResponse
