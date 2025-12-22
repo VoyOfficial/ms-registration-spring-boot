@@ -44,7 +44,9 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         var response = placesApiClient.searchForNearbyPlaces(latLng, radius, placeTypeEnum, nextPageToken);
 
+        // Process all places in parallel
         var places = Arrays.stream(response.results)
+                .parallel() // Enable parallel processing
                 .map(result -> {
                     Place place = Place.toNearbyPlace(result, placesApiClient.getApiKey());
                     // Fetch photos for this place if available

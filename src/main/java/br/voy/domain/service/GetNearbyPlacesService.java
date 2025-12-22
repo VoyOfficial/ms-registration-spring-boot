@@ -9,9 +9,9 @@ import br.voy.domain.repository.PlaceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,35 +37,35 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
         var nearbyPlaces = googlePlacesPort.getNearbyPlaces(coordinates, radius, placeType, nextPageToken);
 
-        // Save places and photos to database
-        List<Place> savedPlaces = new ArrayList<>();
-        for (Place place : nearbyPlaces.getPlaces()) {
-            // Check if place already exists
-            var existingPlace = placeRepository.findPlaceByGooglePlaceId(place.getGooglePlaceId());
+        // Save places asynchronously to avoid blocking the response
+        savePlacesAsync(nearbyPlaces.getPlaces());
 
-            if (existingPlace.isEmpty()) {
-                // Place doesn't exist, save it with photos
-                if (place.getPhotos() != null && !place.getPhotos().isEmpty()) {
-                    logger.info("GET NEARBY PLACES SERVICE - SAVING PLACE WITH PHOTOS - Place: {}, Photos: {}", place.getName(), place.getPhotos().size());
-                    Place savedPlace = placeRepository.savePlace(place);
-                    savedPlaces.add(savedPlace);
+        logger.info("GET NEARBY PLACES SERVICE - GET NEARBY PLACES FINISH - Nearby Places: {}", nearbyPlaces.getPlaces().size());
+
+        return nearbyPlaces;
+    }
+
+    @Async
+    public void savePlacesAsync(List<Place> places) {
+        logger.info("GET NEARBY PLACES SERVICE - ASYNC SAVE START - Places count: {}", places.size());
+
+        for (Place place : places) {
+            try {
+                // Check if place already exists
+                var existingPlace = placeRepository.findPlaceByGooglePlaceId(place.getGooglePlaceId());
+
+                if (existingPlace.isEmpty()) {
+                    placeRepository.savePlace(place);
+                    logger.debug("GET NEARBY PLACES SERVICE - PLACE SAVED - Place: {}", place.getName());
                 } else {
-                    logger.info("GET NEARBY PLACES SERVICE - SAVING PLACE WITHOUT PHOTOS - Place: {}", place.getName());
-                    Place savedPlace = placeRepository.savePlace(place);
-                    savedPlaces.add(savedPlace);
+                    logger.debug("GET NEARBY PLACES SERVICE - PLACE ALREADY EXISTS - Place: {}", place.getName());
                 }
-            } else {
-                logger.info("GET NEARBY PLACES SERVICE - PLACE ALREADY EXISTS - Place: {}", place.getName());
-                savedPlaces.add(existingPlace.get());
+            } catch (Exception e) {
+                logger.error("GET NEARBY PLACES SERVICE - ERROR SAVING PLACE - Place: {}, Error: {}", place.getName(), e.getMessage());
             }
         }
 
-        var result = new NearbyPlaces(savedPlaces, nearbyPlaces.getNextTokenPage());
-
-        logger.info("GET NEARBY PLACES SERVICE - GET NEARBY PLACES FINISH - Nearby Places: {}", result);
-
-        return result;
-
+        logger.info("GET NEARBY PLACES SERVICE - ASYNC SAVE FINISH - Places saved/checked: {}", places.size());
     }
 
 }
