@@ -50,6 +50,10 @@ public class PlacesApiClient {
 
     }
 
+    public String getApiKey() {
+        return apiKey;
+    }
+
     public PlacesSearchResponse searchForNearbyPlaces(
             LatLng latLng,
             Integer radius,
@@ -322,20 +326,22 @@ public class PlacesApiClient {
         List<PlacePhoto> placePhotos = new ArrayList<>();
 
         if (photos != null) {
-            for (int i = 0; i < photos.length; i++) {
-                Photo photo = photos[i];
+            for (Photo photo : photos) {
                 String photoReference = photo.photoReference;
                 String photoUrl = buildPhotoUrl(photoReference, photo.width);
 
                 try {
-                    byte[] imageBytes = downloadPhoto(photoUrl); // Mantenha como byte[]
+                    byte[] imageBytes = downloadPhoto(photoUrl);
                     String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
-                    PlacePhoto placePhoto = new PlacePhoto();
-                    placePhoto.setPhotoReference(photoReference);
-                    placePhoto.setImageBase64(imageBase64); // Salve o byte[] diretamente
-                    placePhoto.setHeight(photo.height);
-                    placePhoto.setWidth(photo.width);
-                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions));
+
+                    PlacePhoto placePhoto = PlacePhoto.builder()
+                            .photoReference(photoReference)
+                            .photoUrl(photoUrl)
+                            .imageBase64(imageBase64)
+                            .height(photo.height)
+                            .width(photo.width)
+                            .htmlAttributions(String.join(",", photo.htmlAttributions))
+                            .build();
 
                     placePhotos.add(placePhoto);
 

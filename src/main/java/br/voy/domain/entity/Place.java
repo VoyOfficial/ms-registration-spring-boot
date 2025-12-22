@@ -27,6 +27,7 @@ public class Place {
     private Integer userRatingsTotal;
     private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private String principalPhotoUrl;
     private List<PlacePhoto> photos;
     private String address;
     private String city;
@@ -69,6 +70,33 @@ public class Place {
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
                 .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
+                .build();
+
+    }
+
+    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
+
+        var photoReference = "";
+        String photoUrl = null;
+
+        if (Objects.nonNull(placeSearchResult.photos)) {
+            photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
+            if (!photoReference.isEmpty()) {
+                photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
+                        photoReference, apiKey);
+            }
+        }
+
+        return Place
+                .builder()
+                .googlePlaceId(placeSearchResult.placeId)
+                .name(placeSearchResult.name)
+                .about("") // todo refatorar
+                .rating(placeSearchResult.rating)
+                .userRatingsTotal(placeSearchResult.userRatingsTotal)
+                .address(placeSearchResult.vicinity)
+                .principalPhoto(photoReference)
+                .principalPhotoUrl(photoUrl)
                 .build();
 
     }

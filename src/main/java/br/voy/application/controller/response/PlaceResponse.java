@@ -28,6 +28,7 @@ public class PlaceResponse {
     private Integer userRatingsTotal;
     private Boolean isSaved;
     private String photoReference;
+    private String photoUrl;
     private List<PlacePhoto> photos;
     private Float distanceOfLocal = null;
     private double latitude;
@@ -53,6 +54,7 @@ public class PlaceResponse {
         this.userRatingsTotal = place.getUserRatingsTotal();
         this.isSaved = place.getIsSaved();
         this.photoReference = place.getPrincipalPhoto();
+        this.photoUrl = place.getPrincipalPhotoUrl();
         this.photos = place.getPhotos();
 //        this.distanceOfLocal = place.getDistanceOfLocal();
         this.latitude = place.getLatitude();
@@ -78,9 +80,9 @@ public class PlaceResponse {
                 .address(place.getAddress())
                 .isSaved(place.getIsSaved())
                 .photoReference(place.getPrincipalPhoto())
+                .photoUrl(place.getPrincipalPhotoUrl())
                 .photos(place.getPhotos())
                 .build();
 
     }
 }
-

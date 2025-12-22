@@ -32,6 +32,8 @@ public class PlacePhotoModel extends AbstractModel {
 
     private String photoReference;
 
+    private String photoUrl;
+
     @Lob
     @Column(name = "image_base64", columnDefinition = "bytea")
     @Type(type = "org.hibernate.type.BinaryType")
@@ -45,6 +47,7 @@ public class PlacePhotoModel extends AbstractModel {
         this.id = placePhoto.getId();
         this.place = PlaceModel.builder().id(placePhoto.getPlaceId()).build();
         this.photoReference = placePhoto.getPhotoReference();
+        this.photoUrl = placePhoto.getPhotoUrl();
         this.height = placePhoto.getHeight();
         this.width = placePhoto.getWidth();
         this.htmlAttributions = placePhoto.getHtmlAttributions();
@@ -65,6 +68,7 @@ public class PlacePhotoModel extends AbstractModel {
                 .id(id)
                 .placeId(place != null ? place.getId() : null)
                 .photoReference(photoReference)
+                .photoUrl(photoUrl)
                 .imageBase64(imageBase64 != null ? new String(imageBase64) : null) // Converte byte[] para String Base64
                 .height(height)
                 .width(width)

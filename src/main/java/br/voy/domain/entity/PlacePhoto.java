@@ -13,6 +13,7 @@ public class PlacePhoto {
     private Long id;
     private Long placeId;
     private String photoReference;
+    private String photoUrl;
     private String imageBase64;
     private int height;
     private int width;

@@ -764,6 +764,7 @@ class PlaceControllerTest {
                 2599,
                 false, // isSaved
                 "photoReference",
+                "https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=photoReference&key=test_key", // principalPhotoUrl
                 List.of(new PlacePhoto(), new PlacePhoto()),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 "Gramado",
