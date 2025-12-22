@@ -45,18 +45,25 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         placeModel = placeJpaRepository.save(placeModel);
 
-        List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
-        for(PlacePhoto photo : placeDomain.getPhotos()) {
-            PlacePhotoModel photoModel = new PlacePhotoModel();
-            photoModel.setPhotoReference(photo.getPhotoReference());
-            photoModel.setHeight(photo.getHeight());
-            photoModel.setWidth(photo.getWidth());
-            photoModel.setImageBase64(photo.getImageBase64().getBytes());
-            photoModel.setPlace(placeModel);
-            placePhotoModelList.add(photoModel);
-        }
+        // Save photos if they exist
+        if (placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
+            List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
+            for(PlacePhoto photo : placeDomain.getPhotos()) {
+                PlacePhotoModel photoModel = new PlacePhotoModel();
+                photoModel.setPhotoReference(photo.getPhotoReference());
+                photoModel.setPhotoUrl(photo.getPhotoUrl());
+                photoModel.setHeight(photo.getHeight());
+                photoModel.setWidth(photo.getWidth());
+                photoModel.setHtmlAttributions(photo.getHtmlAttributions());
+                if (photo.getImageBase64() != null) {
+                    photoModel.setImageBase64(photo.getImageBase64().getBytes());
+                }
+                photoModel.setPlace(placeModel);
+                placePhotoModelList.add(photoModel);
+            }
 
-        placePhotoJpaRepository.saveAll(placePhotoModelList);
+            placePhotoJpaRepository.saveAll(placePhotoModelList);
+        }
 
         return placeModel.toDomain();
     }

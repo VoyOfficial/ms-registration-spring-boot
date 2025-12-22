@@ -45,7 +45,25 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
         var response = placesApiClient.searchForNearbyPlaces(latLng, radius, placeTypeEnum, nextPageToken);
 
         var places = Arrays.stream(response.results)
-                .map(result -> Place.toNearbyPlace(result, placesApiClient.getApiKey()))
+                .map(result -> {
+                    Place place = Place.toNearbyPlace(result, placesApiClient.getApiKey());
+                    // Fetch photos for this place if available
+                    if (result.photos != null && result.photos.length > 0) {
+                        var photos = placesApiClient.getPlacePhotos(result.photos);
+                        place = Place.builder()
+                                .googlePlaceId(place.getGooglePlaceId())
+                                .name(place.getName())
+                                .about(place.getAbout())
+                                .rating(place.getRating())
+                                .userRatingsTotal(place.getUserRatingsTotal())
+                                .address(place.getAddress())
+                                .principalPhoto(place.getPrincipalPhoto())
+                                .principalPhotoUrl(place.getPrincipalPhotoUrl())
+                                .photos(photos)
+                                .build();
+                    }
+                    return place;
+                })
                 .collect(Collectors.toList());
 
         var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
