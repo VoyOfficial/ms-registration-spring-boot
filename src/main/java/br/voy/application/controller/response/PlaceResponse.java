@@ -1,8 +1,9 @@
 package br.voy.application.controller.response;
 
-import br.voy.domain.entity.Place;
+import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import br.voy.domain.entity.Place;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class PlaceResponse {
     private Integer userRatingsTotal;
     private Boolean isSaved;
     private String photoReference;
-    private List<String> images;
+    private List<PlacePhoto> photos;
     private Float distanceOfLocal = null;
     private double latitude;
     private double longitude;
@@ -52,7 +53,7 @@ public class PlaceResponse {
         this.userRatingsTotal = place.getUserRatingsTotal();
         this.isSaved = place.getIsSaved();
         this.photoReference = place.getPrincipalPhoto();
-        this.images = place.getImages();
+        this.photos = place.getPhotos();
 //        this.distanceOfLocal = place.getDistanceOfLocal();
         this.latitude = place.getLatitude();
         this.longitude = place.getLongitude();
@@ -77,6 +78,7 @@ public class PlaceResponse {
                 .address(place.getAddress())
                 .isSaved(place.getIsSaved())
                 .photoReference(place.getPrincipalPhoto())
+                .photos(place.getPhotos())
                 .build();
 
     }

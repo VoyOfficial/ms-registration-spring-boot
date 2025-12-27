@@ -1,24 +1,19 @@
 package br.voy.domain.service;
 
-import br.voy.domain.entity.BusinessHours;
-import br.voy.domain.entity.Interval;
 import br.voy.domain.entity.PlaceDetails;
-import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsInvalidRequestApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsNotFoundApiClientException;
-import br.voy.domain.exception.googlePlaces.PlaceDetailsZeroResultsApiClientException;
-import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
-import br.voy.domain.exception.googlePlaces.RequestDeniedApiClientException;
-import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.entity.PlacePhoto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.exception.googlePlaces.*;
+import br.voy.domain.entity.BusinessHours;
+import br.voy.domain.entity.Interval;
 
 import java.util.List;
 
@@ -41,14 +36,13 @@ class GetPlaceDetailsServiceTest {
     }
 
     @Test
-    @DisplayName("Must to Get Place Details given a placeId")
+    @DisplayName("Must to Get Place Details given a place")
     void mustToGetPlaceDetailsGivenAPlaceId() {
 
         // scenario
         var placeId = "ChIJQXQEc04yGZURHsEanxBefFw";
 
         var expectedPlaceDetails = createPlaceDetails(placeId);
-        Mockito.doReturn(expectedPlaceDetails).when(googlePlacesPort).getPlaceDetails(placeId);
         doReturn(expectedPlaceDetails).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
@@ -206,7 +200,6 @@ class GetPlaceDetailsServiceTest {
 
         List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
 
-
         return PlaceDetails
                 .builder()
                 .googlePlaceId(placeId)
@@ -215,7 +208,7 @@ class GetPlaceDetailsServiceTest {
                 .contact("(54) 3286-1362")
                 .businessHours(businessHours)
                 .rating(4.5f)
-                .images(List.of("image1", "image2"))
+                .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
 

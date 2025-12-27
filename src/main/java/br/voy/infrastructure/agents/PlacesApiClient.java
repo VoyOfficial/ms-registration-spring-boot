@@ -1,5 +1,6 @@
 package br.voy.infrastructure.agents;
 
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
@@ -14,6 +15,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
 import com.google.maps.errors.*;
 import com.google.maps.model.LatLng;
+import com.google.maps.model.Photo;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
@@ -23,6 +25,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 @Component
 public class PlacesApiClient {
@@ -31,11 +39,10 @@ public class PlacesApiClient {
 
     private final GeoApiContext context;
 
-    public PlacesApiClient(
-            @Value("${places.api.key}")
-            String apiKey
-    ) {
+    private final String apiKey;
 
+    public PlacesApiClient(@Value("${places.api.key}") String apiKey) {
+        this.apiKey = apiKey;
         this.context = new GeoApiContext
                 .Builder()
                 .apiKey(apiKey)
@@ -163,7 +170,7 @@ public class PlacesApiClient {
         }
     }
 
-    public PlaceDetails getPlaceFromText(String placeName, String city) {
+    public com.google.maps.model.PlaceDetails getPlaceFromText(String placeName, String city) {
 
         logger.info("PLACES API CLIENT - Create Find Place From Text Request to Get Place");
 
@@ -308,6 +315,60 @@ public class PlacesApiClient {
 
             throw new PlacesApiClientException(exception);
 
+        }
+    }
+
+    public List<PlacePhoto> getPlacePhotos(Photo[] photos) {
+        List<PlacePhoto> placePhotos = new ArrayList<>();
+
+        if (photos != null) {
+            for (int i = 0; i < photos.length; i++) {
+                Photo photo = photos[i];
+                String photoReference = photo.photoReference;
+                String photoUrl = buildPhotoUrl(photoReference, photo.width);
+
+                try {
+                    byte[] imageBytes = downloadPhoto(photoUrl); // Mantenha como byte[]
+                    String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+                    PlacePhoto placePhoto = new PlacePhoto();
+                    placePhoto.setPhotoReference(photoReference);
+                    placePhoto.setImageBase64(imageBase64); // Salve o byte[] diretamente
+                    placePhoto.setHeight(photo.height);
+                    placePhoto.setWidth(photo.width);
+                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions));
+
+                    placePhotos.add(placePhoto);
+
+                } catch (IOException e) {
+                    System.err.println("Erro ao baixar foto: " + e.getCause());
+                }
+            }
+        }
+
+        return placePhotos;
+    }
+
+    private String buildPhotoUrl(String photoReference, int width) {
+
+        int maxWidth;
+
+        if (width > 1600) {
+            maxWidth = 800; // Reduz imagens muito grandes
+        } else if (width < 400) {
+            maxWidth = 400; // Garante que imagens pequenas fiquem aceitáveis no celular
+        } else {
+            maxWidth = width; // Mantém o tamanho normal
+        }
+
+        return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=" + maxWidth + "&photoreference=" +
+               photoReference + "&key=" + apiKey;
+    }
+
+    private byte[] downloadPhoto(String photoUrl) throws IOException {
+        URL url = new URL(photoUrl);
+        URLConnection connection = url.openConnection();
+        try (InputStream in = connection.getInputStream()) {
+            return in.readAllBytes();
         }
     }
 

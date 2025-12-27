@@ -23,7 +23,7 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
 
         var place = googlePlacesPort.getPlaceDetails(placeId);
 
-        logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", place);
+        logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", place.getName());
 
         return place;
 

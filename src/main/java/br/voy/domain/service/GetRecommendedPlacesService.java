@@ -1,6 +1,7 @@
 package br.voy.domain.service;
 
 import br.voy.application.controller.response.PlaceResponse;
+import br.voy.application.controller.response.RecommendedPlacesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import br.voy.domain.entity.Place;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.domain.utils.BoundingBox;
+import br.voy.domain.utils.PaginationTokenEncoder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -79,6 +81,77 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
 
         return orderPlacesToResponse(places, userLatitude, userLongitude);
 
+    }
+
+    @Override
+    public RecommendedPlacesResponse getRecommendedPlaces(Double userLatitude, Double userLongitude, Double range, Integer pageSize, String nextPageToken) {
+        // Default pageSize to MAX_PLACE_SIZE_LIST if not provided
+        int effectivePageSize = (pageSize != null && pageSize > 0) ? pageSize : (int) MAX_PLACE_SIZE_LIST;
+
+        // Decode offset from nextPageToken using PaginationTokenEncoder
+        int offset = PaginationTokenEncoder.decode(nextPageToken);
+
+        double radius = (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
+
+        if(radius > LIMIT_MAX_BOUNDING_BOX) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, OUT_OF_MAX_RANGE_MESSAGE + LIMIT_MAX_BOUNDING_BOX + KM);
+        }
+
+        List<Place> allPlaces = new ArrayList<>();
+        List<Place> candidates;
+
+        // Loop para aumentar o raio caso necessário
+        do {
+            // 1. Calcula a bounding box para o raio atual
+            BoundingBox boundingBox = calculateBoundingBox(userLatitude, userLongitude, radius);
+
+            try {
+                // 2. Busca no repositório os lugares dentro da bounding box
+                Optional<List<Place>> optionalCandidates = placeRepository.findPlacesWithinBoundingBox(boundingBox);
+                if (optionalCandidates.isPresent() && !optionalCandidates.get().isEmpty()) {
+                    candidates = optionalCandidates.get();
+                    // 3. Filtra os candidatos pelo raio circular
+                    allPlaces = filterByHaversine(userLatitude, userLongitude, candidates, radius);
+
+                    // Aumenta o raio se ainda não encontrou os 5 lugares
+                    radius += INCREMENTAL_BOUNDING_BOX_RADIUS_KM;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "não encontrado");
+                }
+            } catch(Exception e) {
+                throw e;
+            }
+            allPlaces.removeIf(place -> place.getEndRecommendation() == null || place.getEndRecommendation().isBefore(LocalDate.now()));
+
+        } while (allPlaces.size() < (offset + effectivePageSize + 1) && radius <= LIMIT_MAX_BOUNDING_BOX);
+
+        // Order all places by distance and ranking
+        List<Place> orderedPlaces = allPlaces.stream()
+                // Ordena primeiro pela distância (mais próximos primeiro)
+                .sorted(Comparator.comparingDouble(place -> calculateHaversine(userLatitude, userLongitude, place)))
+                // Mantém apenas os 5 mais próximos
+                .sorted(Comparator.comparingInt(Place::getRanking)
+                        .thenComparingDouble(place -> calculateHaversine(userLatitude, userLongitude, place)))
+                .collect(Collectors.toList());
+
+        // Apply pagination
+        int totalPlaces = orderedPlaces.size();
+        int endIndex = Math.min(offset + effectivePageSize, totalPlaces);
+
+        List<Place> paginatedPlaces = orderedPlaces.subList(offset, endIndex);
+
+        // Generate next page token if there are more results using PaginationTokenEncoder
+        String nextToken = null;
+        if (endIndex < totalPlaces) {
+            nextToken = PaginationTokenEncoder.encode(endIndex);
+        }
+
+        // Convert to PlaceResponse
+        List<PlaceResponse> placeResponses = paginatedPlaces.stream()
+                .map(PlaceResponse::fromDomain)
+                .collect(Collectors.toList());
+
+        return new RecommendedPlacesResponse(placeResponses, nextToken);
     }
 
     private List<PlaceResponse> orderPlacesToResponse(List<Place> places, Double userLatitude, Double userLongitude) {

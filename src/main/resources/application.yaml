@@ -49,6 +49,17 @@ spring:
     url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_DB:voy}
     username: ${DATABASE_USER:postgres}
     password: ${DATABASE_PASSWORD:password}
+  flyway:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_DB:voy}
+    user: postgres
+    password: password
+    locations: classpath:db/migration
+
+logging:
+  level:
+    org.hibernate: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
   # JPA
   jpa:
@@ -78,6 +89,9 @@ voy:
       earthRadiusKM: ${EARTH_RADIUS_KM:6371.0}
       google:
         api_key: ${PLACES_API_KEY:fake_key}
+  security:
+    pagination:
+      secret-key: ${PAGINATION_SECRET_KEY:voy-pagination-secret-2024}
 
 # Messages
 # Default Messages to Custom Annotations

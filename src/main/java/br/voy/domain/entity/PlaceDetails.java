@@ -2,12 +2,10 @@ package br.voy.domain.entity;
 
 import lombok.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-@Getter
+@Data
 @Builder
 @ToString
 @AllArgsConstructor
@@ -21,15 +19,12 @@ public class PlaceDetails {
     private List<BusinessHours> businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private List<String> images;// TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String address;
+    private List<PlacePhoto> photos; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private Double latitude;
+    private Double longitude;
 
     public static PlaceDetails toPlaceDetailsByGoogle(com.google.maps.model.PlaceDetails placeDetails) {
-
-        var imagesReferenceList = Arrays
-                .stream(placeDetails.photos)
-                .map(photo -> photo.photoReference)
-                .collect(Collectors.toList());
 
         String about = getAbout(placeDetails);
         String contact = getContact(placeDetails);
@@ -45,8 +40,33 @@ public class PlaceDetails {
                 .businessHours(businessHoursList)
                 .rating(placeDetails.rating)
                 .userRatingsTotal(placeDetails.userRatingsTotal)
-                .images(imagesReferenceList)
                 .address(placeDetails.formattedAddress)
+                .latitude(placeDetails.geometry.location.lat)
+                .longitude(placeDetails.geometry.location.lng)
+                .build();
+
+    }
+
+    public static PlaceDetails toPlaceDetailsByGoogleAndPhotos(com.google.maps.model.PlaceDetails placeDetails, List<PlacePhoto> placePhotos) {
+
+        String about = getAbout(placeDetails);
+        String contact = getContact(placeDetails);
+
+        List<BusinessHours> businessHoursList = BusinessHours.toBusinessHoursList(placeDetails.openingHours);
+
+        return PlaceDetails
+                .builder()
+                .googlePlaceId(placeDetails.placeId)
+                .name(placeDetails.name)
+                .about(about)
+                .contact(contact)
+                .businessHours(businessHoursList)
+                .rating(placeDetails.rating)
+                .photos(placePhotos)
+                .userRatingsTotal(placeDetails.userRatingsTotal)
+                .address(placeDetails.formattedAddress)
+                .latitude(placeDetails.geometry.location.lat)
+                .longitude(placeDetails.geometry.location.lng)
                 .build();
 
     }

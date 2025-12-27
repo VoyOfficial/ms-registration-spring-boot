@@ -1,17 +1,24 @@
 package br.voy.infrastructure.model;
 
+import br.voy.domain.entity.PlacePhoto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import br.voy.domain.entity.Place;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "place", schema = "registration")
-@Getter
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,6 +48,13 @@ public class PlaceModel extends AbstractModel {
     private double latitude;
     private double longitude;
 
+    @ToString.Exclude
+    @Builder.Default
+    @OneToMany(mappedBy = "place", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @JsonIgnore
+    private List<PlacePhotoModel> placePhotoModel = new ArrayList<>();
+
     public PlaceModel(Place placeDomain) {
         this.id = placeDomain.getId();
         this.googlePlaceId = placeDomain.getGooglePlaceId();
@@ -56,11 +70,15 @@ public class PlaceModel extends AbstractModel {
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
+        this.placePhotoModel = new ArrayList<>();
     }
 
     @Override
     public Place toDomain() {
-        return Place.builder()
+
+        List<PlacePhoto> placePhotos = new ArrayList<>();
+
+        Place domain = Place.builder()
                 .id(id)
                 .googlePlaceId(googlePlaceId)
                 .name(name)
@@ -75,6 +93,13 @@ public class PlaceModel extends AbstractModel {
                 .lastCancel(lastCancel)
                 .latitude(latitude)
                 .longitude(longitude)
+                .photos(placePhotos)
                 .build();
+
+        for (PlacePhotoModel placePhotoModel : placePhotoModel) {
+            placePhotos.add(placePhotoModel.toDomain());
+        }
+
+        return domain;
     }
 }

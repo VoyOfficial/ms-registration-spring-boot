@@ -5,6 +5,7 @@ import br.voy.application.controller.response.DefaultResponse;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
 import br.voy.application.controller.response.PlaceResponse;
+import br.voy.application.controller.response.RecommendedPlacesResponse;
 import br.voy.domain.entity.Coordinates;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.StandardError;
@@ -168,7 +169,7 @@ public class PlaceController {
         var placeId = placeRegistryUseCase.registry(request.toDomain());
 
         var uri = uriBuilder
-                .path("/v1/places/{placeId}")
+                .path("/v1/places/{place}")
                 .buildAndExpand(placeId)
                 .toUri();
 
@@ -256,18 +257,21 @@ public class PlaceController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = DefaultResponse.class)))
     })
     @GetMapping("/recommendations")
-    public ResponseEntity<DefaultResponse<List<PlaceResponse>>> getRecommendedPlaces(
+    public ResponseEntity<DefaultResponse<RecommendedPlacesResponse>> getRecommendedPlaces(
             @RequestParam @Parameter(description = "User's latitude (required)", required = true) @Schema(example = "-29.35995", type = "Double") Double latitude,
             @RequestParam @Parameter(description = "User's longitude (required)", required = true) @Schema(example = "-50.84805", type = "Double") Double longitude,
-            @RequestParam(required = false) @Parameter(description = "Optional search radius in kilometers") @Schema(example = "10", type = "Double") Double range) {
+            @RequestParam(required = false) @Parameter(description = "Optional search radius in kilometers") @Schema(example = "10", type = "Double") Double range,
+            @RequestParam(required = false, defaultValue = "5") @Parameter(description = "Number of results per page") @Schema(example = "5", type = "Integer") Integer pageSize,
+            @RequestParam(required = false, defaultValue = "") @Parameter(description = "Token for pagination (opaque string)") @Schema(example = "MzoxNzMzNjg5MjQ1Njc4OmFCY0RlRmdIaUprTG1Obw:dGVzdGNoZWM", type = "String") String nextPageToken) {
 
-        logger.info("PLACE CONTROLLER - REGISTRY - Place: lat: {} | lon: {}", latitude, longitude);
+        logger.info("PLACE CONTROLLER - GET RECOMMENDED PLACES - lat: {} | lon: {} | pageSize: {} | nextPageToken: {}", latitude, longitude, pageSize, nextPageToken);
 
-        var places = placeRecommendationUseCase.getRecommendedPlaces(latitude, longitude, range);
-        if (places.isEmpty()) {
+        var recommendedPlacesResponse = placeRecommendationUseCase.getRecommendedPlaces(latitude, longitude, range, pageSize, nextPageToken);
+
+        if (recommendedPlacesResponse.getPlaces().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, RECOMMENDATION_PLACE_NOT_FOUND_MESSAGE);
         }
 
-        return ResponseEntity.ok(new DefaultResponse<>("ok", places));
+        return ResponseEntity.ok(new DefaultResponse<>("ok", recommendedPlacesResponse));
     }
 }

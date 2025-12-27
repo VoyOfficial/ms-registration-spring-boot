@@ -7,6 +7,8 @@ import br.voy.domain.entity.Place;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @Getter
 @Builder
@@ -27,6 +29,9 @@ public class PlaceRequest extends AbstractRequest {
     @NotNull
     private Integer ranking;
 
+    @Schema(example = "2023-11-17T08:30:00Z")
+    private LocalDateTime startRecommendation;
+
     @Override
     public Place toDomain() {
         return Place
@@ -35,6 +40,7 @@ public class PlaceRequest extends AbstractRequest {
                 .name(name)
                 .city(city)
                 .ranking(ranking)
+                .startRecommendation(startRecommendation.toLocalDate())
                 .build();
     }
 

@@ -1,20 +1,20 @@
 package br.voy.domain.service;
 
-import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
-import br.voy.domain.exception.PlaceAlreadyExistsException;
-import br.voy.domain.repository.PlaceRepository;
-import br.voy.domain.usecase.PlaceRegistryUseCase;
 import br.voy.domain.entity.Place;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
+import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.usecase.PlaceRegistryUseCase;
 
 import java.time.LocalDate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 public class PlaceRegistryService implements PlaceRegistryUseCase {
@@ -35,16 +35,11 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
         var recommendedPlace = processingDataPlace(placeDomain);
 
         verifyIfPlaceAlreadyExistsInDatabase(recommendedPlace.getGooglePlaceId());
-
-        var statusRecommendedPlace = true;
-        var startRecommendation = LocalDate.now();
-        var createdAt = LocalDate.now();
-        var endRecommendation = startRecommendation.plusMonths(1);
-
-        recommendedPlace.setStatus(statusRecommendedPlace);
+        LocalDate startRecommendation = recommendedPlace.getStartRecommendation() != null ? recommendedPlace.getStartRecommendation() : LocalDate.now();
+        recommendedPlace.setStatus(true);
         recommendedPlace.setStartRecommendation(startRecommendation);
-        recommendedPlace.setCreatedAt(createdAt);
-        recommendedPlace.setEndRecommendation(endRecommendation);
+        recommendedPlace.setCreatedAt(LocalDate.now());
+        recommendedPlace.setEndRecommendation(startRecommendation.plusMonths(1));
 
         Place savedPlace = repository.savePlace(recommendedPlace);
 
@@ -70,27 +65,28 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
                 .name(placeDetails.getName())
                 .contact(placeDetails.getContact())
                 .address(placeDetails.getAddress())
+                .photos(placeDetails.getPhotos())
                 .city(city)
                 .ranking(placeDomain.getRanking())
-//                .latitude(placeDetails.geometry.location.lat) TODO Verificar necessidade
-//                .longitude(placeDetails.geometry.location.lng)
+                .startRecommendation(placeDomain.getStartRecommendation())
+                .createdAt(LocalDate.from(ZonedDateTime.now(ZoneId.of("UTC"))))
+                .latitude(placeDetails.getLatitude())
+                .longitude(placeDetails.getLongitude())
                 .build();
     }
 
-
     private String extractCityOfPlaceDetails(String placeDomainCity, String googlePlaceAddress) {
 
-        String regex = ",\\s*([^,]+)\\s*-\\s*[A-Z]{2},";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(googlePlaceAddress);
+        // The number 1 in split(", ") is used to retrieve the second part of the split string,
+        // which should contain the city and state.
+        // Then, the number 0 in split(" - ") is used to extract only the city.
+        String extractedCity = googlePlaceAddress.split(", ")[1].split(" - ")[0].trim();
 
-        if(!matcher.find()){
-            throw new CityDifferentPlaceRecommendationException();
+        if (!extractedCity.contentEquals(placeDomainCity)) {
+            extractedCity = googlePlaceAddress.split(", ")[2].split(" - ")[0].trim();
         }
 
-        String extractedCity = matcher.group(1).trim();
-
-        if (!extractedCity.equals(placeDomainCity)) {
+        if(!extractedCity.contentEquals(placeDomainCity)) {
             throw new CityDifferentPlaceRecommendationException();
         }
 
