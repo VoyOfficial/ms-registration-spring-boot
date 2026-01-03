@@ -53,13 +53,19 @@ public class Place {
     @Setter
     private String distanceFromUserLocation;
 
+    private static String extractPhotoReference(PlacesSearchResult placeSearchResult) {
+        if (Objects.nonNull(placeSearchResult.photos)) {
+            return Stream.of(placeSearchResult.photos)
+                    .map(photo -> photo.photoReference)
+                    .findFirst()
+                    .orElse("");
+        }
+        return "";
+    }
+
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult) {
 
-        var photoReference = "";
-
-        if (Objects.nonNull(placeSearchResult.photos)) {
-            photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
-        }
+        var photoReference = extractPhotoReference(placeSearchResult);
 
         return Place
                 .builder()
@@ -76,15 +82,12 @@ public class Place {
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
 
-        var photoReference = "";
+        var photoReference = extractPhotoReference(placeSearchResult);
         String photoUrl = null;
 
-        if (Objects.nonNull(placeSearchResult.photos)) {
-            photoReference = Stream.of(placeSearchResult.photos).map(photo -> photo.photoReference).findFirst().orElse("");
-            if (!photoReference.isEmpty()) {
-                photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
-                        photoReference, apiKey);
-            }
+        if (!photoReference.isEmpty()) {
+            photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
+                    photoReference, apiKey);
         }
 
         return Place

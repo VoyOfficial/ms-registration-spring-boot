@@ -46,26 +46,8 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         // Process all places in parallel
         var places = Arrays.stream(response.results)
-                .parallel() // Enable parallel processing
-                .map(result -> {
-                    Place place = Place.toNearbyPlace(result, placesApiClient.getApiKey());
-                    // Fetch photos for this place if available
-                    if (result.photos != null && result.photos.length > 0) {
-                        var photos = placesApiClient.getPlacePhotos(result.photos);
-                        place = Place.builder()
-                                .googlePlaceId(place.getGooglePlaceId())
-                                .name(place.getName())
-                                .about(place.getAbout())
-                                .rating(place.getRating())
-                                .userRatingsTotal(place.getUserRatingsTotal())
-                                .address(place.getAddress())
-                                .principalPhoto(place.getPrincipalPhoto())
-                                .principalPhotoUrl(place.getPrincipalPhotoUrl())
-                                .photos(photos)
-                                .build();
-                    }
-                    return place;
-                })
+                .parallel()
+                .map(this::processPlaceResult)
                 .collect(Collectors.toList());
 
         var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
@@ -74,6 +56,32 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         return nearbyPlaces;
 
+    }
+
+    private Place processPlaceResult(com.google.maps.model.PlacesSearchResult result) {
+        Place basePlace = Place.toNearbyPlace(result, placesApiClient.getApiKey());
+
+        // Enrich with additional photos if available
+        if (result.photos != null && result.photos.length > 0) {
+            var photos = placesApiClient.getPlacePhotos(result.photos);
+            return enrichPlaceWithPhotos(basePlace, photos);
+        }
+
+        return basePlace;
+    }
+
+    private Place enrichPlaceWithPhotos(Place basePlace, java.util.List<br.voy.domain.entity.PlacePhoto> photos) {
+        return Place.builder()
+                .googlePlaceId(basePlace.getGooglePlaceId())
+                .name(basePlace.getName())
+                .about(basePlace.getAbout())
+                .rating(basePlace.getRating())
+                .userRatingsTotal(basePlace.getUserRatingsTotal())
+                .address(basePlace.getAddress())
+                .principalPhoto(basePlace.getPrincipalPhoto())
+                .principalPhotoUrl(basePlace.getPrincipalPhotoUrl())
+                .photos(photos)
+                .build();
     }
 
     @Override

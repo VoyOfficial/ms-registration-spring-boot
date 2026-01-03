@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import br.voy.domain.entity.Place;
 import lombok.ToString;
@@ -77,7 +76,9 @@ public class PlaceModel extends AbstractModel {
     private List<PlacePhotoModel> placePhotoModel = new ArrayList<>();
 
     public PlaceModel(Place placeDomain) {
-        // Não copiar o ID - deixar o Hibernate gerar automaticamente para novos registros
+        if (placeDomain.getId() != null) {
+            this.id = placeDomain.getId();
+        }
         this.googlePlaceId = placeDomain.getGooglePlaceId();
         this.name = placeDomain.getName();
         this.about = placeDomain.getAbout();
@@ -97,20 +98,14 @@ public class PlaceModel extends AbstractModel {
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
-        this.placePhotoModel = new ArrayList<>();
+        // Populate placePhotoModel from domain photos (if any)
+        populatePhotosFromDomain(placeDomain);
     }
 
     @Override
     public Place toDomain() {
 
-        List<PlacePhoto> placePhotos = new ArrayList<>();
-
-        // Carregar fotos se existirem
-        if (placePhotoModel != null && !placePhotoModel.isEmpty()) {
-            for (PlacePhotoModel photoModel : placePhotoModel) {
-                placePhotos.add(photoModel.toDomain());
-            }
-        }
+        List<PlacePhoto> placePhotos = convertPhotosToDomain();
 
         Place domain = Place.builder()
                 .id(id)
@@ -138,5 +133,30 @@ public class PlaceModel extends AbstractModel {
 
 
         return domain;
+    }
+
+    private List<PlacePhoto> convertPhotosToDomain() {
+        List<PlacePhoto> placePhotos = new ArrayList<>();
+
+        if (placePhotoModel != null && !placePhotoModel.isEmpty()) {
+            for (PlacePhotoModel photoModel : placePhotoModel) {
+                placePhotos.add(photoModel.toDomain());
+            }
+        }
+
+        return placePhotos;
+    }
+
+    // Helper to populate the JPA model photos from the domain photos when constructing PlaceModel
+    private void populatePhotosFromDomain(Place placeDomain) {
+        this.placePhotoModel = new ArrayList<>();
+        if (placeDomain != null && placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
+            for (PlacePhoto photo : placeDomain.getPhotos()) {
+                var photoModel = new PlacePhotoModel(photo);
+                // ensure bi-directional association points to this PlaceModel
+                photoModel.setPlace(this);
+                this.placePhotoModel.add(photoModel);
+            }
+        }
     }
 }
