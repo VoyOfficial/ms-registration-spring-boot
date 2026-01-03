@@ -37,7 +37,6 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
         var nearbyPlaces = googlePlacesPort.getNearbyPlaces(coordinates, radius, placeType, nextPageToken);
 
-        // Save places asynchronously to avoid blocking the response
         savePlacesAsync(nearbyPlaces.getPlaces());
 
         logger.info("GET NEARBY PLACES SERVICE - GET NEARBY PLACES FINISH - Nearby Places: {}", nearbyPlaces.getPlaces().size());
@@ -51,7 +50,6 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
         for (Place place : places) {
             try {
-                // Check if place already exists
                 var existingPlace = placeRepository.findPlaceByGooglePlaceId(place.getGooglePlaceId());
 
                 if (existingPlace.isEmpty()) {

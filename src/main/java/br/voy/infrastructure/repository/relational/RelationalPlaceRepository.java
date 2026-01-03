@@ -45,7 +45,6 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         placeModel = placeJpaRepository.save(placeModel);
 
-        // Save photos if they exist
         if (placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
             List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
             for(PlacePhoto photo : placeDomain.getPhotos()) {
