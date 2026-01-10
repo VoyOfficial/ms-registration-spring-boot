@@ -28,6 +28,7 @@ public class PlaceResponse {
     private Integer userRatingsTotal;
     private Boolean isSaved;
     private String photoReference;
+    private String photo;
     private List<PlacePhoto> photos;
     private Float distanceOfLocal = null;
     private double latitude;
@@ -47,14 +48,13 @@ public class PlaceResponse {
         this.address = place.getAddress();
         this.city = place.getCity();
         this.about = place.getAbout();
-//        this.businessHours = BusinessHoursResponse.toBusinessHoursResponse(place.getBusinessHours());
         this.rating = place.getRating();
         this.ranking = place.getRanking();
         this.userRatingsTotal = place.getUserRatingsTotal();
         this.isSaved = place.getIsSaved();
         this.photoReference = place.getPrincipalPhoto();
+        this.photo = place.getPrincipalPhotoUrl();
         this.photos = place.getPhotos();
-//        this.distanceOfLocal = place.getDistanceOfLocal();
         this.latitude = place.getLatitude();
         this.longitude = place.getLongitude();
         this.distanceFromUserLocation = place.getDistanceFromUserLocation();
@@ -66,7 +66,6 @@ public class PlaceResponse {
     }
 
     public static PlaceResponse toNearbyPlaceResponse(Place place) {
-
         return PlaceResponse
                 .builder()
                 .id(place.getId())
@@ -78,9 +77,20 @@ public class PlaceResponse {
                 .address(place.getAddress())
                 .isSaved(place.getIsSaved())
                 .photoReference(place.getPrincipalPhoto())
-                .photos(place.getPhotos())
+                .photo(getPrincipalPhotoBase64(place))
                 .build();
+    }
 
+    private static String getPrincipalPhotoBase64(Place place) {
+        if (place.getPhotos() == null || place.getPhotos().isEmpty()) {
+            return null;
+        }
+
+        return place.getPhotos().stream()
+                .filter(p -> p.getPhotoReference() != null &&
+                        p.getPhotoReference().equals(place.getPrincipalPhoto()))
+                .map(PlacePhoto::getImageBase64)
+                .findFirst()
+                .orElse(null);
     }
 }
-

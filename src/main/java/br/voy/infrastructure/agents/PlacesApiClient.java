@@ -24,13 +24,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Component
 public class PlacesApiClient {
@@ -41,13 +47,28 @@ public class PlacesApiClient {
 
     private final String apiKey;
 
+    private final ExecutorService photoDownloadExecutor;
+
     public PlacesApiClient(@Value("${places.api.key}") String apiKey) {
         this.apiKey = apiKey;
         this.context = new GeoApiContext
                 .Builder()
                 .apiKey(apiKey)
                 .build();
+        // Create thread pool for parallel photo downloads (20 threads to handle multiple places)
+        this.photoDownloadExecutor = Executors.newFixedThreadPool(20);
+    }
 
+    @PreDestroy
+    public void shutdown() {
+        if (photoDownloadExecutor != null && !photoDownloadExecutor.isShutdown()) {
+            logger.info("PLACES API CLIENT - Shutting down photo download executor");
+            photoDownloadExecutor.shutdown();
+        }
+    }
+
+    public String getApiKey() {
+        return apiKey;
     }
 
     public PlacesSearchResponse searchForNearbyPlaces(
@@ -319,33 +340,49 @@ public class PlacesApiClient {
     }
 
     public List<PlacePhoto> getPlacePhotos(Photo[] photos) {
-        List<PlacePhoto> placePhotos = new ArrayList<>();
-
-        if (photos != null) {
-            for (int i = 0; i < photos.length; i++) {
-                Photo photo = photos[i];
-                String photoReference = photo.photoReference;
-                String photoUrl = buildPhotoUrl(photoReference, photo.width);
-
-                try {
-                    byte[] imageBytes = downloadPhoto(photoUrl); // Mantenha como byte[]
-                    String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
-                    PlacePhoto placePhoto = new PlacePhoto();
-                    placePhoto.setPhotoReference(photoReference);
-                    placePhoto.setImageBase64(imageBase64); // Salve o byte[] diretamente
-                    placePhoto.setHeight(photo.height);
-                    placePhoto.setWidth(photo.width);
-                    placePhoto.setHtmlAttributions(String.join(",", photo.htmlAttributions));
-
-                    placePhotos.add(placePhoto);
-
-                } catch (IOException e) {
-                    System.err.println("Erro ao baixar foto: " + e.getCause());
-                }
-            }
+        if (photos == null || photos.length == 0) {
+            return new ArrayList<>();
         }
 
-        return placePhotos;
+        logger.info("PLACES API CLIENT - Downloading {} photos in parallel", photos.length);
+
+        List<CompletableFuture<PlacePhoto>> futures = Arrays.stream(photos)
+                .map(this::downloadPhotoAsync)
+                .collect(Collectors.toList());
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .filter(placePhoto -> placePhoto != null)
+                .collect(Collectors.toList());
+    }
+
+    private CompletableFuture<PlacePhoto> downloadPhotoAsync(Photo photo) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return downloadAndBuildPlacePhoto(photo);
+            } catch (Exception e) {
+                logger.error("PLACES API CLIENT - Error downloading photo {}: {}",
+                    photo.photoReference, e.getMessage());
+                return null;
+            }
+        }, photoDownloadExecutor);
+    }
+
+    private PlacePhoto downloadAndBuildPlacePhoto(Photo photo) throws IOException {
+        String photoReference = photo.photoReference;
+        String photoUrl = buildPhotoUrl(photoReference, photo.width);
+
+        byte[] imageBytes = downloadPhoto(photoUrl);
+        String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+
+        return PlacePhoto.builder()
+                .photoReference(photoReference)
+                .photoUrl(photoUrl)
+                .imageBase64(imageBase64)
+                .height(photo.height)
+                .width(photo.width)
+                .htmlAttributions(String.join(",", photo.htmlAttributions))
+                .build();
     }
 
     private String buildPhotoUrl(String photoReference, int width) {
