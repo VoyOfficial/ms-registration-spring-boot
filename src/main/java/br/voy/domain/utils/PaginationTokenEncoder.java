@@ -10,6 +10,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class PaginationTokenEncoder {
@@ -25,15 +27,26 @@ public class PaginationTokenEncoder {
         }
     }
 
-    public static String encode(int offset) {
+    /**
+     * Encodes pagination state including offset and shown place IDs
+     */
+    public static String encode(int offset, Set<String> shownPlaceIds, String googleNextPageToken) {
         try {
             long timestamp = System.currentTimeMillis();
             String salt = generateSalt();
 
-            String payload = offset + ":" + timestamp + ":" + salt;
+            // Join place IDs with delimiter
+            String placeIdsStr = shownPlaceIds != null && !shownPlaceIds.isEmpty()
+                ? String.join(",", shownPlaceIds)
+                : "";
+
+            // Include Google token if present
+            String googleToken = googleNextPageToken != null ? googleNextPageToken : "";
+
+            // Format: offset:timestamp:salt:placeIds:googleToken
+            String payload = offset + ":" + timestamp + ":" + salt + ":" + placeIdsStr + ":" + googleToken;
 
             String checksum = generateChecksum(payload);
-
             String token = payload + ":" + checksum;
 
             return Base64.getUrlEncoder().withoutPadding()
@@ -45,34 +58,61 @@ public class PaginationTokenEncoder {
         }
     }
 
-    public static int decode(String token) {
+    // Legacy method for backward compatibility
+    public static String encode(int offset) {
+        return encode(offset, new HashSet<>(), null);
+    }
+
+    /**
+     * Decodes pagination token into PaginationState
+     */
+    public static PaginationState decode(String token) {
         if (token == null || token.isEmpty()) {
-            return 0;
+            return new PaginationState(0, new HashSet<>(), null);
         }
 
         try {
             String decoded = new String(Base64.getUrlDecoder().decode(token), StandardCharsets.UTF_8);
+            String[] parts = decoded.split(":", -1); // -1 to keep empty strings
 
-            String[] parts = decoded.split(":");
-
-            if (parts.length >= 4) {
+            if (parts.length >= 6) {
                 int offset = Integer.parseInt(parts[0]);
-                String receivedChecksum = parts[3];
+                String receivedChecksum = parts[5];
 
-                String payload = parts[0] + ":" + parts[1] + ":" + parts[2];
+                String payload = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
                 String expectedChecksum = generateChecksum(payload);
 
                 if (expectedChecksum.equals(receivedChecksum)) {
-                    return offset;
+                    // Parse place IDs
+                    Set<String> placeIds = new HashSet<>();
+                    if (!parts[3].isEmpty()) {
+                        String[] ids = parts[3].split(",");
+                        for (String id : ids) {
+                            if (!id.trim().isEmpty()) {
+                                placeIds.add(id.trim());
+                            }
+                        }
+                    }
+
+                    // Parse Google token
+                    String googleToken = parts[4].isEmpty() ? null : parts[4];
+
+                    return new PaginationState(offset, placeIds, googleToken);
                 }
+            } else if (parts.length == 4) {
+                // Old format: offset:timestamp:salt:checksum
+                int offset = Integer.parseInt(parts[0]);
+                return new PaginationState(offset, new HashSet<>(), null);
             } else if (parts.length == 1) {
-                return Integer.parseInt(parts[0]);
+                // Very old format: just offset
+                int offset = Integer.parseInt(parts[0]);
+                return new PaginationState(offset, new HashSet<>(), null);
             }
 
-            return 0;
+            return new PaginationState(0, new HashSet<>(), null);
 
         } catch (Exception e) {
-            return 0;
+            throw new IllegalArgumentException("Invalid pagination token", e);
         }
     }
 
@@ -102,6 +142,33 @@ public class PaginationTokenEncoder {
 
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             return String.valueOf(payload.hashCode());
+        }
+    }
+
+    /**
+     * Class to hold pagination state
+     */
+    public static class PaginationState {
+        private final int offset;
+        private final Set<String> shownPlaceIds;
+        private final String googleNextPageToken;
+
+        public PaginationState(int offset, Set<String> shownPlaceIds, String googleNextPageToken) {
+            this.offset = offset;
+            this.shownPlaceIds = shownPlaceIds != null ? shownPlaceIds : new HashSet<>();
+            this.googleNextPageToken = googleNextPageToken;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+
+        public Set<String> getShownPlaceIds() {
+            return shownPlaceIds;
+        }
+
+        public String getGoogleNextPageToken() {
+            return googleNextPageToken;
         }
     }
 }

@@ -25,12 +25,12 @@ public class Place {
     private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String principalPhotoUrl;
     private List<PlacePhoto> photos;
     private String address;
     private String city;
+    private String state;
 
     @Setter
     private boolean status;
@@ -67,6 +67,14 @@ public class Place {
 
         var photoReference = extractPhotoReference(placeSearchResult);
 
+        double latitude = 0.0;
+        double longitude = 0.0;
+
+        if (Objects.nonNull(placeSearchResult.geometry) && Objects.nonNull(placeSearchResult.geometry.location)) {
+            latitude = placeSearchResult.geometry.location.lat;
+            longitude = placeSearchResult.geometry.location.lng;
+        }
+
         return Place
                 .builder()
                 .googlePlaceId(placeSearchResult.placeId)
@@ -76,6 +84,9 @@ public class Place {
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
                 .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
+                .latitude(latitude)
+                .longitude(longitude)
+                .distanceOfLocal(0.0f)
                 .build();
 
     }
@@ -90,6 +101,14 @@ public class Place {
                     photoReference, apiKey);
         }
 
+        double latitude = 0.0;
+        double longitude = 0.0;
+
+        if (Objects.nonNull(placeSearchResult.geometry) && Objects.nonNull(placeSearchResult.geometry.location)) {
+            latitude = placeSearchResult.geometry.location.lat;
+            longitude = placeSearchResult.geometry.location.lng;
+        }
+
         return Place
                 .builder()
                 .googlePlaceId(placeSearchResult.placeId)
@@ -100,6 +119,9 @@ public class Place {
                 .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
                 .principalPhotoUrl(photoUrl)
+                .latitude(latitude)
+                .longitude(longitude)
+                .distanceOfLocal(0.0f)
                 .build();
 
     }

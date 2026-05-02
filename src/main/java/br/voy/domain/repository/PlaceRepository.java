@@ -26,4 +26,8 @@ public interface PlaceRepository {
 
     Optional<List<Place>> findPlacesWithinBoundingBox(BoundingBox boundingBox);
 
+    List<Place> findNearbyPlacesByCoordinates(double latitude, double longitude, int radiusInMeters);
+
+    List<Place> findPlacesWithMissingCoordinates();
+
 }

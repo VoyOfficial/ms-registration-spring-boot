@@ -15,6 +15,7 @@ import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.ports.GooglePlacesPort;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
 
         // Process all places in parallel
         var places = Arrays.stream(response.results)
-                .parallel()
+                .parallel() // Enable parallel processing
                 .map(this::processPlaceResult)
                 .collect(Collectors.toList());
 

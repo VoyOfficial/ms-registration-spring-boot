@@ -2,6 +2,8 @@ package br.voy.domain.service;
 
 import br.voy.application.controller.response.PlaceResponse;
 import br.voy.application.controller.response.RecommendedPlacesResponse;
+import br.voy.application.util.CurrentUserHelper;
+import br.voy.domain.repository.UserSavedPlaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,12 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
 
     @Autowired
     private PlaceRepository placeRepository;
+
+    @Autowired
+    private UserSavedPlaceRepository userSavedPlaceRepository;
+
+    @Autowired
+    private CurrentUserHelper currentUserHelper;
 
     @Value("${voy.services.places.initialDefaultBoundingBoxRadiusKM}")
     private double INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
@@ -89,7 +97,14 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
         int effectivePageSize = (pageSize != null && pageSize > 0) ? pageSize : (int) MAX_PLACE_SIZE_LIST;
 
         // Decode offset from nextPageToken using PaginationTokenEncoder
-        int offset = PaginationTokenEncoder.decode(nextPageToken);
+        int offset = 0;
+        try {
+            PaginationTokenEncoder.PaginationState paginationState = PaginationTokenEncoder.decode(nextPageToken);
+            offset = paginationState.getOffset();
+        } catch (Exception e) {
+            // If token is invalid, start from offset 0
+            offset = 0;
+        }
 
         double radius = (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
 
@@ -147,8 +162,13 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
         }
 
         // Convert to PlaceResponse
+        Long currentUserId = currentUserHelper.getCurrentUserId();
         List<PlaceResponse> placeResponses = paginatedPlaces.stream()
-                .map(PlaceResponse::fromDomain)
+                .map(place -> {
+                    boolean isSaved = currentUserId != null &&
+                                    userSavedPlaceRepository.isPlaceSavedByUser(currentUserId, place.getId());
+                    return PlaceResponse.fromDomain(place, isSaved);
+                })
                 .collect(Collectors.toList());
 
         return new RecommendedPlacesResponse(placeResponses, nextToken);

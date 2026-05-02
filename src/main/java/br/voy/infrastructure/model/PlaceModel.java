@@ -36,13 +36,12 @@ public class PlaceModel extends AbstractModel {
     private String contact;
     private String address;
     private String city;
+    private String state;
     private Float rating;
 
     @Column(name = "userratingstotal")
     private Integer userRatingsTotal;
 
-    @Column(name = "issaved")
-    private Boolean isSaved;
 
     @Column(name = "principal_photo")
     private String principalPhoto;
@@ -68,6 +67,9 @@ public class PlaceModel extends AbstractModel {
     private Double latitude;
     private Double longitude;
 
+    @Column(name = "distanceoflocal")
+    private Float distanceOfLocal;
+
     @ToString.Exclude
     @Builder.Default
     @OneToMany(mappedBy = "place", fetch = FetchType.EAGER)
@@ -85,9 +87,9 @@ public class PlaceModel extends AbstractModel {
         this.contact = placeDomain.getContact();
         this.address = placeDomain.getAddress();
         this.city = placeDomain.getCity();
+        this.state = placeDomain.getState();
         this.rating = placeDomain.getRating();
         this.userRatingsTotal = placeDomain.getUserRatingsTotal();
-        this.isSaved = placeDomain.getIsSaved();
         this.principalPhoto = placeDomain.getPrincipalPhoto();
         this.principalPhotoUrl = placeDomain.getPrincipalPhotoUrl();
         this.status = placeDomain.isStatus();
@@ -98,6 +100,7 @@ public class PlaceModel extends AbstractModel {
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
+        this.distanceOfLocal = placeDomain.getDistanceOfLocal();
         // Populate placePhotoModel from domain photos (if any)
         populatePhotosFromDomain(placeDomain);
     }
@@ -115,9 +118,9 @@ public class PlaceModel extends AbstractModel {
                 .contact(contact)
                 .address(address)
                 .city(city)
+                .state(state)
                 .rating(rating)
                 .userRatingsTotal(userRatingsTotal)
-                .isSaved(isSaved != null ? isSaved : false)
                 .principalPhoto(principalPhoto)
                 .principalPhotoUrl(principalPhotoUrl)
                 .status(status != null ? status : false)
@@ -128,6 +131,7 @@ public class PlaceModel extends AbstractModel {
                 .lastCancel(lastCancel)
                 .latitude(latitude != null ? latitude : 0.0)
                 .longitude(longitude != null ? longitude : 0.0)
+                .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
                 .photos(placePhotos)
                 .build();
 

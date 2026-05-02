@@ -111,6 +111,13 @@
             <version>2.2.0</version>
         </dependency>
 
+        <!-- Use a newer Gson version that handles arrays better -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

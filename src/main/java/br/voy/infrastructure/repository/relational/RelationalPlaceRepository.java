@@ -232,4 +232,40 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
     }
 
+    @Override
+    public List<Place> findNearbyPlacesByCoordinates(double latitude, double longitude, int radiusInMeters) {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND NEARBY PLACES BY COORDINATES - Lat: {}, Lon: {}, Radius: {}m", latitude, longitude, radiusInMeters);
+
+        var placeModelList = placeJpaRepository.findNearbyPlacesByCoordinates(latitude, longitude, radiusInMeters);
+
+        List<Place> placesDomain = new ArrayList<>();
+
+        for (PlaceModel placeModel : placeModelList) {
+            placesDomain.add(placeModel.toDomain());
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FOUND {} NEARBY PLACES", placesDomain.size());
+
+        return placesDomain;
+    }
+
+    @Override
+    public List<Place> findPlacesWithMissingCoordinates() {
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACES WITH MISSING COORDINATES");
+
+        var placeModelList = placeJpaRepository.findPlacesWithMissingCoordinates();
+
+        List<Place> placesDomain = new ArrayList<>();
+
+        for (PlaceModel placeModel : placeModelList) {
+            placesDomain.add(placeModel.toDomain());
+        }
+
+        logger.info("RELATIONAL PLACE REPOSITORY - FOUND {} PLACES WITH MISSING COORDINATES", placesDomain.size());
+
+        return placesDomain;
+    }
+
 }

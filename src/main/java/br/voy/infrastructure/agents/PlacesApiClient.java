@@ -83,8 +83,12 @@ public class PlacesApiClient {
         var request = PlacesApi.nearbySearchQuery(context, latLng)
                 .language("en")
                 .radius(radius)
-                .type(placeType)
-                .pageToken(nextPageToken);
+                .type(placeType);
+
+        // Only set pageToken if it's not null or empty
+        if (nextPageToken != null && !nextPageToken.isEmpty()) {
+            request = request.pageToken(nextPageToken);
+        }
 
         try {
 
@@ -140,7 +144,23 @@ public class PlacesApiClient {
 
         logger.info("PLACES API CLIENT - Create Place Details Request");
 
-        var request = PlacesApi.placeDetails(context, placeId);
+        var request = PlacesApi.placeDetails(context, placeId)
+                .fields(
+                    com.google.maps.PlaceDetailsRequest.FieldMask.PLACE_ID,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.NAME,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.FORMATTED_ADDRESS,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.FORMATTED_PHONE_NUMBER,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.GEOMETRY,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.OPENING_HOURS,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.PHOTOS,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.RATING,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.USER_RATINGS_TOTAL,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.WEBSITE,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.PRICE_LEVEL,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.TYPES,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.BUSINESS_STATUS,
+                    com.google.maps.PlaceDetailsRequest.FieldMask.EDITORIAL_SUMMARY
+                );
 
         try {
 
