@@ -15,10 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import br.voy.application.util.CurrentUserHelper;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.repository.UserSavedPlaceRepository;
 import br.voy.domain.utils.BoundingBox;
 import br.voy.domain.utils.PaginationTokenEncoder;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,12 @@ public class GetRecommendedPlacesServiceTest {
 
     @Mock
     private PlaceRepository placeRepository;
+
+    @Mock
+    private UserSavedPlaceRepository userSavedPlaceRepository;
+
+    @Mock
+    private CurrentUserHelper currentUserHelper;
 
     @InjectMocks
     private GetRecommendedPlacesService placeService;
