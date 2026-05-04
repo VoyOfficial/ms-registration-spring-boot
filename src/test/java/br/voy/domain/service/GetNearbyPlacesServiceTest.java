@@ -19,11 +19,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import br.voy.domain.utils.PaginationTokenEncoder;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
@@ -443,6 +447,164 @@ public class GetNearbyPlacesServiceTest {
 
         return result;
 
+    }
+
+    private List<Place> createDbPlaces(int count) {
+        List<Place> places = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            places.add(Place.builder()
+                    .googlePlaceId("db-place-id-" + i)
+                    .name("DB Place " + i)
+                    .rating(4.0f)
+                    .latitude(LATITUDE)
+                    .longitude(LONGITUDE)
+                    .build());
+        }
+        return places;
+    }
+
+    @Test
+    @DisplayName("Should return full page from database without calling Google API")
+    void shouldReturnFullPageFromDatabaseWithoutCallingGoogleApi() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(20));
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        assertNotNull(result.getNextTokenPage());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+        verify(placeAsyncSaveService, never()).savePlacesAsync(anyList());
+    }
+
+    @Test
+    @DisplayName("Should return partial page from database when DB has more results than page size")
+    void shouldReturnPartialPageFromDatabaseWhenDbHasMoreResults() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(25));
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        assertNotNull(result.getNextTokenPage());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Should supplement with Google when database is exhausted")
+    void shouldSupplementWithGoogleWhenDatabaseIsExhausted() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> dbPlaces = createDbPlaces(3);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(dbPlaces);
+
+        List<Place> googlePlaces = createDbPlaces(17).stream()
+                .map(p -> Place.builder()
+                        .googlePlaceId("google-" + p.getGooglePlaceId())
+                        .name(p.getName())
+                        .rating(p.getRating())
+                        .latitude(p.getLatitude())
+                        .longitude(p.getLongitude())
+                        .build())
+                .collect(Collectors.toList());
+        NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
+
+        doReturn(googleResponse).when(googlePlacesPort).getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(), any(), anyString(), any());
+        verify(placeAsyncSaveService, times(1)).savePlacesAsync(anyList());
+    }
+
+    @Test
+    @DisplayName("Should continue pagination from encoded offset token")
+    void shouldContinuePaginationFromEncodedOffset() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(42));
+
+        String token = PaginationTokenEncoder.encode(20, new java.util.HashSet<>(), null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Should deduplicate places already in shownPlaceIds")
+    void shouldDeduplicatePlacesAlreadyInShownPlaceIds() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> dbPlaces = createDbPlaces(20);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(dbPlaces);
+
+        java.util.Set<String> shownIds = new java.util.HashSet<>();
+        shownIds.add("db-place-id-0");
+        shownIds.add("db-place-id-1");
+        String token = PaginationTokenEncoder.encode(0, shownIds, null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        assertEquals(18, result.getPlaces().size());
+        result.getPlaces().forEach(p -> {
+            assertNotEquals("db-place-id-0", p.getGooglePlaceId());
+            assertNotEquals("db-place-id-1", p.getGooglePlaceId());
+        });
+    }
+
+    @Test
+    @DisplayName("Should fall back to Google when offset exceeds DB size")
+    void shouldFallBackToGoogleWhenOffsetExceedsDbSize() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(5));
+
+        List<Place> googlePlaces = createDbPlaces(20).stream()
+                .map(p -> Place.builder()
+                        .googlePlaceId("google-" + p.getGooglePlaceId())
+                        .name(p.getName())
+                        .rating(p.getRating())
+                        .latitude(p.getLatitude())
+                        .longitude(p.getLongitude())
+                        .build())
+                .collect(Collectors.toList());
+        NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
+        doReturn(googleResponse).when(googlePlacesPort).getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+
+        String token = PaginationTokenEncoder.encode(100, new java.util.HashSet<>(), null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(), any(), anyString(), any());
     }
 
 }

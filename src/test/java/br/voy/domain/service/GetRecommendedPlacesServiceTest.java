@@ -8,6 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -348,6 +353,63 @@ public class GetRecommendedPlacesServiceTest {
         boolean hasExpiredPlace = response.getPlaces().stream()
                 .anyMatch(place -> "generateEndRecommendationBeforeTodayPlace".equals(place.getName()));
         assertFalse(hasExpiredPlace, "esperado que o lugar expirado seja removido");
+    }
+
+    @Test
+    @DisplayName("Should mark place as saved when user has saved it")
+    void shouldMarkPlaceAsSavedWhenUserHasSavedIt() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserHelper.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.isPlaceSavedByUser(eq(42L), anyLong())).thenReturn(true);
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        response.getPlaces().forEach(place -> assertTrue(place.getIsSaved(), "esperado que o lugar esteja salvo"));
+    }
+
+    @Test
+    @DisplayName("Should mark place as not saved when user has not saved it")
+    void shouldMarkPlaceAsNotSavedWhenUserHasNotSavedIt() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserHelper.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.isPlaceSavedByUser(eq(42L), anyLong())).thenReturn(false);
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        response.getPlaces().forEach(place -> assertFalse(place.getIsSaved(), "esperado que o lugar não esteja salvo"));
+    }
+
+    @Test
+    @DisplayName("Should skip saved check when no authenticated user")
+    void shouldSkipSavedCheckWhenNoAuthenticatedUser() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class))).thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserHelper.getCurrentUserId()).thenReturn(null);
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        verify(userSavedPlaceRepository, never()).isPlaceSavedByUser(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("Should expand bounding box when initial radius has insufficient places")
+    void shouldExpandBoundingBoxWhenInitialRadiusHasInsufficientPlaces() {
+        List<Place> singlePlace = generatePlaceList().subList(0, 1);
+        List<Place> fullList = generatePlaceList();
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(singlePlace))
+                .thenReturn(Optional.of(fullList));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        verify(placeRepository, atLeast(2)).findPlacesWithinBoundingBox(any(BoundingBox.class));
     }
 
     private Place generateFarPlace() {
