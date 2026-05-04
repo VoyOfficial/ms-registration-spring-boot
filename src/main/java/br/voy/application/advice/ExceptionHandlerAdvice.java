@@ -1,6 +1,11 @@
-package br.voy.domain.exception;
+package br.voy.application.advice;
 
 import br.voy.application.controller.response.DefaultResponse;
+import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
+import br.voy.domain.exception.InvalidUserException;
+import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.StandardError;
+import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
