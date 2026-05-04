@@ -588,10 +588,9 @@ class PlaceControllerTest {
                         .param("pageSize", String.valueOf(pageSize))
                         .param("nextPageToken", nextPageToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty())
-                .andExpect(jsonPath("$.data.places", hasSize(5)))
-                .andExpect(jsonPath("$.data.nextTokenPage").value("next-page-token-123"));
+                .andExpect(jsonPath("$.places").isNotEmpty())
+                .andExpect(jsonPath("$.places", hasSize(5)))
+                .andExpect(jsonPath("$.nextTokenPage").value("next-page-token-123"));
     }
 
     @Test
@@ -618,10 +617,9 @@ class PlaceControllerTest {
                         .param("pageSize", String.valueOf(pageSize))
                         .param("nextPageToken", nextPageToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty())
-                .andExpect(jsonPath("$.data.places", hasSize(5)))
-                .andExpect(jsonPath("$.data.nextTokenPage").doesNotExist());
+                .andExpect(jsonPath("$.places").isNotEmpty())
+                .andExpect(jsonPath("$.places", hasSize(5)))
+                .andExpect(jsonPath("$.nextTokenPage").doesNotExist());
     }
 
     @Test
@@ -644,8 +642,7 @@ class PlaceControllerTest {
                         .param("longitude", String.valueOf(longitude))
                         .param("range", String.valueOf(range)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty());
+                .andExpect(jsonPath("$.places").isNotEmpty());
     }
 
     @Test
@@ -690,8 +687,7 @@ class PlaceControllerTest {
                         .param("nextPageToken", nextPageToken)
                         .param("pageSize", String.valueOf(pageSize)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty());
+                .andExpect(jsonPath("$.places").isNotEmpty());
     }
 
     private static br.voy.application.controller.response.RecommendedPlacesResponse createRecommendedPlacesResponse(int size, boolean hasNextPage) {
