@@ -1,4 +1,4 @@
-package br.voy.infrastructure.model.enums;
+package br.voy.domain.entity.enums;
 
 public enum SexEnum {
 

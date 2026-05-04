@@ -9,8 +9,8 @@ import org.hibernate.validator.constraints.br.CPF;
 import br.voy.application.validation.cpfAlreadyExists.CpfAlreadyExist;
 import br.voy.application.validation.valueOfEnum.ValueOfEnum;
 import br.voy.domain.entity.User;
-import br.voy.infrastructure.model.enums.MaritalStatusEnum;
-import br.voy.infrastructure.model.enums.SexEnum;
+import br.voy.domain.entity.enums.MaritalStatusEnum;
+import br.voy.domain.entity.enums.SexEnum;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;

@@ -1,7 +1,7 @@
 package br.voy.application.validation.valueOfEnum;
 
 import org.junit.jupiter.api.Assertions;
-import br.voy.infrastructure.model.enums.SexEnum;
+import br.voy.domain.entity.enums.SexEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

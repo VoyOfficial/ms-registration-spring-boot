@@ -4,8 +4,8 @@ import br.voy.application.controller.request.UserRequest;
 import br.voy.domain.entity.User;
 import br.voy.infrastructure.model.UserModel;
 import br.voy.application.controller.response.UserResponse;
-import br.voy.infrastructure.model.enums.MaritalStatusEnum;
-import br.voy.infrastructure.model.enums.SexEnum;
+import br.voy.domain.entity.enums.MaritalStatusEnum;
+import br.voy.domain.entity.enums.SexEnum;
 
 import java.time.LocalDate;
 
