@@ -79,7 +79,7 @@ public class PlaceResponse {
                 .contact(place.getContact())
                 .address(place.getAddress())
                 .city(place.getCity())
-                // about field is intentionally excluded here
+                .about(place.getAbout())
                 .rating(place.getRating())
                 .ranking(place.getRanking())
                 .userRatingsTotal(place.getUserRatingsTotal())

@@ -107,7 +107,7 @@ public class PlaceController {
 
         var placeResponses = nearbyPlaces.getPlaces()
                 .stream()
-                .map(PlaceResponse::toNearbyPlaceResponse)
+                .map(PlaceResponse::fromDomain)
                 .collect(Collectors.toList());
 
         var nearbyPlacesResponse = new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());
@@ -248,7 +248,7 @@ public class PlaceController {
                         }
                     """),
                     @ExampleObject(name = "Range out of permited limit", value = """
-                        {       
+                        {
                                 "message": "raio de busca máxima é de 50.0 km"
                         }
                             """)
@@ -257,7 +257,7 @@ public class PlaceController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = DefaultResponse.class)))
     })
     @GetMapping("/recommendations")
-    public ResponseEntity<DefaultResponse<RecommendedPlacesResponse>> getRecommendedPlaces(
+    public ResponseEntity<NearbyPlacesResponse> getRecommendedPlaces(
             @RequestParam @Parameter(description = "User's latitude (required)", required = true) @Schema(example = "-29.35995", type = "Double") Double latitude,
             @RequestParam @Parameter(description = "User's longitude (required)", required = true) @Schema(example = "-50.84805", type = "Double") Double longitude,
             @RequestParam(required = false) @Parameter(description = "Optional search radius in kilometers") @Schema(example = "10", type = "Double") Double range,
@@ -272,6 +272,6 @@ public class PlaceController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, RECOMMENDATION_PLACE_NOT_FOUND_MESSAGE);
         }
 
-        return ResponseEntity.ok(new DefaultResponse<>("ok", recommendedPlacesResponse));
+        return ResponseEntity.ok(new NearbyPlacesResponse(recommendedPlacesResponse.getPlaces(), recommendedPlacesResponse.getNextTokenPage()));
     }
 }

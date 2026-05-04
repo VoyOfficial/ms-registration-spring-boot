@@ -15,7 +15,6 @@ import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.ports.GooglePlacesPort;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,6 +80,8 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
                 .address(basePlace.getAddress())
                 .principalPhoto(basePlace.getPrincipalPhoto())
                 .principalPhotoUrl(basePlace.getPrincipalPhotoUrl())
+                .latitude(basePlace.getLatitude())
+                .longitude(basePlace.getLongitude())
                 .photos(photos)
                 .build();
     }
