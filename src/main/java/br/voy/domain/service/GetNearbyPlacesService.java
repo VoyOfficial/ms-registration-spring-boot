@@ -55,7 +55,7 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
                     : new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), null);
         } catch (IllegalArgumentException e) {
             logger.warn("GET NEARBY PLACES SERVICE - Invalid token, treating as first page: {}", e.getMessage());
-            paginationState = new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), null);
+            paginationState = new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), nextPageToken);
         }
 
         int offset = paginationState.getOffset();
@@ -140,7 +140,9 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
             );
 
             // Save places asynchronously
-            placeAsyncSaveService.savePlacesAsync(googleResponse.getPlaces());
+            if (!googleResponse.getPlaces().isEmpty()) {
+                placeAsyncSaveService.savePlacesAsync(googleResponse.getPlaces());
+            }
 
             // Filter and add Google places
             List<Place> filteredGooglePlaces = googleResponse.getPlaces().stream()
@@ -177,6 +179,7 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
         logger.warn("GET NEARBY PLACES SERVICE - Unexpected flow, returning empty result");
         return new NearbyPlaces(resultPlaces, null);
     }
+
 
     private Place normalizePlace(Place place) {
         return Place.builder()

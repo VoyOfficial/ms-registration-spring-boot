@@ -145,7 +145,7 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                 // Ordena primeiro pela distância (mais próximos primeiro)
                 .sorted(Comparator.comparingDouble(place -> calculateHaversine(userLatitude, userLongitude, place)))
                 // Mantém apenas os 5 mais próximos
-                .sorted(Comparator.comparingInt(Place::getRanking)
+                .sorted(Comparator.comparing(Place::getRanking, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparingDouble(place -> calculateHaversine(userLatitude, userLongitude, place)))
                 .collect(Collectors.toList());
 
@@ -181,7 +181,7 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                 // Mantém apenas os 5 mais próximos
                 .limit(MAX_PLACE_SIZE_LIST)
                 // Reordena agora pelo ranking, usando a distância como critério de desempate
-                .sorted(Comparator.comparingInt(Place::getRanking)
+                .sorted(Comparator.comparing(Place::getRanking, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparingDouble(place -> calculateHaversine(userLatitude, userLongitude, place)))
                 // Converte para PlaceResponse
                 .map(PlaceResponse::fromDomain)

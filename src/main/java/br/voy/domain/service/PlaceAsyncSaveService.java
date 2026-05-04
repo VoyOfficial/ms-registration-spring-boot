@@ -1,6 +1,7 @@
 package br.voy.domain.service;
 
 import br.voy.domain.entity.Place;
+import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.repository.PlaceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,12 +87,6 @@ public class PlaceAsyncSaveService {
             placeRepository.savePlace(place);
         } else {
             throw new PlaceAlreadyExistsException("Place already exists");
-        }
-    }
-
-    private static class PlaceAlreadyExistsException extends RuntimeException {
-        public PlaceAlreadyExistsException(String message) {
-            super(message);
         }
     }
 }

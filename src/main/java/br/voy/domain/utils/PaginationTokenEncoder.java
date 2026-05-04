@@ -83,7 +83,6 @@ public class PaginationTokenEncoder {
                 String expectedChecksum = generateChecksum(payload);
 
                 if (expectedChecksum.equals(receivedChecksum)) {
-                    // Parse place IDs
                     Set<String> placeIds = new HashSet<>();
                     if (!parts[3].isEmpty()) {
                         String[] ids = parts[3].split(",");
@@ -94,22 +93,20 @@ public class PaginationTokenEncoder {
                         }
                     }
 
-                    // Parse Google token
                     String googleToken = parts[4].isEmpty() ? null : parts[4];
 
                     return new PaginationState(offset, placeIds, googleToken);
                 }
+                throw new IllegalArgumentException("Invalid pagination token: checksum mismatch");
             } else if (parts.length == 4) {
-                // Old format: offset:timestamp:salt:checksum
                 int offset = Integer.parseInt(parts[0]);
                 return new PaginationState(offset, new HashSet<>(), null);
             } else if (parts.length == 1) {
-                // Very old format: just offset
                 int offset = Integer.parseInt(parts[0]);
                 return new PaginationState(offset, new HashSet<>(), null);
             }
 
-            return new PaginationState(0, new HashSet<>(), null);
+            throw new IllegalArgumentException("Invalid pagination token: unrecognized format");
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid pagination token", e);
