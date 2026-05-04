@@ -78,6 +78,7 @@ public class PlaceModel extends AbstractModel {
     private List<PlacePhotoModel> placePhotoModel = new ArrayList<>();
 
     public PlaceModel(Place placeDomain) {
+        // Copiar o ID se existir para que o Hibernate saiba que é uma atualização
         if (placeDomain.getId() != null) {
             this.id = placeDomain.getId();
         }

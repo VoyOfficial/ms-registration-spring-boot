@@ -86,7 +86,6 @@ public class Place {
                 .principalPhoto(photoReference)
                 .latitude(latitude)
                 .longitude(longitude)
-                .distanceOfLocal(0.0f)
                 .build();
 
     }
@@ -121,7 +120,6 @@ public class Place {
                 .principalPhotoUrl(photoUrl)
                 .latitude(latitude)
                 .longitude(longitude)
-                .distanceOfLocal(0.0f)
                 .build();
 
     }
