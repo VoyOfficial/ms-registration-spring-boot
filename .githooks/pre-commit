@@ -1,0 +1,50 @@
+#!/usr/bin/env sh
+# Harness - pre-commit gate (Feedback Sensors - Fast, <30s)
+#
+# Runs only when there are staged .java files. Blocks the commit if
+# formatting, static analysis, or unit tests fail.
+#
+# See: .cursor/rules/pre-commit-hooks.mdc, .cursor/rules/tdd-workflow.mdc
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.java$')
+
+if [ -z "$STAGED_JAVA" ]; then
+  echo "Pre-commit: nenhum arquivo .java staged, pulando gate de build/testes."
+  exit 0
+fi
+
+echo ""
+echo "Pre-commit: verificando formatacao (Spotless)..."
+./mvnw -q spotless:check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Commit bloqueado: formatacao fora do padrao."
+  echo "Rode './mvnw spotless:apply' e adicione as mudancas ao commit."
+  echo ""
+  exit 1
+fi
+
+echo "Pre-commit: static analysis (Checkstyle)..."
+./mvnw -q checkstyle:check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Commit bloqueado: violacoes de Checkstyle encontradas (ver saida acima)."
+  echo ""
+  exit 1
+fi
+
+echo "Pre-commit: testes unitarios (mvn -DskipITs test)..."
+./mvnw -q -DskipITs test
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Commit bloqueado: testes unitarios falhando."
+  echo "Corrija os testes antes de commitar (TDD Red-Green-Refactor)."
+  echo ""
+  exit 1
+fi
+
+echo "Pre-commit OK"
+exit 0

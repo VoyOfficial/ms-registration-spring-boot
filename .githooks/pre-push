@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+# Harness - pre-push gate (Feedback Sensors - Full validation)
+#
+# 1. Re-validates every commit message in the push range (catches commits that
+#    entered via rebase/cherry-pick and skipped the commit-msg hook).
+# 2. Runs the full build (`mvn clean verify`) - unit + integration tests.
+#
+# See: AGENTS.md (section 4, Gate 1), .cursor/rules/definition-of-done.mdc
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+valid_types="feat|fix|refactor|test|docs|style|chore|perf"
+
+echo ""
+echo "Pre-push: validando mensagens de commit no range do push..."
+
+upstream_branch=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null | sed 's@^origin/@@')
+if [ -n "$upstream_branch" ]; then
+  base_branch="$upstream_branch"
+else
+  base_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+  [ -z "$base_branch" ] && base_branch="main"
+fi
+
+merge_base=$(git merge-base HEAD "origin/$base_branch" 2>/dev/null)
+
+if [ -z "$merge_base" ]; then
+  echo "  Nao foi possivel determinar o range (branch nova/sem upstream), pulando validacao de commits."
+else
+  invalid=""
+  for sha in $(git rev-list "$merge_base..HEAD" 2>/dev/null); do
+    parent_count=$(git rev-list --parents -n 1 "$sha" | wc -w)
+    if [ "$parent_count" -gt 2 ]; then
+      continue
+    fi
+
+    msg=$(git log --format=%s -n 1 "$sha")
+    if ! echo "$msg" | grep -qE "^($valid_types)\([a-z0-9/_.-]+\): .+"; then
+      invalid="$invalid\n  - $sha: $msg"
+    fi
+  done
+
+  if [ -n "$invalid" ]; then
+    echo ""
+    echo "Push bloqueado: commits com formato invalido encontrados no range:"
+    printf "$invalid\n"
+    echo ""
+    echo "Formato esperado: <type>(<module>/<file>): <description>"
+    echo "Use 'git rebase -i' para corrigir as mensagens."
+    echo ""
+    exit 1
+  fi
+
+  echo "  Todos os commits no range estao validos"
+fi
+
+echo ""
+echo "Pre-push: build completo (mvn clean verify)..."
+./mvnw -q clean verify
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Push bloqueado: 'mvn clean verify' falhou (compilacao/testes/gates)."
+  echo ""
+  exit 1
+fi
+
+echo "Pre-push OK"
+exit 0
