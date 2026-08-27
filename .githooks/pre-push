@@ -15,15 +15,23 @@ valid_types="feat|fix|refactor|test|docs|style|chore|perf"
 echo ""
 echo "Pre-push: validando mensagens de commit no range do push..."
 
-upstream_branch=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null | sed 's@^origin/@@')
-if [ -n "$upstream_branch" ]; then
-  base_branch="$upstream_branch"
-else
-  base_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
-  [ -z "$base_branch" ] && base_branch="main"
-fi
+# Instead of guessing a single "base branch" name (upstream, or the remote's
+# default branch), compute the merge-base against every remote branch and keep
+# the closest (most recent) one. This correctly detects the real fork point
+# even on the first push of a branch created from a non-default branch (e.g.
+# `develop` instead of `main`), where guessing the wrong base would wrongly
+# include that whole branch's history in the validation range.
+merge_base=""
+for candidate in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin | grep -v 'HEAD$'); do
+  candidate_base=$(git merge-base HEAD "$candidate" 2>/dev/null) || continue
+  [ -z "$candidate_base" ] && continue
 
-merge_base=$(git merge-base HEAD "origin/$base_branch" 2>/dev/null)
+  if [ -z "$merge_base" ]; then
+    merge_base="$candidate_base"
+  elif git merge-base --is-ancestor "$merge_base" "$candidate_base" 2>/dev/null; then
+    merge_base="$candidate_base"
+  fi
+done
 
 if [ -z "$merge_base" ]; then
   echo "  Nao foi possivel determinar o range (branch nova/sem upstream), pulando validacao de commits."
