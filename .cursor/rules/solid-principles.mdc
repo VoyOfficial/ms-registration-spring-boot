@@ -1,0 +1,297 @@
+---
+alwaysApply: true
+---
+
+# PRINCÍPIOS SOLID E BOAS PRÁTICAS DE DESENVOLVIMENTO
+
+> **Versão**: 1.0.0
+> **Status**: Ativo
+
+Este documento descreve os princípios SOLID e boas práticas de desenvolvimento de software aplicados ao projeto ms-registration-spring-boot (Java / Spring Boot).
+
+## 📚 Índice
+
+1. [Princípios SOLID](#princípios-solid)
+2. [SOLID e Clean Architecture](#solid-e-clean-architecture)
+3. [Padrões de Refatoração](#padrões-de-refatoração)
+4. [Checklist de Qualidade](#checklist-de-qualidade)
+
+---
+
+## 🎯 Princípios SOLID
+
+### S - Single Responsibility Principle (Princípio da Responsabilidade Única)
+
+**Definição**: Uma classe/método deve ter apenas uma razão para mudar. Cada módulo deve ter responsabilidade sobre uma única parte da funcionalidade.
+
+#### ✅ Aplicação Correta
+
+```java
+// ✅ BOM: Cada classe tem uma única responsabilidade
+
+@Service
+public class UserRegistryService implements UserRegistryUseCase {
+
+    @Autowired
+    private UserRepository repository;
+
+    @Override
+    public Long registry(User userDomain) {
+        userIsValid(userDomain);
+        var savedUser = repository.saveUser(userDomain);
+        return savedUser.getId();
+    }
+
+    private void userIsValid(User userDomain) {
+        if (isNull(userDomain) || isNull(userDomain.getName())) {
+            throw new InvalidUserException();
+        }
+    }
+}
+```
+
+Na Clean Architecture deste projeto, este princípio se traduz diretamente em **um UseCase (interface) + um Service (implementação) por ação de negócio** (ver `.cursor/rules/architecture.mdc`).
+
+### O - Open/Closed Principle (Princípio Aberto/Fechado)
+
+**Definição**: Entidades de software devem estar abertas para extensão, mas fechadas para modificação.
+
+#### ✅ Aplicação Correta
+
+```java
+// ✅ BOM: Usa Strategy Pattern (interface) para extensibilidade
+
+public interface NotificationSender {
+    void send(String to, String message);
+}
+
+@Service("emailNotificationSender")
+public class EmailNotificationSender implements NotificationSender {
+    @Override
+    public void send(String to, String message) {
+        // envia e-mail
+    }
+}
+
+@Service("smsNotificationSender")
+public class SmsNotificationSender implements NotificationSender {
+    @Override
+    public void send(String to, String message) {
+        // envia SMS
+    }
+}
+
+// Uso: adicionar novo canal sem modificar código existente,
+// apenas implementando NotificationSender e registrando um novo bean.
+```
+
+### L - Liskov Substitution Principle (Princípio da Substituição de Liskov)
+
+**Definição**: Implementações de uma interface devem poder substituir umas às outras sem quebrar o comportamento esperado pelo contrato.
+
+#### ✅ Aplicação Correta
+
+```java
+// ✅ BOM: qualquer implementação de UserRepository pode substituir outra
+// sem alterar o comportamento esperado pelo Service que a consome.
+
+public interface UserRepository {
+    User saveUser(User userDomain);
+    Optional<User> findById(Long userId);
+    Optional<User> findByCpf(String cpf);
+}
+
+@Repository
+public class RelationalUserRepository implements UserRepository { /* JPA/Postgres */ }
+
+// Uma implementação alternativa (ex.: cache, outro banco) deve
+// respeitar exatamente o mesmo contrato (inclusive Optional.empty()
+// quando não encontrado, nunca null ou exception não documentada).
+```
+
+### I - Interface Segregation Principle (Princípio da Segregação de Interface)
+
+**Definição**: Clientes não devem ser forçados a depender de interfaces que não utilizam.
+
+#### ✅ Aplicação Correta
+
+```java
+// ✅ BOM: UseCases pequenos e focados em vez de uma "UserUseCase" gigante
+
+public interface GetUserUseCase {
+    User getUserById(Long userId);
+}
+
+public interface UserRegistryUseCase {
+    Long registry(User user);
+}
+
+// O Controller depende apenas da interface que precisa para cada endpoint,
+// nao de uma interface unica com todos os metodos de User.
+```
+
+### D - Dependency Inversion Principle (Princípio da Inversão de Dependência)
+
+**Definição**: Módulos de alto nível não devem depender de módulos de baixo nível. Ambos devem depender de abstrações.
+
+#### ✅ Aplicação Correta
+
+```java
+// ✅ BOM: Service (alto nivel) depende da interface UserRepository,
+// nao da implementação concreta RelationalUserRepository.
+
+@Service
+public class UserRegistryService implements UserRegistryUseCase {
+
+    @Autowired
+    private UserRepository repository; // interface, injetada pelo Spring
+
+    @Override
+    public Long registry(User userDomain) {
+        return repository.saveUser(userDomain).getId();
+    }
+}
+```
+
+---
+
+## 🏗️ SOLID e Clean Architecture
+
+O DIP (Dependency Inversion) é o princípio que sustenta a Clean Architecture usada neste projeto (ver `.cursor/rules/architecture.mdc`):
+
+- O contrato (`Repository` **interface**) vive em `domain/repository/` — módulo de alto nível.
+- A implementação concreta (`RelationalXxxRepository`) vive em `infrastructure/repository/relational/` — módulo de baixo nível, que depende da abstração do `domain`, nunca o contrário.
+- `Service` (domain) recebe o `Repository` (interface) via injeção do Spring — nunca instancia `RelationalXxxRepository`/`XxxJpaRepository` diretamente com `new`.
+
+```java
+// domain/repository/UserRepository.java (abstração - alto nível)
+public interface UserRepository {
+    User saveUser(User userDomain);
+}
+
+// infrastructure/repository/relational/RelationalUserRepository.java (implementação - baixo nível)
+@Repository
+public class RelationalUserRepository implements UserRepository { /* ... */ }
+
+// domain/service/UserRegistryService.java (depende da abstração)
+@Service
+public class UserRegistryService implements UserRegistryUseCase {
+    @Autowired
+    private UserRepository repository;
+}
+```
+
+---
+
+## 🔄 Padrões de Refatoração
+
+### 1. Refatoração Guiada por Testes (TDD)
+
+**Processo recomendado:**
+
+1. **Escrever testes abrangentes** para comportamento atual
+2. **Executar testes** (`mvn test`) para garantir que passam
+3. **Refatorar código** aplicando princípios SOLID
+4. **Executar testes novamente** para garantir que comportamento não mudou
+5. **Adicionar novos testes** para novos casos de uso
+
+### 2. Extract Method (Extrair Método)
+
+```java
+// ❌ Antes: método longo com múltiplas responsabilidades
+@Override
+public Long registry(User userDomain) {
+    if (isNull(userDomain) || isNull(userDomain.getName())) {
+        throw new InvalidUserException();
+    }
+
+    if (userDomain.getDateBirth().isAfter(LocalDate.now().minusYears(18))) {
+        throw new InvalidUserException("user.underage.default.message");
+    }
+
+    var savedUser = repository.saveUser(userDomain);
+    logger.info("Registered User: {}", savedUser.getId());
+    return savedUser.getId();
+}
+
+// ✅ Depois: métodos extraídos com responsabilidades únicas
+@Override
+public Long registry(User userDomain) {
+    userIsValid(userDomain);
+    userIsOfLegalAge(userDomain);
+
+    var savedUser = repository.saveUser(userDomain);
+
+    logger.info("Registered User: {}", savedUser.getId());
+
+    return savedUser.getId();
+}
+
+private void userIsValid(User userDomain) {
+    if (isNull(userDomain) || isNull(userDomain.getName())) {
+        throw new InvalidUserException();
+    }
+}
+
+private void userIsOfLegalAge(User userDomain) {
+    var legalAgeThreshold = LocalDate.now().minusYears(18);
+    if (userDomain.getDateBirth().isAfter(legalAgeThreshold)) {
+        throw new InvalidUserException("user.underage.default.message");
+    }
+}
+```
+
+---
+
+## ✅ Checklist de Qualidade
+
+### Antes de Submeter Código
+
+Use este checklist para garantir qualidade:
+
+#### Single Responsibility
+- [ ] Cada classe/método/UseCase tem apenas uma razão para mudar?
+- [ ] O nome descreve claramente sua única responsabilidade?
+- [ ] O método tem menos de 20 linhas?
+- [ ] Não há comentários explicando "seções" do método?
+
+#### Open/Closed
+- [ ] Posso adicionar novo comportamento sem modificar código existente?
+- [ ] Usei interfaces/abstrações para permitir extensão?
+- [ ] Evitei `switch`/`if` baseados em tipo quando um polimorfismo resolveria melhor?
+
+#### Liskov Substitution
+- [ ] Implementações alternativas de uma interface respeitam o mesmo contrato (retorno, exceptions)?
+- [ ] `Repository` sempre retorna `Optional.empty()` (nunca `null`) quando não encontra o registro?
+
+#### Interface Segregation
+- [ ] Minhas interfaces (`UseCase`) são pequenas e focadas?
+- [ ] Clientes (`Controller`) não são forçados a depender de métodos que não usam?
+
+#### Dependency Inversion
+- [ ] Módulos de alto nível (`domain`) dependem apenas de abstrações?
+- [ ] `Repository` interface está em `domain`, implementação em `infrastructure`?
+- [ ] Evitei instanciar dependências concretas diretamente dentro de `Service` (`new RelationalXxxRepository()`)?
+
+#### Testes
+- [ ] Escrevi testes antes da refatoração?
+- [ ] Todos os testes passam após refatoração (`mvn test`)?
+- [ ] Cobertura de testes está acima de 80%?
+- [ ] Testei casos extremos e erros?
+
+---
+
+## 🎓 Conclusão
+
+Aplicar os princípios SOLID não é sobre seguir regras rigidamente, mas sobre escrever código que seja:
+
+- **Fácil de entender** - Responsabilidades claras
+- **Fácil de manter** - Mudanças isoladas
+- **Fácil de testar** - Dependências controláveis
+- **Fácil de estender** - Sem modificar código existente
+
+Lembre-se: **Refatore incrementalmente**. Não tente aplicar todos os princípios de uma vez. Comece pequeno, escreva testes, e melhore continuamente.
+
+---
+
+> Esta documentação deve ser atualizada conforme o time adquire mais experiência e identifica novos padrões no projeto.

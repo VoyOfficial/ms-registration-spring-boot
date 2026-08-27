@@ -1,0 +1,146 @@
+---
+alwaysApply: false
+description: Standard end-to-end harness engineering workflow (session startup, feedforward, execution, feedback/quality gates) for any work in this repository.
+---
+
+# Harness Engineering - Workflow Padrao
+
+> Versao: 1.0.0
+> Baseado em: Harness Engineering para agentes de codigo
+
+Este documento define o workflow padrao para qualquer trabalho neste repositorio.
+
+## Regra Principal
+
+- Harness Engineering e o fluxo default para feature, bugfix, refactor e manutencao.
+- Nao iniciar implementacao sem executar Session Startup + Feedforward.
+- Nao considerar tarefa concluida sem passar pelo gate de validacao.
+
+## 1) Session Startup (obrigatorio no primeiro prompt)
+
+Execute estes passos no inicio de cada sessao:
+
+1. Descobrir branch atual com `git branch --show-current`.
+2. Identificar a Issue relacionada pelo nome da branch quando existir (ex.: `feature/12-nome-da-feature`).
+3. Ler `CURRENT_WORK.md` para contexto de ativo/bloqueado/concluido.
+4. Buscar sessoes anteriores por Issue em `docs/obsidian/Sessions/`.
+5. Se houver Issue pai, carregar sessao relacionada.
+6. Se nao houver contexto em Obsidian, seguir como nova sessao sem usar `docs/memory/session/`.
+
+Saida esperada para o usuario:
+
+- 1-2 linhas com: tarefa ativa, estado atual e proximo passo.
+- Se nao houver contexto relevante, seguir sem ruido.
+
+## 2) Feedforward (antes de codar)
+
+Antes de editar codigo:
+
+1. Ler a Issue no GitHub (`gh issue view <n>`) - titulo, descricao e acceptance criteria.
+2. Confirmar escopo tecnico com instrucoes aplicaveis da pasta `.cursor/rules/`.
+3. Validar padrao Clean Architecture / Ports & Adapters (`architecture.mdc`) e convencoes do projeto.
+4. Definir plano minimo de implementacao + testes por camada (`domain`/`application`/`infrastructure`).
+5. Definir se a mudanca exige nova migration Flyway (`src/main/resources/db/migration/`).
+
+Checklist de entrada:
+
+- Requisito funcional compreendido.
+- Criterios de aceite listados.
+- Arquivos alvo mapeados (por camada).
+- Estrategia de teste definida (unit/integration).
+
+## 3) Implementacao (TDD + sensores rapidos)
+
+Fluxo recomendado:
+
+1. RED: criar/ajustar teste para falhar.
+2. GREEN: implementar o minimo para passar.
+3. REFACTOR: melhorar legibilidade/arquitetura mantendo verde.
+
+Sensores durante implementacao:
+
+- Compilacao Java (erros de tipo/sintaxe)
+- `mvn test` focado na classe alterada (`mvn test -Dtest=NomeDaClasseTest`)
+- Bean Validation nas anotacoes de `Request`
+
+## 4) Feedback e Gate de Qualidade
+
+Ordem de validacao:
+
+1. Unit tests (`domain.service` - base da piramide).
+2. Integration tests (`application.controller` via `@WebMvcTest`, `infrastructure.repository` via `@DataJpaTest`).
+3. E2E - ainda nao configurado (ver `validation-pyramid.mdc`); quando existir, vira gate final.
+
+Regra de pronto:
+
+- Feature/bugfix pode ser marcada como done quando unit + integration estiverem verdes (`mvn clean verify`) (E2E entra como gate adicional apenas quando configurado).
+- Nao criar PR com testes obrigatorios pendentes.
+
+**Definition of Done (DoD) Harness:**
+
+Antes de considerar a task concluida, executar validacao completa via DoD Harness:
+
+- **Referencia obrigatoria**: `.cursor/rules/definition-of-done.mdc`
+- **Gates ativos**: Codigo/Testes → Code Review → Documentacao → PR
+- **Enforcement**: BLOCK se qualquer gate ativo falhar
+
+## 5) Commit e Rastreabilidade
+
+- Seguir a politica central de commits em `AGENTS.md` (secao "Commits").
+- Este arquivo define apenas a ordem operacional do workflow; regras de formato e exemplos de commit ficam centralizados para evitar duplicacao.
+
+## 6) Session Save (obrigatorio ao encerrar trabalho significativo)
+
+Ao final da sessao:
+
+1. Atualizar ou criar sessao em `docs/obsidian/Sessions/`.
+2. Registrar: contexto, decisoes, arquivos tocados, proximos passos e status.
+3. Atualizar `CURRENT_WORK.md` (Active, Blocked ou Recently Completed).
+
+Ao finalizar a task (normalmente abertura de PR):
+
+1. Garantir Issue do GitHub com label/status apropriado.
+2. Garantir sessions da task com `status: closed`.
+3. Garantir `parent_session` explicito em todas as sessions (`[[...]]` ou `none`).
+
+Observacao:
+
+- `docs/obsidian/Sessions/` e a fonte de verdade para leitura e escrita de sessoes neste projeto.
+
+## Sequencia Operacional (resumo)
+
+1. Session Startup
+2. Feedforward
+3. Implementacao (TDD)
+4. Feedback (piramide de testes)
+5. Commit
+6. Session Save
+
+## Instrucoes Relacionadas (validas neste repo)
+
+Feedforward:
+
+- `ms-registration.mdc`
+- `architecture.mdc`
+- `code-conventions.mdc`
+- `solid-principles.mdc`
+
+Feedback:
+
+- `definition-of-done.mdc` (DoD Harness - OBRIGATORIO)
+- `tdd-workflow.mdc`
+- `validation-pyramid.mdc`
+- `pre-commit-hooks.mdc`
+
+Suporte:
+
+- `memory-system.mdc`
+- `documentation.mdc`
+
+## Anti-Patterns (nao fazer)
+
+- Comecar codificacao sem contexto da task.
+- Pular validacao em camadas.
+- Declarar done sem evidenciar os gates ativos.
+- Referenciar instrucoes inexistentes ou desatualizadas.
+- Atualizar muitos arquivos sem plano/teste focado.

@@ -1,0 +1,108 @@
+---
+alwaysApply: false
+description: Pre-commit/pre-push hook feedback sensors - fast computational checks that block bad commits/pushes.
+---
+
+# 🔒 PRE-COMMIT / PRE-PUSH HOOKS - Feedback Sensors
+
+> **Versão**: 2.0.0
+> **Harness Role**: Feedback Sensors - Computational (Fast)
+> **Estado atual**: ✅ **Implementado** (git hooks nativos, sem dependência de Node/npm)
+
+---
+
+## 🎛️ Papel no Harness Engineering
+
+Git hooks são **Feedback Sensors Computacionais** que rodam antes de cada commit/push:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  PRE-COMMIT/PRE-PUSH = FEEDBACK SENSORS - FAST VALIDATION   │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  📊 TIPO: Computacional (100% determinístico)              │
+│  ⏱️ TIMING: Antes de cada commit/push                       │
+│  🎯 OBJETIVO: Catch issues BEFORE they reach the repo      │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Relacionado**: `harness-engineering.mdc`, `validation-pyramid.mdc`, `tdd-workflow.mdc`
+
+---
+
+## 📦 Como Funciona
+
+Os hooks vivem versionados em `.githooks/` (não em `.git/hooks/`, que não é versionado). O Git é configurado para lê-los de lá via `core.hooksPath=.githooks`.
+
+Essa configuração é **automática**: qualquer execução do Maven (`./mvnw test`, `./mvnw verify`, etc.) roda o plugin `maven-antrun-plugin` na fase `validate`, que seta `core.hooksPath` (idempotente, equivalente ao script `prepare` do Husky em projetos Node, mas sem exigir Node como dependência deste projeto Java/Maven).
+
+Também é possível configurar manualmente (ex.: logo após clonar o repositório):
+
+```bash
+./scripts/setup-hooks.sh
+```
+
+### `.githooks/commit-msg`
+
+Valida o formato **Conventional Commits** definido em `AGENTS.md`:
+
+```
+<type>(<module>/<file>): <description>
+```
+
+- Tipos válidos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `perf`
+- Bloqueia commits sem escopo (`feat: ...`) ou no formato antigo Azure DevOps (`TASK-123: ...`)
+- Bloqueia caracteres não-ASCII (descrição deve ser em inglês, sem acentos)
+- Bloqueia corpo de mensagem (commit deve ser uma única linha, `-m "..."`)
+- Commits de merge (`MERGE_HEAD` presente) são ignorados
+
+### `.githooks/pre-commit`
+
+Roda **apenas quando há `.java` staged** (commits só de docs/config não disparam build):
+
+1. `./mvnw spotless:check` - formatação (Google Java Format, estilo AOSP)
+2. `./mvnw checkstyle:check` - análise estática (ver `checkstyle.xml` na raiz)
+3. `./mvnw -DskipITs test` - testes unitários
+
+Qualquer falha bloqueia o commit com uma mensagem explicando como corrigir.
+
+### `.githooks/pre-push`
+
+Gate mais pesado, antes de enviar para o remoto:
+
+1. Revalida **todas** as mensagens de commit no range do push (pega commits que entraram via rebase/cherry-pick e não passaram pelo `commit-msg`)
+2. `./mvnw clean verify` - build completo (compilação + testes unit + integration), o mesmo Gate 1 do Definition of Done (`AGENTS.md` seção 4)
+
+---
+
+## 🛠️ Ferramentas Configuradas no `pom.xml`
+
+| Plugin | Papel | Comando manual |
+|---|---|---|
+| `spotless-maven-plugin` | Formata automaticamente (Google Java Format, estilo AOSP) | `./mvnw spotless:apply` |
+| `maven-checkstyle-plugin` | Análise estática (ruleset enxuto em `checkstyle.xml`, sem Javadoc/magic-number para não gerar débito retroativo) | `./mvnw checkstyle:check` |
+| `maven-antrun-plugin` | Auto-instala `.githooks/` via `core.hooksPath` a cada `mvn` | (automático) |
+
+O `checkstyle.xml` é intencionalmente minimalista: imports (`AvoidStarImport` com exceção para static imports idiomáticos tipo `Mockito.*`/`Assertions.*`, `UnusedImports`, `RedundantImport`), estrutura (`OneTopLevelClass`) e bugs comuns (`EqualsHashCode`, `EmptyStatement`, `SimplifyBooleanExpression`). Formatação (indentação/whitespace/ordem de imports) é responsabilidade do Spotless, não duplicada aqui.
+
+---
+
+## 🚫 Bypass (Use com Cuidado)
+
+```bash
+# Bypass pre-commit/pre-push/commit-msg (EVITE)
+git commit --no-verify -m "..."
+git push --no-verify
+```
+
+**⚠️ AVISO**: Bypass deve ser exceção (`AGENTS.md` regra 5: "NUNCA usar `--no-verify` ou pular hooks"). Se isso virar rotina, ajuste de processo/configuração é necessário. Não há CI configurado neste repositório ainda, então os hooks locais são hoje o único gate real - reforce isso no code review de PR.
+
+---
+
+## 🔗 Relacionados
+
+- `harness-engineering.mdc` - Framework geral
+- `validation-pyramid.mdc` - Todas as camadas de testes
+- `code-conventions.mdc` - Regras de código
+- `AGENTS.md` (seção "Commits") - formato Conventional Commits enforced pelo `commit-msg`

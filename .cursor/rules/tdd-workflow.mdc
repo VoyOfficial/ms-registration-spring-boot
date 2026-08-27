@@ -1,0 +1,118 @@
+---
+alwaysApply: false
+description: Mandatory TDD Red-Green-Refactor workflow to follow when implementing features, fixing bugs, or refactoring.
+---
+
+# TDD Workflow
+
+> Load this when implementing features, fixing bugs, or refactoring.
+> These rules are MANDATORY for this user.
+
+---
+
+## 🔴 TDD: RED → GREEN → REFACTOR
+
+**Always write the test first. Always.**
+
+```
+🔴 RED    → Write failing test
+🟢 GREEN  → Minimal code to pass
+🔵 REFACTOR → Improve while staying green
+```
+
+### Applies to EVERYTHING
+
+- New features
+- Bug fixes
+- Refactoring
+- Entities, UseCases, Services, Repositories, Controllers
+
+### Workflow
+
+**RED — Write test first:**
+
+```java
+// GetUserServiceTest.java
+@Test
+@DisplayName("Should throw when User not found")
+void shouldThrowWhenUserNotFound() {
+    when(repository.findById(1L)).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> service.getUserById(1L));
+}
+// Run: mvn test -Dtest=GetUserServiceTest → MUST FAIL
+```
+
+**GREEN — Minimal implementation:**
+
+```java
+// GetUserService.java
+@Override
+public User getUserById(Long userId) {
+    return repository.findById(userId)
+            .orElseThrow(UserNotFoundException::new);
+}
+// Run: mvn test -Dtest=GetUserServiceTest → MUST PASS
+```
+
+**REFACTOR — Improve with confidence:**
+
+```java
+@Override
+public User getUserById(Long userId) {
+    logger.info("GET USER SERVICE - GET USER BY ID - User ID: {}", userId);
+
+    return repository.findById(userId)
+            .orElseThrow(UserNotFoundException::new);
+}
+// Run: mvn test -Dtest=GetUserServiceTest → STILL PASSES
+```
+
+### Bug Fix Pattern
+
+```java
+// 1. Write test that reproduces the bug (RED)
+@Test
+@DisplayName("Should reject CPF that already exists on registry")
+void shouldRejectCpfThatAlreadyExists() {
+    when(repository.findByCpf(EXISTING_CPF)).thenReturn(Optional.of(existingUser));
+
+    assertThrows(InvalidUserException.class, () -> service.registry(newUserWithSameCpf));
+}
+// Run → FAIL (confirms bug exists)
+
+// 2. Fix the code (GREEN)
+// 3. Run test → PASS (confirms fix)
+// 4. Refactor if needed
+```
+
+### Anti-patterns
+
+```java
+// ❌ Code before test
+// ❌ Skip RED (if test passes immediately, you're not testing the right thing)
+// ❌ Refactor without green tests
+// ❌ Fix bug without a reproducing test
+```
+
+---
+
+## 🎯 Feature is DONE When
+
+```
+Unit tests (domain.service) ✅ + Integration tests (application.controller / infrastructure.repository) ✅ = DONE
+```
+
+## 🧱 TDD por Camada (Clean Architecture)
+
+- **domain** (`Service`/UseCase): teste puro com Mockito — mock apenas o `Repository` (interface), sem contexto Spring (`@SpringBootTest`).
+- **application** (`Controller`): `@WebMvcTest` + `MockMvc`, com o `Service`/UseCase mockado via `@MockBean`.
+- **infrastructure** (`Repository`): `@DataJpaTest` (H2) ou teste de integração validando o mapeamento `Model` ↔ `Domain` contra um banco real.
+- **application.validation**: teste unitário direto do `ConstraintValidator` (sem subir contexto Spring), cobrindo valor válido/inválido/nulo.
+
+## 🔗 Related Commit Policy
+
+Commit strategy, naming rules, and examples are centralized in:
+
+- `AGENTS.md` (section "Commits")
+- `.cursor/rules/harness-engineering.mdc` (workflow reference)

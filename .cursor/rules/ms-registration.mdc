@@ -1,0 +1,183 @@
+---
+alwaysApply: true
+---
+
+# ORIENTATIONS - ms-registration-spring-boot
+
+This file is the implementation playbook for this repository.
+
+Use it to validate whether a change follows project standards in three moments:
+1. Before implementing
+2. During implementation
+3. After implementation
+
+If a change passes this playbook checklist, it is compliant with the project baseline.
+
+---
+
+## Purpose Of This File
+
+This file should be concise and operational.
+
+- It defines what to validate and when.
+- It does not duplicate deep technical details from specialized instruction files.
+- It points to specialized files when deeper rules are needed.
+
+---
+
+## Project Snapshot
+
+- **What**: `ms-registration-spring-boot` (a.k.a. "Voy Registration") is a REST API for the User registration domain of the Voy platform (CRUD of Users).
+- **Stack**: Java 11, Spring Boot 2.7.5 (Web, Validation, Data JPA, Flyway, Actuator, DevTools), PostgreSQL (H2 for tests), Lombok, springdoc-openapi (Swagger), Maven.
+- **Type**: Backend microservice — there is **no mobile/frontend layer** in this repo. There is no View/ViewModel; the inbound port is the REST API (`application/controller`).
+- **Repository**: `VoyOfficial/ms-registration-spring-boot`, default base branch `main`.
+
+---
+
+## Instruction Map (Minimum Necessary)
+
+| Topic | File | When to load |
+|------|------|--------------|
+| Clean Architecture (Ports & Adapters) templates | `#architecture.mdc` | Always |
+| Code conventions & naming | `#code-conventions.mdc` | Always |
+| Validation pyramid | `#validation-pyramid.mdc` | Always |
+| TDD workflow & commits | `#tdd-workflow.mdc` | Behavior changes/refactor |
+| SOLID principles | `#solid-principles.mdc` | Architecture-heavy changes |
+| Memory / session system | `#memory-system.mdc` | Session/work documentation |
+
+Quick rule: use the minimum necessary set of instructions for the current task while preserving architectural safety.
+
+---
+
+## Operational Flow
+
+### Phase 1 - Before Implementation (Feedforward)
+
+1. Understand scope and acceptance criteria (GitHub Issue).
+2. Search reuse opportunities before creating new code.
+3. Define which domain/aggregate this belongs to (e.g. `User`) — or if it needs a new one.
+4. Define where code belongs by layer (`domain`/`application`/`infrastructure`).
+5. Define test strategy before coding (unit for `domain.service`, `@WebMvcTest` for `application.controller`, `@DataJpaTest`/integration for `infrastructure.repository`).
+
+Expected output before coding:
+- Reuse vs creation decision
+- Target folders/files (by layer)
+- Test plan by layer
+- Whether a Flyway migration is needed
+
+### Phase 2 - During Implementation (Execution)
+
+1. Keep Clean Architecture boundaries:
+   - `domain` = business rules only (Entity, Repository interface, UseCase interface, Service implementation, domain Exceptions) — no JPA, no Spring Web
+   - `application` = inbound adapter: `Controller` (REST), `Request`/`Response` DTOs, Bean Validation, `ExceptionHandlerAdvice`
+   - `infrastructure` = outbound adapter: JPA `Model`, `JpaRepository`, `RelationalXxxRepository` (implements the domain `Repository`), technical config (OpenAPI, i18n, Flyway)
+2. Use full package paths consistently (`src.domain.*`, `src.application.*`, `src.infrastructure.*`); avoid wildcard imports for project classes.
+3. Keep error messages centralized as i18n keys in `src/main/resources/messages.properties`, never hardcoded strings inside a `Service`/`Controller`.
+4. Any new persisted field/table requires a new Flyway migration (`src/main/resources/db/migration/V[n]__description.sql`) — never edit an already-applied migration.
+5. Add/update tests mirroring the layer structure (`domain.service` unit tests, `application.controller` `@WebMvcTest`, `infrastructure.repository` integration tests).
+
+### Phase 3 - After Implementation (Feedback)
+
+1. Validate architecture boundaries (dependency rule, domain purity).
+2. Validate tests and coverage impact.
+3. Validate conventions and anti-patterns.
+
+Definition of done:
+- Behavior works as expected
+- Required tests pass (unit + integration)
+- Architecture/conventions/placement are compliant
+- No unresolved anti-pattern violations
+
+---
+
+## Reuse-First Rule (Mandatory)
+
+Before creating a new UseCase/Service/validation annotation/config, search first in:
+- `src/main/java/src/domain/usecase/` and `src/main/java/src/domain/service/` (similar business action already implemented for another aggregate)
+- `src/main/java/src/application/validation/` (custom Bean Validation constraints already implemented)
+- `src/main/java/src/infrastructure/config/` (technical configuration already centralized)
+
+Only create new when reuse/adaptation is not viable.
+
+---
+
+## Placement Guide (Short)
+
+| What | Where |
+|------|-------|
+| Business entity | `src/main/java/src/domain/entity/` |
+| Domain exception | `src/main/java/src/domain/exception/` |
+| Repository contract | `src/main/java/src/domain/repository/` |
+| Business action (usecase interface) | `src/main/java/src/domain/usecase/` |
+| Business action (implementation) | `src/main/java/src/domain/service/` |
+| REST endpoint | `src/main/java/src/application/controller/` |
+| Request DTO + Bean Validation | `src/main/java/src/application/controller/request/` |
+| Response DTO | `src/main/java/src/application/controller/response/` |
+| Custom Bean Validation constraint | `src/main/java/src/application/validation/` |
+| Exception -> HTTP status mapping | `src/main/java/src/application/interceptor/ExceptionHandlerAdvice.java` |
+| JPA entity (persistence model) | `src/main/java/src/infrastructure/model/` |
+| Spring Data JPA repository | `src/main/java/src/infrastructure/repository/jpa/` |
+| Repository implementation | `src/main/java/src/infrastructure/repository/relational/` |
+| Technical config (OpenAPI, i18n, etc.) | `src/main/java/src/infrastructure/config/` |
+| DB migration | `src/main/resources/db/migration/` |
+| i18n messages | `src/main/resources/messages.properties` |
+| Test data builder | `src/test/java/src/[Nome]Datas.java` |
+
+---
+
+## Quality Gates (Go / No-Go)
+
+### Architecture (Clean Architecture / Ports & Adapters)
+
+- [ ] `domain` has no import from `application`, `infrastructure`, `javax.persistence`, or Spring Web annotations
+- [ ] Repository has an interface in `domain` and implementation in `infrastructure`
+- [ ] Each UseCase resolves a single business action
+- [ ] `Controller` only talks to a `UseCase` interface (no direct `Repository`/JPA access)
+- [ ] Code placed in the correct layer (`domain`/`application`/`infrastructure`)
+
+### Conventions
+
+- [ ] Error messages centralized as i18n keys (`messages.properties`), never hardcoded
+- [ ] New persisted fields/tables have a corresponding Flyway migration
+- [ ] Bean Validation used for input validation (`Request`), not manual `if` checks in the `Controller`
+- [ ] Naming follows `code-conventions.mdc` (Entity/UseCase/Service/Repository/Model suffixes)
+
+### Tests
+
+- [ ] Service (business logic) validated in unit tests with the Repository interface mocked (Mockito)
+- [ ] Controller behavior validated with `@WebMvcTest` + `MockMvc` (UseCase mocked)
+- [ ] Repository implementation validated with `@DataJpaTest` or integration test against a real/in-memory database
+- [ ] Validation annotations (custom constraints) covered by dedicated validator tests
+
+No-Go if any mandatory item above is unresolved.
+
+---
+
+## Quick Anti-Patterns
+
+- Business logic inside a `Controller` or a `Request`/`Response` DTO
+- `domain` importing from `application`/`infrastructure` (breaks the dependency rule)
+- Calling `JpaRepository`/`Model` directly from a `Service`, bypassing the `Repository` interface
+- Hardcoded error messages/strings instead of i18n keys
+- Editing an already-applied Flyway migration instead of creating a new one
+- Testing business logic only via controller tests (without dedicated `Service`/UseCase unit tests)
+
+---
+
+## Single-Page Implementation Checklist
+
+Copy and fill before closing task:
+
+- Scope/AC reviewed: [ ]
+- Reuse search done: [ ]
+- Aggregate/domain identified: [ ]
+- Code placement defined (layer + package): [ ]
+- Clean Architecture boundaries respected: [ ]
+- Flyway migration created (if needed): [ ]
+- i18n messages centralized: [ ]
+- Required tests passing (per layer): [ ]
+- Anti-pattern check passed: [ ]
+
+---
+
+This file intentionally stays high-level. For detailed implementation rules, consult the mapped specialized instruction files.

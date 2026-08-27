@@ -1,0 +1,264 @@
+---
+alwaysApply: false
+description: Validation pyramid strategy (unit, integration) - feedback sensors for deciding what/how to test.
+---
+
+# 🧪 VALIDATION PYRAMID - Feedback Sensors
+
+> **Versão**: 1.0.0
+> **Contexto**: Harness Engineering - Behaviour Harness
+
+---
+
+## 🎯 Overview
+
+A pirâmide de validação define os **feedback sensors** para o **Behaviour Harness** - a camada que valida se a aplicação funciona conforme esperado.
+
+```
+             /\
+            /  \    Integration Tests
+           / 🔗 \   ~20-30% • @WebMvcTest (controller) + @DataJpaTest (repository)
+          /______\  Sensor: contrato HTTP e persistencia validados
+         /        \
+        /  🧩 Unit \  Unit Tests
+       /    Tests   \ ~70-80% • domain.service isolado (Mockito)
+      /______________\ Sensor: comportamento de negocio correto
+
+     ──────────────────────────────────────────────
+        📊 Static Analysis (compilacao Java, Bean Validation)
+        Sensor: Codigo valido e consistente
+```
+
+**Nota:** este projeto não tem testes E2E (contra uma instância real da aplicação/banco em ambiente completo) configurados hoje. "Done" = unit + integration verdes. Se um framework de E2E (ex.: Testcontainers full-stack, REST Assured contra ambiente subido) for adotado, criar uma seção dedicada e promover E2E a gate final (como descrito em `tdd-workflow.mdc`).
+
+---
+
+## 🧩 Camada 1: Unit Tests (Feedback Computacional)
+
+### Papel no Harness
+
+- **Tipo**: Feedback Sensor - Computacional
+- **Timing**: Durante desenvolvimento + Pré-commit
+- **Velocidade**: ~ms por teste
+- **Confiabilidade**: 100% determinístico
+
+### O que Valida
+
+- Regras de negócio isoladas (`domain.service`, implementações de `UseCase`) — **sem** contexto Spring, apenas mock do `Repository` (interface) via Mockito
+- Validadores customizados (`application.validation.*Validator`)
+- Mapeamento `Model.toDomain()` / `Request.toDomain()` / construtor de `Response` (quando testado isoladamente, sem subir contexto)
+
+### Estrutura de Testes
+
+```java
+// src/test/java/src/domain/service/GetUserServiceTest.java
+
+@ExtendWith(MockitoExtension.class)
+class GetUserServiceTest {
+
+    @Mock
+    UserRepository repository;
+
+    @InjectMocks
+    GetUserService service;
+
+    @Test
+    @DisplayName("Must to Get an User by ID")
+    void mustToGetAnUserById() {
+        // cenary
+        var userDomain = UserDatas.makeAnUserDomain(UserDatas.ID);
+        when(repository.findById(UserDatas.ID)).thenReturn(Optional.of(userDomain));
+
+        // action
+        var result = service.getUserById(UserDatas.ID);
+
+        // validation
+        assertEquals(userDomain, result);
+    }
+
+    @Test
+    @DisplayName("Don't should to Get an User by ID when User not found")
+    void dontShouldGetAnUserByIdWhenUserNotFound() {
+        // cenary
+        when(repository.findById(UserDatas.ID)).thenReturn(Optional.empty());
+
+        // action / validation
+        assertThrows(UserNotFoundException.class, () -> service.getUserById(UserDatas.ID));
+    }
+}
+```
+
+### Comandos
+
+```bash
+# Rodar toda a suite de testes
+mvn test
+
+# Rodar uma classe de teste especifica
+mvn test -Dtest=GetUserServiceTest
+
+# Rodar com relatorio de cobertura (se plugin jacoco estiver configurado)
+mvn test jacoco:report
+```
+
+---
+
+## 🔗 Camada 2: Integration Tests (Feedback Computacional)
+
+### Papel no Harness
+
+- **Tipo**: Feedback Sensor - Computacional
+- **Timing**: Pré-push + PR
+- **Velocidade**: ~100ms-1s por teste
+- **Confiabilidade**: 100% determinístico
+
+### O que Valida
+
+- Contrato HTTP do `Controller` (`@WebMvcTest` + `MockMvc`): status code, corpo, headers (ex.: `Location`), validação de entrada (Bean Validation) e mapeamento de exceptions (`ExceptionHandlerAdvice`)
+- Integração `RelationalXxxRepository` ↔ `XxxJpaRepository` ↔ banco (H2 em teste): mapeamento `Model` ↔ `Domain`, queries customizadas (`findByCpf`, etc.)
+- Migrations Flyway aplicadas corretamente no schema de teste
+
+### Estrutura de Testes
+
+```java
+// src/test/java/src/application/controller/UserControllerTest.java
+
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+
+    private final String URL = "/v1/users";
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockBean
+    UserRepository userRepository;
+
+    @MockBean
+    UserRegistryService registryService;
+
+    @MockBean
+    GetUserService getUserService;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Test
+    @DisplayName("Must to Registry User")
+    void mustToRegistryUser() throws Exception {
+        // cenary
+        var userRequest = UserDatas.makeAnUserRequest();
+        doReturn(UserDatas.ID).when(registryService).registry(userRequest.toDomain());
+
+        // action - validation
+        mockMvc.perform(post(URL)
+                        .content(objectMapper.writeValueAsString(userRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+    }
+}
+```
+
+```java
+// src/test/java/src/infrastructure/repository/relational/RelationalUserRepositoryTest.java
+
+@DataJpaTest
+class RelationalUserRepositoryTest {
+    // valida o mapeamento UserModel <-> User (domain) contra o schema real (Flyway + H2)
+}
+```
+
+### Comandos
+
+```bash
+# Rodar todos os testes (unit + integration ja fazem parte da mesma suite Maven)
+mvn test
+
+# Rodar apenas uma classe de integracao
+mvn test -Dtest=UserControllerTest
+mvn test -Dtest=RelationalUserRepositoryTest
+
+# Build completo (compila + roda testes) - gate de CI/local antes do PR
+mvn clean verify
+```
+
+---
+
+## 📊 Static Analysis (Feedback Computacional Base)
+
+### Compilação Java - Type Safety Sensor
+
+```bash
+# Compilar sem rodar testes
+mvn compile
+
+# Build completo com testes
+mvn clean verify
+```
+
+### Bean Validation - Input Sanity Sensor
+
+- Toda entrada de API (`Request`) deve ter suas anotações de validação (`@NotBlank`, `@Size`, `@CPF`, validações customizadas) cobertas por pelo menos um teste no `@WebMvcTest` do `Controller` correspondente.
+
+---
+
+## 🔄 Workflow de Validação Completo
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    VALIDATION WORKFLOW - FEEDBACK CHAIN                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1️⃣ DURANTE DESENVOLVIMENTO                                             │
+│     ├─→ Compilacao Java (IDE/mvn compile) ──→ Erro? Fix antes de continuar │
+│     └─→ mvn test (classe alvo)        ──→ Teste falhou? TDD: fix codigo │
+│                                                                          │
+│  2️⃣ PRÉ-COMMIT (quando hooks forem configurados - ver pre-commit-hooks.mdc) │
+│     └─→ mvn -q -DskipITs test  ──→ Falhou? Commit bloqueado             │
+│                                                                          │
+│  3️⃣ PULL REQUEST                                                        │
+│     ├─→ mvn clean verify   ──→ Falhou? PR não pode ser merged          │
+│     └─→ Coverage       ──→ Abaixo do threshold? Warning                 │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📋 Checklist de Validação por Feature
+
+```markdown
+## ✅ Validation Checklist - [Issue #NN]
+
+### 🧩 Unit Tests
+
+- [ ] Service/UseCase tests passando
+- [ ] Validator (Bean Validation customizada) tests passando
+- [ ] Edge cases cobertos
+- [ ] Error scenarios (exceptions de dominio) cobertos
+- [ ] Coverage > 80% para novo codigo
+
+### 🔗 Integration Tests
+
+- [ ] Controller (@WebMvcTest) test cobrindo sucesso + validacao + erro
+- [ ] Repository (@DataJpaTest) test cobrindo o mapeamento Model <-> Domain
+- [ ] Migration Flyway validada (schema criado/alterado corretamente)
+
+### 📊 Static Analysis
+
+- [ ] `mvn clean verify` sem erros
+- [ ] Sem warnings de compilacao relevantes
+
+### 📝 Documentation
+
+- [ ] Obsidian Work Item atualizado
+- [ ] Session file atualizado
+```
+
+---
+
+## 🔗 Relacionados
+
+- `harness-engineering.mdc` - Framework geral
+- `architecture.mdc` - Clean Architecture / Ports & Adapters
+- `code-conventions.mdc` - Coding standards
