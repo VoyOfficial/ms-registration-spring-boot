@@ -2,10 +2,9 @@ package br.voy.application.validation.cpfAlreadyExists;
 
 import br.voy.domain.entity.User;
 import br.voy.domain.repository.UserRepository;
-
+import java.util.Optional;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.Optional;
 
 public class CpfAlreadyExistValidator implements ConstraintValidator<CpfAlreadyExist, String> {
 
@@ -26,7 +25,5 @@ public class CpfAlreadyExistValidator implements ConstraintValidator<CpfAlreadyE
         Optional<User> userExists = userRepository.findByCpf(cpfField);
 
         return userExists.isEmpty();
-
     }
-
 }

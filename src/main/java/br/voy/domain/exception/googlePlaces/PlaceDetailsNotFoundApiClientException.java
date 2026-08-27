@@ -7,13 +7,10 @@ public class PlaceDetailsNotFoundApiClientException extends RuntimeException {
     public PlaceDetailsNotFoundApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public PlaceDetailsNotFoundApiClientException() {
 
         super(defaultMessage);
-
     }
-
 }

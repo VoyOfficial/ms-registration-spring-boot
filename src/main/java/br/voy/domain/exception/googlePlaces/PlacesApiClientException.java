@@ -7,13 +7,10 @@ public class PlacesApiClientException extends RuntimeException {
     public PlacesApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public PlacesApiClientException(String message) {
 
         super(message);
-
     }
-
 }

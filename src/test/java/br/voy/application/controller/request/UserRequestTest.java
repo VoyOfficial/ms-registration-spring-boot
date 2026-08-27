@@ -1,10 +1,10 @@
 package br.voy.application.controller.request;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import br.voy.UserDatas;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserRequestTest {
 
@@ -21,7 +21,5 @@ class UserRequestTest {
 
         // validation
         assertEquals(expectedDomain, domain);
-
     }
-
 }

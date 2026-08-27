@@ -1,5 +1,8 @@
 package br.voy.application.controller;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import br.voy.application.controller.request.UserRequest;
 import br.voy.application.controller.response.UserResponse;
 import br.voy.domain.exception.StandardError;
@@ -13,17 +16,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.validation.Valid;
-
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 
 @Tag(name = "User", description = "Endpoint with all operations of User")
 @RestController
@@ -32,55 +37,73 @@ public class UserController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private UserRegistryUseCase userRegistryService;
+    @Autowired private UserRegistryUseCase userRegistryService;
 
-    @Autowired
-    private GetUserUseCase getUserService;
+    @Autowired private GetUserUseCase getUserService;
 
     @Operation(summary = "Register a new User")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User Created", content = @Content, headers = @Header(name = "Location", description = "Url to access the created resource")),
-            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = StandardError.class))),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "201",
+                        description = "User Created",
+                        content = @Content,
+                        headers =
+                                @Header(
+                                        name = "Location",
+                                        description = "Url to access the created resource")),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Bad Request",
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "Internal Server Error",
+                        content = @Content(schema = @Schema(implementation = StandardError.class)))
+            })
     @ResponseStatus(CREATED)
     @PostMapping
     public ResponseEntity<Void> registry(
             @Parameter(description = "request para criar um usuário", required = true)
-            @RequestBody @Valid UserRequest request,
-            UriComponentsBuilder uriBuilder
-    ) {
+                    @RequestBody
+                    @Valid
+                    UserRequest request,
+            UriComponentsBuilder uriBuilder) {
 
         logger.info("USER CONTROLLER - REGISTRY - User: {}", request.getName());
 
         var userId = userRegistryService.registry(request.toDomain());
 
-        var uri = uriBuilder
-                .path("/v1/users/{userId}")
-                .buildAndExpand(userId)
-                .toUri();
+        var uri = uriBuilder.path("/v1/users/{userId}").buildAndExpand(userId).toUri();
 
         logger.info("USER CONTROLLER - REGISTERED USER - User: {}", userId);
 
         return ResponseEntity.created(uri).build();
-
     }
 
     @Operation(summary = "Get an User by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User Found", content = @Content(schema = @Schema(implementation = UserResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = StandardError.class))),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = StandardError.class)))
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "User Found",
+                        content = @Content(schema = @Schema(implementation = UserResponse.class))),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Bad Request",
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "Internal Server Error",
+                        content = @Content(schema = @Schema(implementation = StandardError.class)))
+            })
     @ResponseStatus(OK)
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "id para obter o usuário", required = true)
-            @Schema(example = "1", type = "Long")
-            @PathVariable
-            Long userId
-    ) {
+                    @Schema(example = "1", type = "Long")
+                    @PathVariable
+                    Long userId) {
 
         logger.info("USER CONTROLLER - GET USER BY ID - UserID: {}", userId);
 
@@ -91,7 +114,5 @@ public class UserController {
         var response = new UserResponse(userDomain);
 
         return ResponseEntity.ok(response);
-
     }
-
 }

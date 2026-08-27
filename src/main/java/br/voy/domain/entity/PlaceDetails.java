@@ -1,9 +1,12 @@
 package br.voy.domain.entity;
 
-import lombok.*;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @Builder
@@ -20,19 +23,21 @@ public class PlaceDetails {
     private Float rating;
     private Integer userRatingsTotal;
     private String address;
-    private List<PlacePhoto> photos; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private List<PlacePhoto> photos; // TODO Acessar
+    // https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private Double latitude;
     private Double longitude;
 
-    public static PlaceDetails toPlaceDetailsByGoogle(com.google.maps.model.PlaceDetails placeDetails) {
+    public static PlaceDetails toPlaceDetailsByGoogle(
+            com.google.maps.model.PlaceDetails placeDetails) {
 
         String about = getAbout(placeDetails);
         String contact = getContact(placeDetails);
 
-        List<BusinessHours> businessHoursList = BusinessHours.toBusinessHoursList(placeDetails.openingHours);
+        List<BusinessHours> businessHoursList =
+                BusinessHours.toBusinessHoursList(placeDetails.openingHours);
 
-        return PlaceDetails
-                .builder()
+        return PlaceDetails.builder()
                 .googlePlaceId(placeDetails.placeId)
                 .name(placeDetails.name)
                 .about(about)
@@ -44,18 +49,18 @@ public class PlaceDetails {
                 .latitude(placeDetails.geometry.location.lat)
                 .longitude(placeDetails.geometry.location.lng)
                 .build();
-
     }
 
-    public static PlaceDetails toPlaceDetailsByGoogleAndPhotos(com.google.maps.model.PlaceDetails placeDetails, List<PlacePhoto> placePhotos) {
+    public static PlaceDetails toPlaceDetailsByGoogleAndPhotos(
+            com.google.maps.model.PlaceDetails placeDetails, List<PlacePhoto> placePhotos) {
 
         String about = getAbout(placeDetails);
         String contact = getContact(placeDetails);
 
-        List<BusinessHours> businessHoursList = BusinessHours.toBusinessHoursList(placeDetails.openingHours);
+        List<BusinessHours> businessHoursList =
+                BusinessHours.toBusinessHoursList(placeDetails.openingHours);
 
-        return PlaceDetails
-                .builder()
+        return PlaceDetails.builder()
                 .googlePlaceId(placeDetails.placeId)
                 .name(placeDetails.name)
                 .about(about)
@@ -68,9 +73,7 @@ public class PlaceDetails {
                 .latitude(placeDetails.geometry.location.lat)
                 .longitude(placeDetails.geometry.location.lng)
                 .build();
-
     }
-
 
     private static String getAbout(com.google.maps.model.PlaceDetails placeDetails) {
 
@@ -79,7 +82,6 @@ public class PlaceDetails {
             about = placeDetails.editorialSummary.overview;
         }
         return about;
-
     }
 
     private static String getContact(com.google.maps.model.PlaceDetails placeDetails) {
@@ -89,7 +91,5 @@ public class PlaceDetails {
             contact = placeDetails.formattedPhoneNumber;
         }
         return contact;
-
     }
-
 }

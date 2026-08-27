@@ -7,13 +7,10 @@ public class OverQueryLimitApiClientException extends RuntimeException {
     public OverQueryLimitApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public OverQueryLimitApiClientException() {
 
         super(defaultMessage);
-
     }
-
 }
