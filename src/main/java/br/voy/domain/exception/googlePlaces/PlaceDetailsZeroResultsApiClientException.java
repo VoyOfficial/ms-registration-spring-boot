@@ -7,13 +7,10 @@ public class PlaceDetailsZeroResultsApiClientException extends RuntimeException 
     public PlaceDetailsZeroResultsApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public PlaceDetailsZeroResultsApiClientException() {
 
         super(defaultMessage);
-
     }
-
 }

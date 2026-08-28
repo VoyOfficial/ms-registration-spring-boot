@@ -1,5 +1,11 @@
 package br.voy.domain.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import br.voy.UserDatas;
 import br.voy.domain.entity.User;
 import br.voy.domain.exception.InvalidUserException;
 import br.voy.domain.repository.UserRepository;
@@ -9,21 +15,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import br.voy.UserDatas;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserRegistryServiceTest {
 
-    @Mock
-    UserRepository repository;
+    @Mock UserRepository repository;
 
-    @InjectMocks
-    UserRegistryService service;
+    @InjectMocks UserRegistryService service;
 
     @Test
     @DisplayName("Must to Registry an User")
@@ -42,7 +40,6 @@ class UserRegistryServiceTest {
         assertEquals(expectedUserId, userId);
 
         verify(repository, times(1)).saveUser(any(User.class));
-
     }
 
     @Test
@@ -55,15 +52,12 @@ class UserRegistryServiceTest {
 
         // action
 
-        var raisedException = assertThrows(InvalidUserException.class,
-                () -> service.registry(invalidUser)
-        );
-
+        var raisedException =
+                assertThrows(InvalidUserException.class, () -> service.registry(invalidUser));
 
         // validation
         assertEquals(InvalidUserException.class, raisedException.getClass());
         assertEquals(expectedMessage, raisedException.getMessage());
-
     }
 
     @Test
@@ -77,15 +71,11 @@ class UserRegistryServiceTest {
 
         // action
 
-        var raisedException = assertThrows(InvalidUserException.class,
-                () -> service.registry(invalidUser)
-        );
-
+        var raisedException =
+                assertThrows(InvalidUserException.class, () -> service.registry(invalidUser));
 
         // validation
         assertEquals(InvalidUserException.class, raisedException.getClass());
         assertEquals(expectedMessage, raisedException.getMessage());
-
     }
-
 }

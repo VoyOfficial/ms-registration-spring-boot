@@ -20,7 +20,5 @@ class UserResponseTest {
 
         // validation
         Assertions.assertEquals(expectedResponse, response);
-
     }
-
 }

@@ -7,13 +7,10 @@ public class RequestDeniedApiClientException extends RuntimeException {
     public RequestDeniedApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public RequestDeniedApiClientException() {
 
         super(defaultMessage);
-
     }
-
 }

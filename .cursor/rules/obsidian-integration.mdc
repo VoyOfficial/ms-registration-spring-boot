@@ -1,0 +1,183 @@
+---
+alwaysApply: false
+description: How to integrate the memory system with Obsidian for graph-linked sessions, work items, decisions, and modules.
+---
+
+# 🎨 Obsidian Integration Instructions
+
+> **Objetivo**: Integração Obsidian + Harness + Linking automático
+
+## 🔍 O que é?
+
+Obsidian = **visualizador** do memory system. Transforma markdown em **graph interativo** conectando sessions, work items, decisões e módulos.
+
+**Regras**:
+
+- ✅ `docs/obsidian/Sessions/` = fonte oficial
+- ✅ Usar WikiLinks: `[[page]]` (sem `.md`, sem path)
+- ❌ `/memories/` NÃO aparece no Obsidian
+- ❌ Não usar `/save` ou `/resume`
+
+## 📝 YAML Frontmatter (OBRIGATÓRIO)
+
+```yaml
+---
+type: session | workitem | decision | module
+date: YYYY-MM-DD
+workitems: [ISSUE-<n>]
+tags: [session, feature]
+status: in-progress | closed | blocked
+---
+```
+
+Status padrao recomendado (usar exatamente estes valores):
+
+- `in-progress`: sessao/work item em execucao
+- `blocked`: impedimento ativo
+- `closed`: trabalho encerrado
+
+Nao usar variacoes para status em frontmatter (`in progress`, `done`, `ready for review`, `complete`, etc). Essas variacoes podem continuar no corpo do markdown, mas o campo `status:` deve ficar canonico.
+
+## 🔗 WikiLinks Syntax
+
+✅ `[[ISSUE-12]]`, `[[Decisions/004-topic]]`, `[[Modules/place]]`
+❌ `[[file.md]]`, `[[Sessions/file]]`, `[link](path.md)`
+
+## 📂 Estrutura
+
+```
+docs/obsidian/
+├── Sessions/          # ISSUE-<n>-slug.md ou YYYY-MM-DD-slug.md
+├── Work Items/
+│   ├── Features/     # ISSUE-<n>.md
+│   ├── Bugs/         # ISSUE-<n>.md
+│   └── Tasks/        # ISSUE-<n>.md
+├── Decisions/        # XXX-topic.md
+└── Modules/          # module-name.md
+```
+
+## 📍 Quando Linkar Sessions Relacionadas
+
+1. Issue pai/filha no GitHub
+2. Continuação de trabalho dividido
+3. Bug fix em feature existente
+4. Refatoração de código
+5. Implementação após spike
+6. Rollback de mudança
+
+## 📝 Session Template Mínimo
+
+```markdown
+---
+type: session
+date: YYYY-MM-DD
+workitems: [ISSUE-<n>]
+tags: [session, feature]
+status: closed
+parent_workitem: [[ISSUE-<n>]]
+parent_session: [[YYYY-MM-DD-slug]] # ou none para primeira sessao
+---
+
+# Session: [Título]
+
+## 🎯 Objetivo
+
+[Descrição breve]
+
+## 🔗 Links
+
+- **Work Item**: [[ISSUE-<n>]]
+- **Sessions Anteriores**: [[YYYY-MM-DD-slug]]
+- **Módulos**: [[Modules/nome]]
+- **Decisões**: [[Decisions/XXX-topic]]
+
+## ✅ Completado
+
+- [x] Item 1
+- [x] Item 2
+
+## 📁 Arquivos Modificados
+
+| Arquivo         | Mudança   |
+| --------------- | --------- |
+| `path/File.java` | Descrição |
+
+## 🚀 Próximos Passos
+
+- [ ] Próximo item
+```
+
+## ✅ Checklist de Session Save
+
+- [ ] YAML frontmatter completo
+- [ ] Work Item linkado: `[[ISSUE-<n>]]`
+- [ ] `parent_session` definido (`[[...]]` ou `none`)
+- [ ] Sessions relacionadas linkadas (validar cenários acima)
+- [ ] Módulos afetados: `[[Modules/nome]]`
+- [ ] Decisões documentadas: `[[Decisions/XXX-topic]]`
+- [ ] Arquivos modificados listados
+- [ ] Próximos passos documentados
+
+## 🔒 Fechamento da Task (Obrigatório)
+
+Quando a task for finalizada (normalmente na abertura do PR ou antes do merge):
+
+1. Atualizar Work Item local para `status: closed`
+2. Atualizar todas as sessions da Issue para `status: closed`
+3. Garantir que cada session tenha `parent_session` explicito
+4. Atualizar `CURRENT_WORK.md` movendo a task para `Recently Completed`
+
+Definicao de pronto para documentacao:
+
+- Nenhuma session da task fica com `in-progress`
+- Nenhuma session fica sem `parent_session`
+- Work Item local existe e referencia as sessions da task
+
+## 🚫 Anti-Patterns
+
+- ❌ Não usar `/save` ou `/resume` (vão para `/memories/`)
+- ❌ Não criar sessions em `/memories/` (não aparecem no Obsidian)
+- ❌ Não omitir YAML frontmatter
+- ❌ Não incluir `.md` nos links: `[[file]]` ✅ | `[[file.md]]` ❌
+- ❌ Não usar paths: `[[file]]` ✅ | `[[Sessions/file]]` ❌
+
+## 🔧 Troubleshooting Rápido
+
+| Problema                        | Solução                                                    |
+| -------------------------------- | ---------------------------------------------------------- |
+| Session não aparece no Obsidian | Verificar local: `docs/obsidian/Sessions/` + YAML presente |
+| Links não funcionam             | Remover `.md` e paths dos links                            |
+| Backlinks não aparecem          | Usar `[[]]` não `[]()` + reindexar vault                   |
+| Graph View vazio                | Adicionar links entre documentos                           |
+| Daily não lista tasks ativas    | Garantir `status` canonico no frontmatter dos Work Items   |
+
+## 🔄 Integração com Harness Engineering
+
+### Session Startup
+
+1. Ler `CURRENT_WORK.md`
+2. Consultar `docs/obsidian/Sessions/ISSUE-<n>-*.md`
+3. Carregar contexto via links
+
+### Durante Trabalho
+
+1. Criar work item doc se não existir
+2. Documentar decisões em `Decisions/`
+3. Atualizar `Modules/` quando modificar
+
+### Session Save
+
+1. Criar session em `docs/obsidian/Sessions/`
+2. Linkar work items, sessions, decisões, módulos
+3. Atualizar `CURRENT_WORK.md`
+4. Validar checklist de qualidade
+
+## 🔄 LEMBRETE FINAL
+
+Ao criar/atualizar session:
+
+1. ✅ YAML frontmatter completo
+2. ✅ Linkar work item: `[[ISSUE-<n>]]`
+3. ✅ Verificar cenarios de linking
+4. ✅ Sintaxe WikiLinks correta (sem `.md`, sem path)
+5. ✅ Linkar módulos e decisões quando aplicável

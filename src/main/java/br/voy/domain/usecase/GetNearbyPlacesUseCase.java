@@ -6,10 +6,5 @@ import br.voy.domain.entity.NearbyPlaces;
 public interface GetNearbyPlacesUseCase {
 
     NearbyPlaces getNearbyPlaces(
-            Coordinates coordinates,
-            Integer radius,
-            String placeType,
-            String nextPageToken
-    );
-
+            Coordinates coordinates, Integer radius, String placeType, String nextPageToken);
 }

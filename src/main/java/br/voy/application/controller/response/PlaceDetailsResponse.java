@@ -1,12 +1,15 @@
 package br.voy.application.controller.response;
 
+import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-import br.voy.domain.entity.PlaceDetails;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @Builder
@@ -31,13 +34,12 @@ public class PlaceDetailsResponse {
 
     public static PlaceDetailsResponse toPlaceDetailsResponse(PlaceDetails place) {
 
-        List<BusinessHoursResponse> businessHoursResponseList = place.getBusinessHours()
-                .stream()
-                .map(BusinessHoursResponse::toBusinessHoursResponse)
-                .collect(Collectors.toList());
+        List<BusinessHoursResponse> businessHoursResponseList =
+                place.getBusinessHours().stream()
+                        .map(BusinessHoursResponse::toBusinessHoursResponse)
+                        .collect(Collectors.toList());
 
-        return PlaceDetailsResponse
-                .builder()
+        return PlaceDetailsResponse.builder()
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
                 .about(place.getAbout())
@@ -50,8 +52,5 @@ public class PlaceDetailsResponse {
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .build();
-
     }
-
 }
-

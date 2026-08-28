@@ -3,12 +3,11 @@ package br.voy.application.controller.response;
 import br.voy.domain.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.time.LocalDate;
 
 @Getter
 @Builder
@@ -31,10 +30,14 @@ public class UserResponse {
     @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
     private LocalDate dateBirth;
 
-    @Schema(type = "string", allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
+    @Schema(
+            type = "string",
+            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
     private String maritalStatus;
 
-    @Schema(type = "string", allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
+    @Schema(
+            type = "string",
+            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
     private String sex;
 
     @Schema(example = "Lafayette")
@@ -62,7 +65,5 @@ public class UserResponse {
         this.state = domain.getState();
         this.cpf = domain.getCpf();
         this.occupation = domain.getOccupation();
-
     }
-
 }

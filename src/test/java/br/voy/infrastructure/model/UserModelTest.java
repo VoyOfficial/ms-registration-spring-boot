@@ -11,7 +11,6 @@ class UserModelTest {
     @DisplayName("Must to convert UserDomain to UserModel")
     void mustToConvertDomainToModel() {
 
-
         // scenario
         var domain = UserDatas.makeAnUserDomain();
         var expectedModel = new UserModel(domain);
@@ -21,13 +20,11 @@ class UserModelTest {
 
         // validation
         Assertions.assertEquals(expectedModel, model);
-
     }
 
     @Test
     @DisplayName("Must to convert UserModel to UserDomain")
     void mustToConvertModelToDomain() {
-
 
         // scenario
         var model = UserDatas.makeAnUserModel();
@@ -38,7 +35,5 @@ class UserModelTest {
 
         // validation
         Assertions.assertEquals(expectedDomain, domain);
-
     }
-
 }

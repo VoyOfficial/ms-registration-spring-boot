@@ -1,0 +1,489 @@
+---
+alwaysApply: true
+---
+
+# ARCHITECTURE - Clean Architecture / Ports & Adapters (ms-registration-spring-boot)
+
+> **Versão**: 1.0.0
+> **Status**: Ativo
+
+Este documento contém a estrutura de pastas e os templates para implementar novas features neste microsserviço, seguindo **Clean Architecture (Ports & Adapters)**. Este é um projeto **backend** (Spring Boot / Java), não uma aplicação mobile/frontend — não existe camada de apresentação visual (View/ViewModel); a "porta de entrada" é a API REST.
+
+## 📐 Princípio Central: Regra de Dependência
+
+```
+application ──┐
+              ├──> domain (nao depende de nada)
+infrastructure ┘
+```
+
+- `domain` é Java puro: **nunca** importa Spring Web (`@RestController`), JPA (`@Entity`, `javax.persistence`), ou qualquer classe de `application`/`infrastructure`. Pode usar Spring apenas para DI leve (`@Service`, `@Autowired`) — isso já é uma concessão pragmática deste projeto, mas nunca frameworks de infraestrutura (JPA, HTTP client, etc.).
+- `application` é a **porta de entrada (inbound adapter)**: expõe a API REST (`@RestController`), valida entrada (Bean Validation), traduz `Request` → entidade de `domain` e entidade de `domain` → `Response`.
+- `infrastructure` é a **porta de saída (outbound adapter)**: implementa os contratos (`Repository` interfaces) definidos em `domain`, usando JPA/Postgres, e concentra configuração técnica (Flyway, OpenAPI, i18n, Actuator).
+- Cada domínio de negócio (ex.: `User`) é um agregado: entidade + regras de negócio vivem em `domain`, isoladas de detalhes de transporte (REST) e persistência (JPA).
+
+## 📁 Estrutura de Pastas (pacotes)
+
+```
+src/main/java/src/
+├── application/
+│   ├── controller/
+│   │   ├── [Nome]Controller.java          # @RestController - endpoints REST
+│   │   ├── request/
+│   │   │   ├── AbstractRequest.java        # base com toDomain()
+│   │   │   └── [Nome]Request.java          # DTO de entrada + Bean Validation + toDomain()
+│   │   └── response/
+│   │       └── [Nome]Response.java         # DTO de saida, construido a partir da entidade de domain
+│   ├── interceptor/
+│   │   ├── ExceptionHandlerAdvice.java     # @RestControllerAdvice - mapeia exceptions -> HTTP status
+│   │   └── StandardError.java              # payload padrao de erro
+│   └── validation/
+│       └── [regraCustomizada]/
+│           ├── [Anotacao].java             # @Constraint customizada (Bean Validation)
+│           └── [Anotacao]Validator.java    # ConstraintValidator
+├── domain/
+│   ├── entity/
+│   │   └── [Nome].java                     # POJO com @Builder/@Getter (Lombok) - sem anotacoes de framework
+│   ├── exception/
+│   │   └── [Nome]NotFoundException.java    # RuntimeException com mensagem i18n (messages.properties)
+│   ├── repository/
+│   │   └── [Nome]Repository.java           # interface (contrato / port de saida)
+│   ├── usecase/
+│   │   └── [Verbo][Nome]UseCase.java       # interface - uma acao de negocio por UseCase
+│   └── service/
+│       └── [Verbo][Nome]Service.java       # @Service - implementa a interface UseCase (regra de negocio)
+└── infrastructure/
+    ├── config/
+    │   └── [nome]/[Nome]Config.java        # @Configuration (OpenAPI, i18n, etc.)
+    ├── model/
+    │   ├── AbstractModel.java              # base com toDomain()
+    │   ├── enums/[Nome]Enum.java
+    │   └── [Nome]Model.java                # @Entity JPA + construtor a partir da entidade de domain + toDomain()
+    └── repository/
+        ├── jpa/
+        │   └── [Nome]JpaRepository.java    # interface Spring Data JpaRepository<Model, ID>
+        └── relational/
+            └── Relational[Nome]Repository.java  # @Repository - implementa domain.repository.[Nome]Repository usando o Jpa repository
+```
+
+Testes espelham a mesma estrutura em `src/test/java/src/...`, com um `[Nome]Datas.java` (test data builder) na raiz de `src/test/java/src/`.
+
+## 🛠️ File Templates
+
+### 1. Entity (domain/entity)
+
+```java
+package src.domain.entity;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
+@Getter
+@Builder
+@EqualsAndHashCode
+public class Product {
+
+    private Long id;
+    private String name;
+    private BigDecimal price;
+
+}
+```
+
+**Regra:** entidade de domínio é um POJO puro (Lombok apenas para reduzir boilerplate). Nunca tem `@Entity`, `@Id`/JPA, `@RestController`, nem anotações de Bean Validation — essas ficam em `Request`/`Model`.
+
+### 2. Repository - Interface (domain/repository)
+
+```java
+package src.domain.repository;
+
+import src.domain.entity.Product;
+
+import java.util.Optional;
+
+public interface ProductRepository {
+
+    Product saveProduct(Product productDomain);
+
+    Optional<Product> findById(Long productId);
+
+}
+```
+
+### 3. UseCase - Interface (domain/usecase)
+
+```java
+package src.domain.usecase;
+
+import src.domain.entity.Product;
+
+public interface GetProductUseCase {
+
+    Product getProductById(Long productId);
+
+}
+```
+
+**Regra:** um UseCase resolve uma única ação de negócio. Se o nome tiver "e" (ex.: "busca produto e atualiza estoque"), provavelmente são dois UseCases.
+
+### 4. Service - Implementação do UseCase (domain/service)
+
+```java
+package src.domain.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import src.domain.entity.Product;
+import src.domain.exception.ProductNotFoundException;
+import src.domain.repository.ProductRepository;
+import src.domain.usecase.GetProductUseCase;
+
+@Service
+public class GetProductService implements GetProductUseCase {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private ProductRepository repository;
+
+    @Override
+    public Product getProductById(Long productId) {
+
+        logger.info("GET PRODUCT SERVICE - GET PRODUCT BY ID - Product ID: {}", productId);
+
+        return repository.findById(productId)
+                .orElseThrow(ProductNotFoundException::new);
+
+    }
+
+}
+```
+
+**Regra:** `Service` é a única classe que conhece regra de negócio. Nunca chama JPA/`Model` diretamente — sempre via `Repository` (interface).
+
+### 5. Domain Exception (domain/exception)
+
+```java
+package src.domain.exception;
+
+public class ProductNotFoundException extends RuntimeException {
+
+    private static final String defaultMessage = "product.not.found.default.message";
+
+    public ProductNotFoundException() {
+        super(defaultMessage);
+    }
+
+}
+```
+
+A mensagem é uma chave i18n resolvida via `MessageSource` em `messages.properties` (ver `ExceptionHandlerAdvice`).
+
+### 6. Model - JPA Entity (infrastructure/model)
+
+```java
+package src.infrastructure.model;
+
+import lombok.*;
+import src.domain.entity.Product;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+
+@Entity(name = "product")
+@Getter
+@Builder
+@EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProductModel extends AbstractModel<Product> {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private BigDecimal price;
+
+    public ProductModel(Product productDomain) {
+        this.id = productDomain.getId();
+        this.name = productDomain.getName();
+        this.price = productDomain.getPrice();
+    }
+
+    @Override
+    public Product toDomain() {
+        return Product.builder()
+                .id(id)
+                .name(name)
+                .price(price)
+                .build();
+    }
+}
+```
+
+**Regra:** o mapeamento DTO/Entidade JPA ↔ entidade de domínio é sempre explícito (construtor `[Nome]Model(Domain)` + método `toDomain()`), nunca via reflection/mapper mágico.
+
+### 7. JPA Repository (infrastructure/repository/jpa)
+
+```java
+package src.infrastructure.repository.jpa;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import src.infrastructure.model.ProductModel;
+
+public interface ProductJpaRepository extends JpaRepository<ProductModel, Long> {
+}
+```
+
+### 8. Repository - Implementação (infrastructure/repository/relational)
+
+```java
+package src.infrastructure.repository.relational;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import src.domain.entity.Product;
+import src.domain.repository.ProductRepository;
+import src.infrastructure.model.ProductModel;
+import src.infrastructure.repository.jpa.ProductJpaRepository;
+
+import java.util.Optional;
+
+@Repository
+public class RelationalProductRepository implements ProductRepository {
+
+    @Autowired
+    private ProductJpaRepository jpaRepository;
+
+    @Override
+    @Transactional
+    public Product saveProduct(Product productDomain) {
+        var productModel = new ProductModel(productDomain);
+        return jpaRepository.save(productModel).toDomain();
+    }
+
+    @Override
+    public Optional<Product> findById(Long productId) {
+        return jpaRepository.findById(productId).map(ProductModel::toDomain);
+    }
+}
+```
+
+**Regra:** `RelationalXxxRepository` é o único ponto que conhece `XxxJpaRepository`/`XxxModel`. `domain` nunca importa nada de `infrastructure`.
+
+### 9. Request DTO (application/controller/request)
+
+```java
+package src.application.controller.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
+import src.domain.entity.Product;
+
+import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
+
+@Getter
+@Builder
+public class ProductRequest extends AbstractRequest {
+
+    @Schema(example = "Notebook")
+    @NotBlank
+    private String name;
+
+    @NotBlank
+    private BigDecimal price;
+
+    @Override
+    public Product toDomain() {
+        return Product.builder()
+                .id(null)
+                .name(name)
+                .price(price)
+                .build();
+    }
+}
+```
+
+### 10. Response DTO (application/controller/response)
+
+```java
+package src.application.controller.response;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import src.domain.entity.Product;
+
+@Getter
+@Builder
+@EqualsAndHashCode
+public class ProductResponse {
+
+    private Long id;
+    private String name;
+    private BigDecimal price;
+
+    public ProductResponse(Product domain) {
+        this.id = domain.getId();
+        this.name = domain.getName();
+        this.price = domain.getPrice();
+    }
+}
+```
+
+### 11. Controller (application/controller)
+
+```java
+package src.application.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import src.application.controller.request.ProductRequest;
+import src.application.controller.response.ProductResponse;
+import src.domain.usecase.GetProductUseCase;
+import src.domain.usecase.RegistryProductUseCase;
+
+import javax.validation.Valid;
+
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
+@RestController
+@RequestMapping("/v1/products")
+public class ProductController {
+
+    @Autowired
+    private RegistryProductUseCase registryProductService;
+
+    @Autowired
+    private GetProductUseCase getProductService;
+
+    @ResponseStatus(CREATED)
+    @PostMapping
+    public ResponseEntity<Void> registry(@RequestBody @Valid ProductRequest request, UriComponentsBuilder uriBuilder) {
+        var productId = registryProductService.registry(request.toDomain());
+        var uri = uriBuilder.path("/v1/products/{productId}").buildAndExpand(productId).toUri();
+        return ResponseEntity.created(uri).build();
+    }
+
+    @ResponseStatus(OK)
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
+        var productDomain = getProductService.getProductById(productId);
+        return ResponseEntity.ok(new ProductResponse(productDomain));
+    }
+}
+```
+
+**Regra:** o `Controller` nunca contém regra de negócio — apenas orquestra `Request.toDomain()` → `UseCase` → `Response(domain)`. Depende sempre da interface `UseCase` (`domain`), nunca diretamente do `Service` concreto.
+
+### 12. Templates de Teste por Camada
+
+**Domain/Service (isolado, Mockito):**
+
+```java
+@ExtendWith(MockitoExtension.class)
+class GetProductServiceTest {
+
+    @Mock
+    ProductRepository repository;
+
+    @InjectMocks
+    GetProductService service;
+
+    @Test
+    @DisplayName("Must to Get a Product by ID")
+    void mustToGetAProductById() {
+        var product = ProductDatas.makeAProductDomain();
+        when(repository.findById(product.getId())).thenReturn(Optional.of(product));
+
+        var result = service.getProductById(product.getId());
+
+        assertEquals(product, result);
+    }
+
+    @Test
+    @DisplayName("Should throw when Product not found")
+    void shouldThrowWhenProductNotFound() {
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(ProductNotFoundException.class, () -> service.getProductById(1L));
+    }
+}
+```
+
+**Controller (`@WebMvcTest`, MockMvc, UseCase mockado):**
+
+```java
+@WebMvcTest(ProductController.class)
+class ProductControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockBean
+    RegistryProductService registryService;
+
+    @MockBean
+    GetProductService getProductService;
+
+    @Test
+    @DisplayName("Must to Registry Product")
+    void mustToRegistryProduct() throws Exception {
+        // cenary / action / validation via mockMvc.perform(...)
+    }
+}
+```
+
+**Repository (integração, `@DataJpaTest` ou Testcontainers quando aplicável):**
+
+```java
+@DataJpaTest
+class RelationalProductRepositoryTest {
+    // valida o mapeamento Model <-> Domain contra um banco real/em memoria
+}
+```
+
+## 📋 Implementation Checklist
+
+Ao implementar uma nova feature/agregado:
+
+- [ ] Criar `domain/entity/[Nome].java` (POJO puro)
+- [ ] Criar `domain/repository/[Nome]Repository.java` (interface)
+- [ ] Criar `domain/usecase/[Verbo][Nome]UseCase.java` (uma interface por ação)
+- [ ] Implementar `domain/service/[Verbo][Nome]Service.java` (`@Service`)
+- [ ] Criar exceptions de domínio em `domain/exception/` + chave i18n em `messages.properties`
+- [ ] Criar `infrastructure/model/[Nome]Model.java` (`@Entity` JPA) + migration Flyway em `resources/db/migration/`
+- [ ] Criar `infrastructure/repository/jpa/[Nome]JpaRepository.java`
+- [ ] Implementar `infrastructure/repository/relational/Relational[Nome]Repository.java`
+- [ ] Criar `application/controller/request/[Nome]Request.java` (Bean Validation + `toDomain()`)
+- [ ] Criar `application/controller/response/[Nome]Response.java`
+- [ ] Criar `application/controller/[Nome]Controller.java`
+- [ ] Mapear exceptions novas em `ExceptionHandlerAdvice`
+- [ ] Escrever testes por camada (service com repository mockado, controller com `@WebMvcTest`, repository com `@DataJpaTest`/integração)
+
+## 🚫 Anti-patterns
+
+- ❌ `domain` importando `javax.persistence`, Spring Web (`@RestController`), ou classes de `application`/`infrastructure`
+- ❌ `Controller` chamando `Repository`/JPA diretamente (deve passar por um `UseCase`)
+- ❌ `UseCase`/`Service` com mais de uma responsabilidade de negócio
+- ❌ Lógica de mapeamento Model↔Domain espalhada fora de `infrastructure/model`
+- ❌ `Repository` interface e implementação no mesmo pacote/camada
+- ❌ Regra de negócio dentro de `Request`/`Response` (esses fazem só tradução de forma, `toDomain()`/construtor a partir do domain)
+- ❌ Mensagens de erro hardcoded no `ExceptionHandlerAdvice` sem passar por `MessageSource`/`messages.properties`
+- ❌ Migration Flyway alterando uma versão já aplicada em vez de criar uma nova `V[n]__description.sql`
+
+## 📝 Naming Conventions
+
+Ver `.cursor/rules/code-conventions.mdc` para nomenclatura completa de Entity/UseCase/Service/Repository/Model/Controller.
+
+---
+
+> Use estes templates como ponto de partida. Adapte aos requisitos específicos da feature mantendo a regra de dependência.

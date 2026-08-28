@@ -1,0 +1,233 @@
+---
+alwaysApply: false
+description: Documentation standards for code changes, refactors, and new features (what/when/where to document, changelog, diagrams).
+---
+
+# DOCUMENTATION STANDARDS - ms-registration-spring-boot
+
+This document outlines the documentation requirements and standards for code changes, refactorings, and new features.
+
+## 📝 Code Change Documentation Policy
+
+### CRITICAL RULE
+
+**Whenever you implement a significant code change, refactor, or fix in the codebase, you MUST generate documentation explaining the change, in English.**
+
+This documentation serves as:
+- 📚 Historical record of why changes were made
+- 🎓 Learning resource for team members
+- 🔍 Context for future maintenance
+- 📊 Audit trail for architectural decisions
+
+## 📋 Documentation Template
+
+For each significant code change, create a markdown documentation file following this structure:
+
+```markdown
+# [Change Title in English]
+
+**Date**: [YYYY-MM-DD]
+**Type**: [Bug Fix / Refactor / New Feature / Performance Improvement]
+**Files Changed**: [File list]
+
+## 🎯 Problem
+
+[Clear, concise description of the identified problem]
+
+### Symptoms
+- [Symptom 1]
+- [Symptom 2]
+
+### Root Cause
+[Detailed technical explanation of the root cause]
+
+## 🔧 Solution
+
+### Changes Made
+
+**File 1**: `path/to/File.java`
+```java
+// ❌ BEFORE
+var oldCode = "example";
+
+// ✅ AFTER
+var newCode = "improved example";
+```
+
+**Rationale**: [Why this change was necessary and how it solves the problem]
+
+### Architecture / Pattern Applied
+
+[Explanation of the architectural pattern used - which Clean Architecture layer(s) were touched (`domain`/`application`/`infrastructure`), if relevant]
+
+### Impact
+
+**Affected components**:
+- [Component 1]
+- [Component 2]
+
+**Breaking Changes**: [Yes/No - if yes, describe. Include API contract changes and any required Flyway migration]
+
+## ✅ Validation
+
+### How to Test
+1. [Step 1]
+2. [Step 2]
+3. [Expected result]
+
+### Automated Tests
+- [x] Unit tests updated (`domain.service`)
+- [x] Integration tests verified (`@WebMvcTest` / `@DataJpaTest`)
+- [ ] E2E tests needed (only if E2E is already configured for this project)
+
+## 🔗 References
+- [Link to related Issue]
+- [Link to relevant documentation]
+- [Link to PR/commit]
+```
+
+## 🎯 When to Generate Documentation
+
+### ALWAYS document:
+- ✅ Bug fixes that affect multiple components
+- ✅ Architectural refactorings (changes to `domain`/`application`/`infrastructure` boundaries)
+- ✅ Performance optimizations (e.g. query changes, N+1 fixes, indexing)
+- ✅ Security fixes
+- ✅ Breaking changes (API contract, database schema)
+- ✅ Complex business logic implementations
+- ✅ Integration of new libraries/patterns
+- ✅ Database schema/migration changes
+- ✅ Authentication/Authorization changes
+
+### Optional documentation:
+- Simple typo fixes
+- Minor style adjustments
+- Adding simple constants
+- Straightforward code cleanup
+- Formatting changes
+
+## 📁 Documentation Structure
+
+### Directory Organization
+
+Store documentation in the following structure:
+
+```
+docs/
+├── changes/                      # Code change documentation
+│   ├── 2026-01-15-user-cpf-uniqueness-validation.md
+│   └── ...
+├── architecture/                 # Architectural decisions and diagrams
+│   ├── clean-architecture.md
+│   └── ...
+├── guides/                       # Development guides and tutorials
+│   ├── getting-started.md
+│   └── ...
+└── obsidian/                     # Session/work item memory (see memory-system.mdc)
+```
+
+### File Naming Conventions
+
+Use the format: `YYYY-MM-DD-descriptive-name.md`
+
+**Rules:**
+- Use lowercase
+- Use hyphens for spaces
+- Be descriptive but concise
+- Start with date (YYYY-MM-DD)
+- End with `.md`
+
+## 📝 Documentation Content Guidelines
+
+### Writing Style
+
+1. **Be Clear and Concise**
+   - Use simple, direct language
+   - Avoid jargon unless necessary
+   - Define technical terms when first used
+
+2. **Use English**
+   - All technical documentation, code comments, commits and PR/Issue content must be in English.
+   - The `.cursor/rules/*`, `.cursor/agents/*` and `.cursor/skills/*` instruction files themselves may stay in Portuguese (matching how this team operates), but anything that ends up in the codebase/history (commits, docs, comments) must be in English.
+
+3. **Structure Information Logically**
+   - Start with the problem/context
+   - Explain the solution
+   - Provide examples
+   - Include references
+
+4. **Use Visual Aids**
+   - Code examples with syntax highlighting
+   - Before/after comparisons
+   - Diagrams when helpful (Mermaid)
+
+### Code Examples
+
+Always include code examples that are:
+- **Complete**: Show full context, not just snippets
+- **Accurate**: Copy actual code, don't paraphrase
+- **Formatted**: Use proper markdown code blocks with language
+- **Clean**: Avoid unnecessary comments that don't add value
+
+**Comment Guidelines:**
+- ✅ Use comments to explain WHY, not WHAT
+- ✅ Use comments for before/after comparisons in documentation
+- ❌ Avoid obvious comments that just repeat the code
+- ❌ Don't use comments as placeholders for missing code
+
+## 📊 Documentation Maintenance
+
+### Updating Documentation
+
+- **When refactoring**: Update all affected documentation
+- **When deprecating features**: Mark documentation as deprecated and link to replacement
+- **When fixing bugs**: Update relevant documentation if the bug was caused by misunderstanding
+
+### Documentation Review
+
+- Documentation should be reviewed as part of code review
+- Technical accuracy is critical
+- Examples should be tested and verified
+
+### Deprecation Process
+
+```markdown
+> ⚠️ **DEPRECATED**: This functionality was deprecated on [DATE]
+>
+> **Reason**: [Explanation]
+>
+> **Alternative**: Use [NEW_FUNCTIONALITY] instead. See [LINK_TO_DOCS]
+>
+> **Planned removal**: [EXPECTED_DATE] (Version X.Y.Z)
+```
+
+## 🔍 Quality Checklist
+
+Before considering documentation complete, verify:
+
+- [ ] Clear, descriptive title in English
+- [ ] Date and change type specified
+- [ ] Problem identified with symptoms and root cause
+- [ ] Solution explained with code examples
+- [ ] Before/after comparisons when applicable
+- [ ] Impact and affected components listed
+- [ ] Testing instructions included
+- [ ] References and links working
+- [ ] Correct grammar and spelling
+- [ ] Valid markdown formatting
+
+## 🤖 AI Assistant Guidelines
+
+When Cursor or similar AI tools generate code changes:
+
+1. **Always generate accompanying documentation for significant changes**
+2. **Follow the template structure exactly**
+3. **Write in English**
+4. **Include real code examples from the actual changes**
+5. **Explain technical concepts clearly**
+6. **Be thorough but concise**
+7. **Include validation steps**
+
+---
+
+> This documentation ensures that codebase changes are traceable, understandable, and maintainable over time.

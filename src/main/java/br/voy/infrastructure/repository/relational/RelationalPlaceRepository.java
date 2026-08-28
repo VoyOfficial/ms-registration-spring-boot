@@ -1,5 +1,6 @@
 package br.voy.infrastructure.repository.relational;
 
+import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.utils.BoundingBox;
@@ -7,34 +8,27 @@ import br.voy.infrastructure.model.PlaceModel;
 import br.voy.infrastructure.model.PlacePhotoModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
 import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import br.voy.domain.entity.Place;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class RelationalPlaceRepository implements PlaceRepository {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private PlaceJpaRepository placeJpaRepository;
+    @Autowired private PlaceJpaRepository placeJpaRepository;
 
-    @Autowired
-    private PlacePhotoJpaRepository placePhotoJpaRepository;
+    @Autowired private PlacePhotoJpaRepository placePhotoJpaRepository;
 
-
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    @PersistenceContext private EntityManager entityManager;
 
     @Override
     @Transactional
@@ -47,7 +41,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         if (placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
             List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
-            for(PlacePhoto photo : placeDomain.getPhotos()) {
+            for (PlacePhoto photo : placeDomain.getPhotos()) {
                 PlacePhotoModel photoModel = new PlacePhotoModel();
                 photoModel.setPhotoReference(photo.getPhotoReference());
                 photoModel.setPhotoUrl(photo.getPhotoUrl());
@@ -80,17 +74,18 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
     @Override
     public List<PlacePhoto> saveAllPlacePhoto(PlaceModel place, List<PlacePhoto> placePhotos) {
-        logger.info("RELATIONAL PLACE REPOSITORY - SAVE ALL PLACE PHOTOS - Place: {}", place.getName());
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - SAVE ALL PLACE PHOTOS - Place: {}", place.getName());
 
         List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
-        for(PlacePhoto placePhoto: placePhotos) {
+        for (PlacePhoto placePhoto : placePhotos) {
             placePhotoModelList.add(new PlacePhotoModel(placePhoto));
         }
 
         placePhotoModelList = placePhotoJpaRepository.saveAll(placePhotoModelList);
 
         List<PlacePhoto> placePhotoList = new ArrayList<>();
-        for(PlacePhotoModel placePhotoModel : placePhotoModelList) {
+        for (PlacePhotoModel placePhotoModel : placePhotoModelList) {
             placePhotoList.add(placePhotoModel.toDomain());
         }
 
@@ -111,13 +106,12 @@ public class RelationalPlaceRepository implements PlaceRepository {
             logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY ID - ID: {}", placeId);
 
             return Optional.of(placeModel.toDomain());
-
         }
 
-        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - PLACE NOT FOUND - ID : {}", placeId);
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FIND BY ID - PLACE NOT FOUND - ID : {}", placeId);
 
         return Optional.empty();
-
     }
 
     @Override
@@ -139,7 +133,6 @@ public class RelationalPlaceRepository implements PlaceRepository {
         logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
 
         return Optional.empty();
-
     }
 
     @Override
@@ -156,7 +149,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
             placePhotoModelList = placePhotoJpaRepository.saveAll(placePhotoModelList);
 
             List<PlacePhoto> placePhotoList = new ArrayList<>();
-            for(PlacePhotoModel placePhotoModel : placePhotoModelList) {
+            for (PlacePhotoModel placePhotoModel : placePhotoModelList) {
                 placePhotoList.add(placePhotoModel.toDomain());
             }
 
@@ -184,17 +177,17 @@ public class RelationalPlaceRepository implements PlaceRepository {
             }
 
             return Optional.of(placesDomain);
-
         }
 
         return Optional.empty();
-
     }
 
     @Override
     public Optional<Place> findPlaceByGooglePlaceId(String googlePlaceId) {
 
-        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - Google Place ID: {}",
+                googlePlaceId);
 
         var optionalPlaceModel = placeJpaRepository.findByGooglePlaceId(googlePlaceId);
 
@@ -202,25 +195,29 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
             var placeModel = optionalPlaceModel.get();
 
-            logger.info("RELATIONAL PLACE REPOSITORY - FOUND BY GOOGLE PLACE ID - Google Place ID: {}", googlePlaceId);
+            logger.info(
+                    "RELATIONAL PLACE REPOSITORY - FOUND BY GOOGLE PLACE ID - Google Place ID: {}",
+                    googlePlaceId);
 
             return Optional.of(placeModel.toDomain());
-
         }
 
-        logger.info("RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - PLACE NOT FOUND - Google Place ID : {}", googlePlaceId);
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FIND BY GOOGLE PLACE ID - PLACE NOT FOUND - Google Place ID : {}",
+                googlePlaceId);
 
         return Optional.empty();
-
     }
 
     @Override
     public Optional<List<Place>> findPlacesWithinBoundingBox(BoundingBox boundingBox) {
 
-        var placeModelList = placeJpaRepository.findByBoundingBox(boundingBox.getMinLat(),
-                boundingBox.getMaxLat(),
-                boundingBox.getMinLon(),
-                boundingBox.getMaxLon());
+        var placeModelList =
+                placeJpaRepository.findByBoundingBox(
+                        boundingBox.getMinLat(),
+                        boundingBox.getMaxLat(),
+                        boundingBox.getMinLon(),
+                        boundingBox.getMaxLon());
 
         List<Place> placesDomain = new ArrayList<>();
 
@@ -229,15 +226,21 @@ public class RelationalPlaceRepository implements PlaceRepository {
         }
 
         return Optional.of(placesDomain);
-
     }
 
     @Override
-    public List<Place> findNearbyPlacesByCoordinates(double latitude, double longitude, int radiusInMeters) {
+    public List<Place> findNearbyPlacesByCoordinates(
+            double latitude, double longitude, int radiusInMeters) {
 
-        logger.info("RELATIONAL PLACE REPOSITORY - FIND NEARBY PLACES BY COORDINATES - Lat: {}, Lon: {}, Radius: {}m", latitude, longitude, radiusInMeters);
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FIND NEARBY PLACES BY COORDINATES - Lat: {}, Lon: {}, Radius: {}m",
+                latitude,
+                longitude,
+                radiusInMeters);
 
-        var placeModelList = placeJpaRepository.findNearbyPlacesByCoordinates(latitude, longitude, radiusInMeters);
+        var placeModelList =
+                placeJpaRepository.findNearbyPlacesByCoordinates(
+                        latitude, longitude, radiusInMeters);
 
         List<Place> placesDomain = new ArrayList<>();
 
@@ -263,9 +266,10 @@ public class RelationalPlaceRepository implements PlaceRepository {
             placesDomain.add(placeModel.toDomain());
         }
 
-        logger.info("RELATIONAL PLACE REPOSITORY - FOUND {} PLACES WITH MISSING COORDINATES", placesDomain.size());
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FOUND {} PLACES WITH MISSING COORDINATES",
+                placesDomain.size());
 
         return placesDomain;
     }
-
 }

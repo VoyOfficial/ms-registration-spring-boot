@@ -1,12 +1,11 @@
 package br.voy;
 
 import br.voy.application.controller.request.UserRequest;
-import br.voy.domain.entity.User;
-import br.voy.infrastructure.model.UserModel;
 import br.voy.application.controller.response.UserResponse;
+import br.voy.domain.entity.User;
 import br.voy.domain.entity.enums.MaritalStatusEnum;
 import br.voy.domain.entity.enums.SexEnum;
-
+import br.voy.infrastructure.model.UserModel;
 import java.time.LocalDate;
 
 public class UserDatas {
@@ -25,8 +24,7 @@ public class UserDatas {
 
     public static User makeAnUserDomain() {
 
-        return User
-                .builder()
+        return User.builder()
                 .id(null)
                 .name(NAME)
                 .surname(SURNAME)
@@ -39,13 +37,11 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static User makeAnUserDomain(Long id) {
 
-        return User
-                .builder()
+        return User.builder()
                 .id(id)
                 .name(NAME)
                 .surname(SURNAME)
@@ -58,21 +54,16 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static User makeAnInvalidUserDomain() {
 
-        return User
-                .builder()
-                .build();
-
+        return User.builder().build();
     }
 
     public static UserModel makeAnUserModel() {
 
-        return UserModel
-                .builder()
+        return UserModel.builder()
                 .id(null)
                 .name(NAME)
                 .surname(SURNAME)
@@ -85,13 +76,11 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static UserModel makeAnUserModel(Long id) {
 
-        return UserModel
-                .builder()
+        return UserModel.builder()
                 .id(id)
                 .name(NAME)
                 .surname(SURNAME)
@@ -104,13 +93,11 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static UserRequest makeAnUserRequest() {
 
-        return UserRequest
-                .builder()
+        return UserRequest.builder()
                 .name(NAME)
                 .surname(SURNAME)
                 .phone(PHONE)
@@ -122,13 +109,11 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static UserRequest makeAnUserRequestWithInvalidMaritalStatus() {
 
-        return UserRequest
-                .builder()
+        return UserRequest.builder()
                 .name(NAME)
                 .surname(SURNAME)
                 .phone(PHONE)
@@ -140,13 +125,11 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static UserResponse makeAnUserResponse() {
 
-        return UserResponse
-                .builder()
+        return UserResponse.builder()
                 .id(ID)
                 .name(NAME)
                 .surname(SURNAME)
@@ -159,13 +142,10 @@ public class UserDatas {
                 .cpf(CPF)
                 .occupation(OCCUPATION)
                 .build();
-
     }
 
     public static UserResponse makeAnUserResponse(User userDomain) {
 
         return new UserResponse(userDomain);
-
     }
-
 }

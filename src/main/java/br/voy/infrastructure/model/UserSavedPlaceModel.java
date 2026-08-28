@@ -1,10 +1,16 @@
 package br.voy.infrastructure.model;
 
 import br.voy.domain.entity.UserSavedPlace;
-import lombok.*;
-
-import javax.persistence.*;
 import java.time.LocalDateTime;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "user_saved_places", schema = "registration")
@@ -27,11 +33,7 @@ public class UserSavedPlaceModel {
     private LocalDateTime savedAt;
 
     public UserSavedPlace toDomain() {
-        return UserSavedPlace.builder()
-                .userId(userId)
-                .placeId(placeId)
-                .savedAt(savedAt)
-                .build();
+        return UserSavedPlace.builder().userId(userId).placeId(placeId).savedAt(savedAt).build();
     }
 
     public static UserSavedPlaceModel fromDomain(UserSavedPlace domain) {
@@ -41,6 +43,4 @@ public class UserSavedPlaceModel {
                 .savedAt(domain.getSavedAt())
                 .build();
     }
-
 }
-

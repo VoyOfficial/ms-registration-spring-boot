@@ -2,13 +2,13 @@ package br.voy.domain.repository;
 
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.UserSavedPlace;
-
 import java.util.List;
 
 public interface UserSavedPlaceRepository {
 
     /**
      * Check if a place is saved by a specific user
+     *
      * @param userId the user ID
      * @param placeId the place ID
      * @return true if the user has saved this place, false otherwise
@@ -17,6 +17,7 @@ public interface UserSavedPlaceRepository {
 
     /**
      * Get all places saved by a user
+     *
      * @param userId the user ID
      * @return list of saved places
      */
@@ -24,6 +25,7 @@ public interface UserSavedPlaceRepository {
 
     /**
      * Save a place for a user
+     *
      * @param userId the user ID
      * @param placeId the place ID
      */
@@ -31,6 +33,7 @@ public interface UserSavedPlaceRepository {
 
     /**
      * Remove a saved place for a user
+     *
      * @param userId the user ID
      * @param placeId the place ID
      */
@@ -38,10 +41,9 @@ public interface UserSavedPlaceRepository {
 
     /**
      * Get all UserSavedPlace records for a specific user
+     *
      * @param userId the user ID
      * @return list of UserSavedPlace records
      */
     List<UserSavedPlace> findAllByUserId(Long userId);
-
 }
-

@@ -1,12 +1,11 @@
 package br.voy.domain.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder
@@ -28,5 +27,4 @@ public class StandardError {
     private String path;
 
     private Map<String, String> errors = new HashMap<>();
-
 }

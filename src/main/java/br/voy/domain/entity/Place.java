@@ -1,13 +1,17 @@
 package br.voy.domain.entity;
 
 import com.google.maps.model.PlacesSearchResult;
-import lombok.*;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Builder
@@ -21,37 +25,36 @@ public class Place {
     private String googlePlaceId;
     private String name;
     private String about;
-    private String contact; // TODO somente no get place details - nao tem na busca de locais proximos - formatted_phone_number na busca de detalhes do local
+    private String
+            contact; // TODO somente no get place details - nao tem na busca de locais proximos -
+    // formatted_phone_number na busca de detalhes do local
     private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private String principalPhoto; // TODO Acessar https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
+    private Boolean isSaved = false;
+    private String principalPhoto; // TODO Acessar
+    // https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String principalPhotoUrl;
     private List<PlacePhoto> photos;
     private String address;
     private String city;
     private String state;
 
-    @Setter
-    private boolean status;
+    @Setter private boolean status;
 
     private Integer ranking;
 
-    @Setter
-    private LocalDate startRecommendation;
+    @Setter private LocalDate startRecommendation;
 
-    @Setter
-    private LocalDate endRecommendation;
+    @Setter private LocalDate endRecommendation;
 
-    @Setter
-    private LocalDate createdAt;
+    @Setter private LocalDate createdAt;
     private LocalDate createdDate;
     private LocalDate lastCancel;
     private Float distanceOfLocal; // usar outra api do google
     private double latitude;
     private double longitude;
-    @Setter
-    private String distanceFromUserLocation;
+    @Setter private String distanceFromUserLocation;
 
     private static String extractPhotoReference(PlacesSearchResult placeSearchResult) {
         if (Objects.nonNull(placeSearchResult.photos)) {
@@ -70,13 +73,13 @@ public class Place {
         double latitude = 0.0;
         double longitude = 0.0;
 
-        if (Objects.nonNull(placeSearchResult.geometry) && Objects.nonNull(placeSearchResult.geometry.location)) {
+        if (Objects.nonNull(placeSearchResult.geometry)
+                && Objects.nonNull(placeSearchResult.geometry.location)) {
             latitude = placeSearchResult.geometry.location.lat;
             longitude = placeSearchResult.geometry.location.lng;
         }
 
-        return Place
-                .builder()
+        return Place.builder()
                 .googlePlaceId(placeSearchResult.placeId)
                 .name(placeSearchResult.name)
                 .about("") // todo refatorar
@@ -87,7 +90,6 @@ public class Place {
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();
-
     }
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
@@ -96,20 +98,22 @@ public class Place {
         String photoUrl = null;
 
         if (!photoReference.isEmpty()) {
-            photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
-                    photoReference, apiKey);
+            photoUrl =
+                    String.format(
+                            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
+                            photoReference, apiKey);
         }
 
         double latitude = 0.0;
         double longitude = 0.0;
 
-        if (Objects.nonNull(placeSearchResult.geometry) && Objects.nonNull(placeSearchResult.geometry.location)) {
+        if (Objects.nonNull(placeSearchResult.geometry)
+                && Objects.nonNull(placeSearchResult.geometry.location)) {
             latitude = placeSearchResult.geometry.location.lat;
             longitude = placeSearchResult.geometry.location.lng;
         }
 
-        return Place
-                .builder()
+        return Place.builder()
                 .googlePlaceId(placeSearchResult.placeId)
                 .name(placeSearchResult.name)
                 .about("") // todo refatorar
@@ -121,7 +125,5 @@ public class Place {
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();
-
     }
-
 }

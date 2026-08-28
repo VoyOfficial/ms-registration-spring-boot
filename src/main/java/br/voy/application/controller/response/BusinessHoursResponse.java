@@ -1,9 +1,13 @@
 package br.voy.application.controller.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Interval;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @Builder
@@ -18,12 +22,9 @@ public class BusinessHoursResponse {
 
     public static BusinessHoursResponse toBusinessHoursResponse(BusinessHours businessHours) {
 
-        return BusinessHoursResponse
-                .builder()
+        return BusinessHoursResponse.builder()
                 .day(businessHours.getDay())
                 .interval(businessHours.getInterval())
                 .build();
-
     }
-
 }

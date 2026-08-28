@@ -4,15 +4,23 @@ import br.voy.domain.entity.Coordinates;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.ports.GooglePlacesPort;
-import com.google.maps.model.*;
+import com.google.maps.model.AddressComponent;
+import com.google.maps.model.AddressType;
+import com.google.maps.model.Geometry;
+import com.google.maps.model.LatLng;
+import com.google.maps.model.OpeningHours;
+import com.google.maps.model.Photo;
+import com.google.maps.model.PlaceEditorialSummary;
+import com.google.maps.model.PlacesSearchResponse;
+import com.google.maps.model.PlacesSearchResult;
+import com.google.maps.model.PlusCode;
+import com.google.maps.model.PriceLevel;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import br.voy.domain.entity.PlaceDetails;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "voy.services.mock.enable", havingValue = "true")
@@ -22,12 +30,13 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
     @Override
     public NearbyPlaces getNearbyPlaces(
-            Coordinates coordinates,
-            Integer radius,
-            String placeType,
-            String nextPageToken) {
+            Coordinates coordinates, Integer radius, String placeType, String nextPageToken) {
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - STARTING NEARBY SEARCH MOCKED - Coordinates: {}, Radius: {}, PlaceType: {}", coordinates, radius, placeType);
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - STARTING NEARBY SEARCH MOCKED - Coordinates: {}, Radius: {}, PlaceType: {}",
+                coordinates,
+                radius,
+                placeType);
 
         PlacesSearchResponse placesSearchResponse = new PlacesSearchResponse();
 
@@ -35,7 +44,7 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         result1.name = "Restaurante Fictício";
         result1.formattedAddress = "123 Rua Fictícia, Cidade Fictícia";
         result1.placeId = "place_id_123";
-        result1.types = new String[]{"restaurant"};
+        result1.types = new String[] {"restaurant"};
         result1.rating = 5.0f;
         result1.userRatingsTotal = 5;
         result1.geometry = new Geometry();
@@ -44,13 +53,13 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         Photo photo1 = new Photo();
         photo1.photoReference = "photo_reference_1";
 
-        result1.photos = new Photo[]{photo1};
+        result1.photos = new Photo[] {photo1};
 
         PlacesSearchResult result2 = new PlacesSearchResult();
         result2.name = "Hotel Fictício";
         result2.formattedAddress = "456 Avenida Fictícia, Cidade Fictícia";
         result2.placeId = "place_id_456";
-        result2.types = new String[]{"lodging"};
+        result2.types = new String[] {"lodging"};
         result2.rating = 3.0f;
         result2.userRatingsTotal = 10;
         result2.geometry = new Geometry();
@@ -58,13 +67,13 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
         Photo photo2 = new Photo();
         photo2.photoReference = "photo_reference_2";
-        result2.photos = new Photo[]{photo2};
+        result2.photos = new Photo[] {photo2};
 
         PlacesSearchResult result3 = new PlacesSearchResult();
         result3.name = "Parque Fictício";
         result3.formattedAddress = "789 Praça Fictícia, Cidade Fictícia";
         result3.placeId = "place_id_789";
-        result3.types = new String[]{"park"};
+        result3.types = new String[] {"park"};
         result3.rating = 4.5f;
         result3.userRatingsTotal = 50;
         result3.geometry = new Geometry();
@@ -72,13 +81,13 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
         Photo photo3 = new Photo();
         photo3.photoReference = "photo_reference_3";
-        result3.photos = new Photo[]{photo3};
+        result3.photos = new Photo[] {photo3};
 
         PlacesSearchResult result4 = new PlacesSearchResult();
         result4.name = "Museu Fictício";
         result4.formattedAddress = "101 Museu Fictício, Cidade Fictícia";
         result4.placeId = "place_id_101";
-        result4.types = new String[]{"museum"};
+        result4.types = new String[] {"museum"};
         result4.rating = 4.8f;
         result4.userRatingsTotal = 100;
         result4.geometry = new Geometry();
@@ -86,31 +95,36 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
 
         Photo photo4 = new Photo();
         photo4.photoReference = "photo_reference_4";
-        result4.photos = new Photo[]{photo4};
+        result4.photos = new Photo[] {photo4};
 
-        placesSearchResponse.results = new PlacesSearchResult[]{result1, result2, result3, result4};
+        placesSearchResponse.results =
+                new PlacesSearchResult[] {result1, result2, result3, result4};
         placesSearchResponse.nextPageToken = "3ee92b07-1305-4d1c-b5bb-b9283e9b1337";
 
-        var places = Arrays.stream(placesSearchResponse.results)
-                .map(Place::toNearbyPlace)
-                .collect(Collectors.toList());
+        var places =
+                Arrays.stream(placesSearchResponse.results)
+                        .map(Place::toNearbyPlace)
+                        .collect(Collectors.toList());
 
         var nearbyPlaces = new NearbyPlaces(places, placesSearchResponse.nextPageToken);
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Nearby Places: {}", nearbyPlaces);
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - FINISH NEARBY SEARCH MOCKED - Nearby Places: {}",
+                nearbyPlaces);
 
         return nearbyPlaces;
-
     }
 
     @Override
     public br.voy.domain.entity.PlaceDetails getPlaceDetails(String placeId) {
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - GET PLACE DETAILS MOCKED - Place Id: {}", placeId);
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - GET PLACE DETAILS MOCKED - Place Id: {}",
+                placeId);
 
         com.google.maps.model.PlaceDetails details = new com.google.maps.model.PlaceDetails();
 
-        details.addressComponents = new AddressComponent[]{new AddressComponent()};
+        details.addressComponents = new AddressComponent[] {new AddressComponent()};
         details.adrAddress = "Adr Address";
         details.businessStatus = "OPERATIONAL";
         details.curbsidePickup = true;
@@ -121,17 +135,21 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.formattedAddress = "Formatted Address";
         details.formattedPhoneNumber = "123-456-7890";
         details.geometry = new Geometry();
-        details.geometry.location = new LatLng(-23.5505, -46.6333); // São Paulo coordinates as example
+        details.geometry.location =
+                new LatLng(-23.5505, -46.6333); // São Paulo coordinates as example
         details.internationalPhoneNumber = "+1 123-456-7890";
         details.name = "Random Place";
         details.openingHours = new OpeningHours();
-        details.photos = new Photo[]{new Photo()};
+        details.photos = new Photo[] {new Photo()};
         details.placeId = "random_place_id";
         details.plusCode = new PlusCode();
         details.priceLevel = PriceLevel.MODERATE;
         details.rating = 4.5f;
         details.reservable = true;
-        details.reviews = new com.google.maps.model.PlaceDetails.Review[]{new com.google.maps.model.PlaceDetails.Review()};
+        details.reviews =
+                new com.google.maps.model.PlaceDetails.Review[] {
+                    new com.google.maps.model.PlaceDetails.Review()
+                };
         details.secondaryOpeningHours = new OpeningHours();
         details.servesBeer = true;
         details.servesBreakfast = true;
@@ -141,14 +159,19 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.servesVegetarianFood = true;
         details.servesWine = true;
         details.takeout = true;
-        details.types = new AddressType[]{AddressType.LODGING, AddressType.POINT_OF_INTEREST, AddressType.ESTABLISHMENT};
+        details.types =
+                new AddressType[] {
+                    AddressType.LODGING, AddressType.POINT_OF_INTEREST, AddressType.ESTABLISHMENT
+                };
         details.userRatingsTotal = 100;
         details.utcOffset = -180;
         details.vicinity = "Random Vicinity";
         details.wheelchairAccessibleEntrance = true;
-        details.htmlAttributions = new String[]{"attribution1", "attribution2"};
+        details.htmlAttributions = new String[] {"attribution1", "attribution2"};
 
-        logger.info("GOOGLE PLACES API ADAPTER MOCK - FINISH GET PLACE DETAILS MOCKED - Place: {}", details.name);
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - FINISH GET PLACE DETAILS MOCKED - Place: {}",
+                details.name);
 
         return br.voy.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
     }
@@ -157,5 +180,4 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     public br.voy.domain.entity.PlaceDetails getPlaceFromText(String placeName, String city) {
         return null; // TODO implementar mock
     }
-
 }

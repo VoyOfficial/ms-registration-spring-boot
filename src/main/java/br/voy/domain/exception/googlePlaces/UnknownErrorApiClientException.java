@@ -7,7 +7,5 @@ public class UnknownErrorApiClientException extends RuntimeException {
     public UnknownErrorApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
-
 }

@@ -4,12 +4,21 @@ import br.voy.domain.entity.User;
 import br.voy.domain.entity.enums.MaritalStatusEnum;
 import br.voy.domain.entity.enums.SexEnum;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import lombok.*;
+import java.time.LocalDate;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-
-import javax.persistence.*;
-import java.time.LocalDate;
 
 @Entity(name = "user")
 @Getter
@@ -24,6 +33,7 @@ public class UserModel extends AbstractModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
     private String surname;
     private String phone;
@@ -33,10 +43,12 @@ public class UserModel extends AbstractModel {
     @Type(type = "sex_enum")
     @Column(name = "sex", nullable = false)
     private SexEnum sex;
+
     @Enumerated(EnumType.STRING)
     @Type(type = "marital_status_enum")
     @Column(name = "marital_status", nullable = false)
     private MaritalStatusEnum maritalStatus;
+
     private String city;
     private String state;
     private String cpf;
@@ -55,14 +67,12 @@ public class UserModel extends AbstractModel {
         this.state = userDomain.getState();
         this.cpf = userDomain.getCpf();
         this.occupation = userDomain.getOccupation();
-
     }
 
     @Override
     public User toDomain() {
 
-        return User
-                .builder()
+        return User.builder()
                 .id(id)
                 .name(name)
                 .surname(surname)
@@ -75,6 +85,5 @@ public class UserModel extends AbstractModel {
                 .cpf(cpf)
                 .occupation(occupation)
                 .build();
-
     }
 }

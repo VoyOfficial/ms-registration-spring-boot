@@ -1,20 +1,19 @@
 package br.voy.domain.service;
 
+import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.usecase.GetPlaceDetailsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import br.voy.domain.entity.PlaceDetails;
-import br.voy.domain.ports.GooglePlacesPort;
 
 @Service
 public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    GooglePlacesPort googlePlacesPort;
+    @Autowired GooglePlacesPort googlePlacesPort;
 
     @Override
     public PlaceDetails getPlaceDetails(String placeId) {
@@ -23,10 +22,10 @@ public class GetPlaceDetailsService implements GetPlaceDetailsUseCase {
 
         var place = googlePlacesPort.getPlaceDetails(placeId);
 
-        logger.info("GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}", place.getName());
+        logger.info(
+                "GET PLACES DETAILS SERVICE - GET PLACE DETAILS FINISH - Place Details: {}",
+                place.getName());
 
         return place;
-
     }
-
 }

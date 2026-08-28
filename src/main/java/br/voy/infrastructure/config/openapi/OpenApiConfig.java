@@ -14,13 +14,11 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi groupedOpenApi() {
 
-        return GroupedOpenApi
-                .builder()
+        return GroupedOpenApi.builder()
                 .displayName("Ms Registration")
                 .group("v1")
                 .packagesToScan("by.voy.application.controller")
                 .build();
-
     }
 
     @Bean
@@ -30,24 +28,21 @@ public class OpenApiConfig {
         var description = "API for to perfom User CRUD operations";
         var version = "0.0.1";
 
-        var contact = new Contact()
-                .name("VoyOfficial")
-                .url("https://github.com/VoyOfficial");
+        var contact = new Contact().name("VoyOfficial").url("https://github.com/VoyOfficial");
 
-        var license = new License()
-                .name("MIT License")
-                .url("https://github.com/VoyOfficial/ms-registration-spring-boot/blob/main/LICENSE");
+        var license =
+                new License()
+                        .name("MIT License")
+                        .url(
+                                "https://github.com/VoyOfficial/ms-registration-spring-boot/blob/main/LICENSE");
 
-        return new OpenAPI().info(
-                new Info()
-                        .title(title)
-                        .description(description)
-                        .version(version)
-                        .contact(contact)
-                        .license(license)
-
-        );
-
+        return new OpenAPI()
+                .info(
+                        new Info()
+                                .title(title)
+                                .description(description)
+                                .version(version)
+                                .contact(contact)
+                                .license(license));
     }
-
 }

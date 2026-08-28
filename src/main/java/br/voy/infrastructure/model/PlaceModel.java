@@ -1,19 +1,25 @@
 package br.voy.infrastructure.model;
 
+import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import br.voy.domain.entity.Place;
 import lombok.ToString;
-
-import javax.persistence.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "place", schema = "registration")
@@ -42,6 +48,8 @@ public class PlaceModel extends AbstractModel {
     @Column(name = "userratingstotal")
     private Integer userRatingsTotal;
 
+    @Column(name = "issaved")
+    private Boolean isSaved;
 
     @Column(name = "principal_photo")
     private String principalPhoto;
@@ -91,6 +99,7 @@ public class PlaceModel extends AbstractModel {
         this.state = placeDomain.getState();
         this.rating = placeDomain.getRating();
         this.userRatingsTotal = placeDomain.getUserRatingsTotal();
+        this.isSaved = placeDomain.getIsSaved();
         this.principalPhoto = placeDomain.getPrincipalPhoto();
         this.principalPhotoUrl = placeDomain.getPrincipalPhotoUrl();
         this.status = placeDomain.isStatus();
@@ -111,31 +120,32 @@ public class PlaceModel extends AbstractModel {
 
         List<PlacePhoto> placePhotos = convertPhotosToDomain();
 
-        Place domain = Place.builder()
-                .id(id)
-                .googlePlaceId(googlePlaceId)
-                .name(name)
-                .about(about)
-                .contact(contact)
-                .address(address)
-                .city(city)
-                .state(state)
-                .rating(rating)
-                .userRatingsTotal(userRatingsTotal)
-                .principalPhoto(principalPhoto)
-                .principalPhotoUrl(principalPhotoUrl)
-                .status(status != null ? status : false)
-                .ranking(ranking)
-                .startRecommendation(startRecommendation)
-                .endRecommendation(endRecommendation)
-                .createdAt(createdDate)
-                .lastCancel(lastCancel)
-                .latitude(latitude != null ? latitude : 0.0)
-                .longitude(longitude != null ? longitude : 0.0)
-                .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
-                .photos(placePhotos)
-                .build();
-
+        Place domain =
+                Place.builder()
+                        .id(id)
+                        .googlePlaceId(googlePlaceId)
+                        .name(name)
+                        .about(about)
+                        .contact(contact)
+                        .address(address)
+                        .city(city)
+                        .state(state)
+                        .rating(rating)
+                        .userRatingsTotal(userRatingsTotal)
+                        .isSaved(isSaved != null ? isSaved : false)
+                        .principalPhoto(principalPhoto)
+                        .principalPhotoUrl(principalPhotoUrl)
+                        .status(status != null ? status : false)
+                        .ranking(ranking)
+                        .startRecommendation(startRecommendation)
+                        .endRecommendation(endRecommendation)
+                        .createdAt(createdDate)
+                        .lastCancel(lastCancel)
+                        .latitude(latitude != null ? latitude : 0.0)
+                        .longitude(longitude != null ? longitude : 0.0)
+                        .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
+                        .photos(placePhotos)
+                        .build();
 
         return domain;
     }
@@ -155,7 +165,9 @@ public class PlaceModel extends AbstractModel {
     // Helper to populate the JPA model photos from the domain photos when constructing PlaceModel
     private void populatePhotosFromDomain(Place placeDomain) {
         this.placePhotoModel = new ArrayList<>();
-        if (placeDomain != null && placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
+        if (placeDomain != null
+                && placeDomain.getPhotos() != null
+                && !placeDomain.getPhotos().isEmpty()) {
             for (PlacePhoto photo : placeDomain.getPhotos()) {
                 var photoModel = new PlacePhotoModel(photo);
                 // ensure bi-directional association points to this PlaceModel

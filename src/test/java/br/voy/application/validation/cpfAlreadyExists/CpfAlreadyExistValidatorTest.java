@@ -1,8 +1,14 @@
 package br.voy.application.validation.cpfAlreadyExists;
 
-import br.voy.domain.repository.UserRepository;
-import org.junit.jupiter.api.Assertions;
+import static org.mockito.Mockito.when;
+
 import br.voy.UserDatas;
+import br.voy.domain.repository.UserRepository;
+import java.lang.annotation.Annotation;
+import java.util.Optional;
+import javax.validation.ConstraintValidatorContext;
+import javax.validation.Payload;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,21 +16,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.validation.ConstraintValidatorContext;
-import javax.validation.Payload;
-import java.lang.annotation.Annotation;
-import java.util.Optional;
-
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class CpfAlreadyExistValidatorTest {
 
-    @Mock
-    ConstraintValidatorContext context;
+    @Mock ConstraintValidatorContext context;
 
-    @Mock
-    UserRepository userRepository;
+    @Mock UserRepository userRepository;
 
     CpfAlreadyExistValidator cpfAlreadyExistValidator;
 
@@ -58,7 +55,6 @@ class CpfAlreadyExistValidatorTest {
                 return new Class[0];
             }
         };
-
     }
 
     @Test
@@ -75,7 +71,6 @@ class CpfAlreadyExistValidatorTest {
 
         // validation
         Assertions.assertTrue(cpfIsValid);
-
     }
 
     @Test
@@ -85,16 +80,12 @@ class CpfAlreadyExistValidatorTest {
         // scenario
         var cpf = UserDatas.CPF;
 
-        when(userRepository.findByCpf(cpf)).thenReturn(
-                Optional.of(UserDatas.makeAnUserDomain(1L))
-        );
+        when(userRepository.findByCpf(cpf)).thenReturn(Optional.of(UserDatas.makeAnUserDomain(1L)));
 
         // action
         var cpfIsValid = cpfAlreadyExistValidator.isValid(cpf, context);
 
         // validation
         Assertions.assertFalse(cpfIsValid);
-
     }
-
 }

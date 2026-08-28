@@ -1,5 +1,13 @@
 package br.voy.domain.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+import br.voy.UserDatas;
+import br.voy.domain.exception.UserNotFoundException;
+import br.voy.domain.repository.UserRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,25 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import br.voy.UserDatas;
-import br.voy.domain.exception.UserNotFoundException;
-import br.voy.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GetUserServiceTest {
 
-    @Mock
-    UserRepository repository;
+    @Mock UserRepository repository;
 
-    @InjectMocks
-    GetUserService service;
+    @InjectMocks GetUserService service;
 
     @Value("${user.not.found.default.message}")
     private String defaultMessage;
@@ -45,7 +42,6 @@ class GetUserServiceTest {
 
         // validation
         Assertions.assertEquals(expectedUser.get(), userfound);
-
     }
 
     @Test
@@ -57,14 +53,11 @@ class GetUserServiceTest {
         var expectedException = new UserNotFoundException(defaultMessage);
 
         // action
-        var raisedException = assertThrows(UserNotFoundException.class,
-                () -> service.getUserById(userId)
-        );
+        var raisedException =
+                assertThrows(UserNotFoundException.class, () -> service.getUserById(userId));
 
         // validation
         assertEquals(expectedException.getClass(), raisedException.getClass());
         assertEquals(expectedException.getMessage(), raisedException.getMessage());
-
     }
-
 }

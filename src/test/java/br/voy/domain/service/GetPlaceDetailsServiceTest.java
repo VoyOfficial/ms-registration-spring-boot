@@ -1,7 +1,21 @@
 package br.voy.domain.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
+import br.voy.domain.entity.BusinessHours;
+import br.voy.domain.entity.Interval;
 import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.entity.PlacePhoto;
+import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
+import br.voy.domain.exception.googlePlaces.PlaceDetailsInvalidRequestApiClientException;
+import br.voy.domain.exception.googlePlaces.PlaceDetailsNotFoundApiClientException;
+import br.voy.domain.exception.googlePlaces.PlaceDetailsZeroResultsApiClientException;
+import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
+import br.voy.domain.exception.googlePlaces.RequestDeniedApiClientException;
+import br.voy.domain.ports.GooglePlacesPort;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,25 +24,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import br.voy.domain.ports.GooglePlacesPort;
-import br.voy.domain.exception.googlePlaces.*;
-import br.voy.domain.entity.BusinessHours;
-import br.voy.domain.entity.Interval;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class GetPlaceDetailsServiceTest {
 
-    @Mock
-    GooglePlacesPort googlePlacesPort;
+    @Mock GooglePlacesPort googlePlacesPort;
 
-    @InjectMocks
-    GetPlaceDetailsService service;
+    @InjectMocks GetPlaceDetailsService service;
 
     @BeforeEach
     public void setUp() {
@@ -51,12 +53,13 @@ class GetPlaceDetailsServiceTest {
         // validation
         assertNotNull(placeDetails);
         assertEquals(expectedPlaceDetails, placeDetails);
-
     }
 
     @Test
-    @DisplayName("Should throw PlaceDetailsZeroResultsApiClientException when GooglePlacePort returns zero results")
-    void shouldThrowPlaceDetailsZeroResultsApiClientExceptionWhenGooglePlacePortReturnsZeroResults() {
+    @DisplayName(
+            "Should throw PlaceDetailsZeroResultsApiClientException when GooglePlacePort returns zero results")
+    void
+            shouldThrowPlaceDetailsZeroResultsApiClientExceptionWhenGooglePlacePortReturnsZeroResults() {
 
         // scenario
         var placeId = "ChIJQXQEc04yGZURHsEanxBefFw";
@@ -65,19 +68,20 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(PlaceDetailsZeroResultsApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        PlaceDetailsZeroResultsApiClientException.class,
+                        () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     @Test
-    @DisplayName("Should throw PlaceDetailsNotFoundApiClientException when GooglePlacePort returns not found")
+    @DisplayName(
+            "Should throw PlaceDetailsNotFoundApiClientException when GooglePlacePort returns not found")
     void shouldThrowPlaceDetailsNotFoundApiClientExceptionWhenGooglePlacePortReturnsNotFound() {
 
         // scenario
@@ -87,20 +91,22 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(PlaceDetailsNotFoundApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        PlaceDetailsNotFoundApiClientException.class,
+                        () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     @Test
-    @DisplayName("Should throw PlaceDetailsInvalidRequestApiClientException when GooglePlacePort returns invalid request")
-    void shouldThrowPlaceDetailsInvalidRequestApiClientExceptionWhenGooglePlacePortReturnsInvalidRequest() {
+    @DisplayName(
+            "Should throw PlaceDetailsInvalidRequestApiClientException when GooglePlacePort returns invalid request")
+    void
+            shouldThrowPlaceDetailsInvalidRequestApiClientExceptionWhenGooglePlacePortReturnsInvalidRequest() {
 
         // scenario
         var placeId = "ChIJQXQEc04yGZURHsEanxBefFw";
@@ -109,19 +115,20 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(PlaceDetailsInvalidRequestApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        PlaceDetailsInvalidRequestApiClientException.class,
+                        () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     @Test
-    @DisplayName("Should throw OverQueryLimitApiClientException when GooglePlacePort returns Over Query Limit")
+    @DisplayName(
+            "Should throw OverQueryLimitApiClientException when GooglePlacePort returns Over Query Limit")
     void shouldThrowOverQueryLimitApiClientExceptionWhenGooglePlacePortReturnsOverQueryLimit() {
 
         // scenario
@@ -131,19 +138,20 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(OverQueryLimitApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        OverQueryLimitApiClientException.class,
+                        () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     @Test
-    @DisplayName("Should throw RequestDeniedApiClientException when GooglePlacePort returns Request Denied")
+    @DisplayName(
+            "Should throw RequestDeniedApiClientException when GooglePlacePort returns Request Denied")
     void shouldThrowRequestDeniedApiClientExceptionWhenGooglePlacePortReturnsOverQueryLimit() {
 
         // scenario
@@ -153,19 +161,20 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(RequestDeniedApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        RequestDeniedApiClientException.class,
+                        () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     @Test
-    @DisplayName("Should throw PlacesApiClientException when GooglePlacePort returns Unexpect Error")
+    @DisplayName(
+            "Should throw PlacesApiClientException when GooglePlacePort returns Unexpect Error")
     void shouldThrowPlacesApiClientExceptionWhenGooglePlacePortReturnsUnexpectError() {
 
         // scenario
@@ -175,15 +184,14 @@ class GetPlaceDetailsServiceTest {
         doThrow(expectedException).when(googlePlacesPort).getPlaceDetails(placeId);
 
         // action
-        var raisedException = assertThrows(PlacesApiClientException.class, () ->
-                service.getPlaceDetails(placeId)
-        );
+        var raisedException =
+                assertThrows(
+                        PlacesApiClientException.class, () -> service.getPlaceDetails(placeId));
 
         // validation
         assertNotNull(raisedException);
         assertEquals(raisedException.getClass(), expectedException.getClass());
         assertEquals(raisedException.getMessage(), expectedException.getMessage());
-
     }
 
     private PlaceDetails createPlaceDetails(String placeId) {
@@ -198,20 +206,19 @@ class GetPlaceDetailsServiceTest {
         BusinessHours friday = new BusinessHours("Friday", interval);
         BusinessHours saturday = new BusinessHours("Saturday", interval);
 
-        List<BusinessHours> businessHours = List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
+        List<BusinessHours> businessHours =
+                List.of(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
 
-        return PlaceDetails
-                .builder()
+        return PlaceDetails.builder()
                 .googlePlaceId(placeId)
                 .name("Place")
-                .about("Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.")
+                .about(
+                        "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.")
                 .contact("(54) 3286-1362")
                 .businessHours(businessHours)
                 .rating(4.5f)
                 .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address("R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil")
                 .build();
-
     }
-
 }

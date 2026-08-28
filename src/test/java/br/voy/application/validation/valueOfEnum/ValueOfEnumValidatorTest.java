@@ -1,20 +1,18 @@
 package br.voy.application.validation.valueOfEnum;
 
-import org.junit.jupiter.api.Assertions;
 import br.voy.domain.entity.enums.SexEnum;
+import java.lang.annotation.Annotation;
+import javax.validation.ConstraintValidatorContext;
+import javax.validation.Payload;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import javax.validation.ConstraintValidatorContext;
-import javax.validation.Payload;
-import java.lang.annotation.Annotation;
-
 class ValueOfEnumValidatorTest {
 
-    @Mock
-    ConstraintValidatorContext context;
+    @Mock ConstraintValidatorContext context;
     ValueOfEnumValidator valueOfEnumValidator;
 
     @BeforeEach
@@ -52,7 +50,6 @@ class ValueOfEnumValidatorTest {
                 return new Class[0];
             }
         };
-
     }
 
     @Test
@@ -73,7 +70,6 @@ class ValueOfEnumValidatorTest {
         Assertions.assertTrue(maleIsValid);
         Assertions.assertTrue(femaleIsValid);
         Assertions.assertTrue(doNotInformIsValid);
-
     }
 
     @Test
@@ -94,7 +90,6 @@ class ValueOfEnumValidatorTest {
         Assertions.assertFalse(maleIsValid);
         Assertions.assertFalse(femaleIsValid);
         Assertions.assertFalse(doNotInformIsValid);
-
     }
 
     @Test
@@ -109,7 +104,5 @@ class ValueOfEnumValidatorTest {
 
         // validation
         Assertions.assertFalse(nullTypeStringIsValid);
-
     }
-
 }

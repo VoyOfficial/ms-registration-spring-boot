@@ -1,14 +1,25 @@
 package br.voy.domain.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
 import br.voy.domain.entity.Coordinates;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.utils.PaginationTokenEncoder;
 import com.google.maps.model.Photo;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,36 +30,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import br.voy.domain.utils.PaginationTokenEncoder;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class GetNearbyPlacesServiceTest {
 
     public static final double LATITUDE = 2.7986896;
     public static final double LONGITUDE = -60.7532497;
-    public static final String NEXT_PAGE_TOKEN = "AZose0kAquvI0OxlfS1GiCgQUr2zxeuhP_W0vjpKo9to093vL3mgI0vpTVhfNlYfKo-jka5cthTv9TJmv27TTP8wvN5qMS3VGGxoR9N6ZR_eBytNfrbCKrevuoPrFIeKwiSBxsKuVAM7LfM6xFxON1mZIZus0Qpd9claswgZKz0-Pj0WkvXoAN9KuqNzdYpyDXsBnTiwSd3aCuyXSkaN_T3JQL8IkS-GxzddSFweguWTG0IPojXqE3gTF3gHGdsTQJ2FxuxFOx3i_Hy0JMQpoolLZMDUaBgYkig8ASMLysVf-WQnF4nBeQdMwF0Dh4zl8sxLfTuE4Dk0YwArXHJklv-4oDsF6JttwZCSdilkv3XudKqpditzDjRbOeUtxenCNUAh_BSEo4nrZo2BrAww3nlkyu58Pe2MHtN8QtV6gnTd";
+    public static final String NEXT_PAGE_TOKEN =
+            "AZose0kAquvI0OxlfS1GiCgQUr2zxeuhP_W0vjpKo9to093vL3mgI0vpTVhfNlYfKo-jka5cthTv9TJmv27TTP8wvN5qMS3VGGxoR9N6ZR_eBytNfrbCKrevuoPrFIeKwiSBxsKuVAM7LfM6xFxON1mZIZus0Qpd9claswgZKz0-Pj0WkvXoAN9KuqNzdYpyDXsBnTiwSd3aCuyXSkaN_T3JQL8IkS-GxzddSFweguWTG0IPojXqE3gTF3gHGdsTQJ2FxuxFOx3i_Hy0JMQpoolLZMDUaBgYkig8ASMLysVf-WQnF4nBeQdMwF0Dh4zl8sxLfTuE4Dk0YwArXHJklv-4oDsF6JttwZCSdilkv3XudKqpditzDjRbOeUtxenCNUAh_BSEo4nrZo2BrAww3nlkyu58Pe2MHtN8QtV6gnTd";
 
-    @Mock
-    GooglePlacesPort googlePlacesPort;
+    @Mock GooglePlacesPort googlePlacesPort;
 
-    @Mock
-    PlaceRepository placeRepository;
+    @Mock PlaceRepository placeRepository;
 
-    @Mock
-    PlaceAsyncSaveService placeAsyncSaveService;
+    @Mock PlaceAsyncSaveService placeAsyncSaveService;
 
-    @InjectMocks
-    GetNearbyPlacesService service;
+    @InjectMocks GetNearbyPlacesService service;
 
     @BeforeEach
     void setUp() {
@@ -66,8 +62,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -78,7 +77,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces.getNextTokenPage());
 
         // Verify that the service called the Google API
-        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
+        verify(googlePlacesPort, times(1))
+                .getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
 
         // Verify that async save was called
         verify(placeAsyncSaveService, times(1)).savePlacesAsync(anyList());
@@ -95,8 +95,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -105,7 +108,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify that async save was called (PlaceAsyncSaveService handles deduplication internally)
+        // Verify that async save was called (PlaceAsyncSaveService handles deduplication
+        // internally)
         verify(placeAsyncSaveService, times(1)).savePlacesAsync(anyList());
     }
 
@@ -120,8 +124,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -145,8 +152,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces emptyResponse = new NearbyPlaces(List.of(), null);
 
-        doReturn(emptyResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, null);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(emptyResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -171,8 +181,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMockWithoutToken();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, null);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -182,7 +195,8 @@ public class GetNearbyPlacesServiceTest {
         assertEquals(2, nearbyPlaces.getPlaces().size());
         Assertions.assertNull(nearbyPlaces.getNextTokenPage());
 
-        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(Coordinates.class), any(), anyString(), isNull());
+        verify(googlePlacesPort, times(1))
+                .getNearbyPlaces(any(Coordinates.class), any(), anyString(), isNull());
     }
 
     @Test
@@ -196,8 +210,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -219,14 +236,18 @@ public class GetNearbyPlacesServiceTest {
         var radius = 3000;
         var placeType = "CAFE";
 
-        doThrow(new RuntimeException("Google API error")).when(googlePlacesPort)
+        doThrow(new RuntimeException("Google API error"))
+                .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action & validation
-        Assertions.assertThrows(RuntimeException.class, () -> {
-            service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        });
+        Assertions.assertThrows(
+                RuntimeException.class,
+                () -> {
+                    service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+                });
 
         // Verify that no async save was performed
         verify(placeAsyncSaveService, never()).savePlacesAsync(anyList());
@@ -243,8 +264,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces emptyResponse = new NearbyPlaces(List.of(), NEXT_PAGE_TOKEN);
 
-        doReturn(emptyResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(emptyResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -269,8 +293,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, null);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -295,8 +322,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -305,7 +335,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify that async save was called (PlaceAsyncSaveService handles deduplication internally)
+        // Verify that async save was called (PlaceAsyncSaveService handles deduplication
+        // internally)
         verify(placeAsyncSaveService, times(1)).savePlacesAsync(anyList());
     }
 
@@ -320,8 +351,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -345,8 +379,11 @@ public class GetNearbyPlacesServiceTest {
 
         NearbyPlaces nearbyPlacesResponse = new NearbyPlaces(List.of(), null);
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, null);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -376,14 +413,19 @@ public class GetNearbyPlacesServiceTest {
         placesSearchResponse.results = results;
         placesSearchResponse.nextPageToken = NEXT_PAGE_TOKEN;
 
-        var places = Arrays.stream(placesSearchResponse.results)
-                .map(Place::toNearbyPlace)
-                .collect(Collectors.toList());
+        var places =
+                Arrays.stream(placesSearchResponse.results)
+                        .map(Place::toNearbyPlace)
+                        .collect(Collectors.toList());
 
-        NearbyPlaces nearbyPlacesResponse = new NearbyPlaces(places, placesSearchResponse.nextPageToken);
+        NearbyPlaces nearbyPlacesResponse =
+                new NearbyPlaces(places, placesSearchResponse.nextPageToken);
 
-        doReturn(nearbyPlacesResponse).when(googlePlacesPort).getNearbyPlaces(coordinates, radius, placeType, null);
-        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt())).thenReturn(List.of());
+        doReturn(nearbyPlacesResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -403,15 +445,16 @@ public class GetNearbyPlacesServiceTest {
         PlacesSearchResult result1 = createPlacesSearchResultMock("Place 1");
         PlacesSearchResult result2 = createPlacesSearchResultMock("Place 2");
 
-        placesSearchResponse.results = Arrays.asList(result1, result2).toArray(new PlacesSearchResult[0]);
+        placesSearchResponse.results =
+                Arrays.asList(result1, result2).toArray(new PlacesSearchResult[0]);
         placesSearchResponse.nextPageToken = NEXT_PAGE_TOKEN;
 
-        var places = Arrays.stream(placesSearchResponse.results)
-                .map(Place::toNearbyPlace)
-                .collect(Collectors.toList());
+        var places =
+                Arrays.stream(placesSearchResponse.results)
+                        .map(Place::toNearbyPlace)
+                        .collect(Collectors.toList());
 
         return new NearbyPlaces(places, placesSearchResponse.nextPageToken);
-
     }
 
     private NearbyPlaces createNearbyPlacesMockWithoutToken() {
@@ -421,12 +464,14 @@ public class GetNearbyPlacesServiceTest {
         PlacesSearchResult result1 = createPlacesSearchResultMock("Place 1");
         PlacesSearchResult result2 = createPlacesSearchResultMock("Place 2");
 
-        placesSearchResponse.results = Arrays.asList(result1, result2).toArray(new PlacesSearchResult[0]);
+        placesSearchResponse.results =
+                Arrays.asList(result1, result2).toArray(new PlacesSearchResult[0]);
         placesSearchResponse.nextPageToken = null;
 
-        var places = Arrays.stream(placesSearchResponse.results)
-                .map(Place::toNearbyPlace)
-                .collect(Collectors.toList());
+        var places =
+                Arrays.stream(placesSearchResponse.results)
+                        .map(Place::toNearbyPlace)
+                        .collect(Collectors.toList());
 
         return new NearbyPlaces(places, null);
     }
@@ -438,27 +483,28 @@ public class GetNearbyPlacesServiceTest {
         result.name = name;
         result.placeId = "ChIJHzIEeEIyGZURpq7lgfAlHKc" + name;
         result.rating = 4.5f;
-        result.types = new String[]{"CAFE"};
+        result.types = new String[] {"CAFE"};
         result.userRatingsTotal = 2;
 
         Photo photo = new Photo();
-        photo.photoReference = "AZose0lqcLLyqLLzqoBkMpKb8ZkgqfmWhiAJu3plnLYwn5ncir8RXu4PFjvEbSRkYwUzw8SXRRLmFTtVRxbJObSAvuyjQsCvtnhm7PZyOLgeynlgXDor0SjTjFS0wa-y7m3WSgeus861Af8ZIRpKBtbvziFcT8sK0a31A8lqEME-e6JYJY_4";
-        result.photos = new Photo[]{photo};
+        photo.photoReference =
+                "AZose0lqcLLyqLLzqoBkMpKb8ZkgqfmWhiAJu3plnLYwn5ncir8RXu4PFjvEbSRkYwUzw8SXRRLmFTtVRxbJObSAvuyjQsCvtnhm7PZyOLgeynlgXDor0SjTjFS0wa-y7m3WSgeus861Af8ZIRpKBtbvziFcT8sK0a31A8lqEME-e6JYJY_4";
+        result.photos = new Photo[] {photo};
 
         return result;
-
     }
 
     private List<Place> createDbPlaces(int count) {
         List<Place> places = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            places.add(Place.builder()
-                    .googlePlaceId("db-place-id-" + i)
-                    .name("DB Place " + i)
-                    .rating(4.0f)
-                    .latitude(LATITUDE)
-                    .longitude(LONGITUDE)
-                    .build());
+            places.add(
+                    Place.builder()
+                            .googlePlaceId("db-place-id-" + i)
+                            .name("DB Place " + i)
+                            .rating(4.0f)
+                            .latitude(LATITUDE)
+                            .longitude(LONGITUDE)
+                            .build());
         }
         return places;
     }
@@ -511,18 +557,23 @@ public class GetNearbyPlacesServiceTest {
         when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
                 .thenReturn(dbPlaces);
 
-        List<Place> googlePlaces = createDbPlaces(17).stream()
-                .map(p -> Place.builder()
-                        .googlePlaceId("google-" + p.getGooglePlaceId())
-                        .name(p.getName())
-                        .rating(p.getRating())
-                        .latitude(p.getLatitude())
-                        .longitude(p.getLongitude())
-                        .build())
-                .collect(Collectors.toList());
+        List<Place> googlePlaces =
+                createDbPlaces(17).stream()
+                        .map(
+                                p ->
+                                        Place.builder()
+                                                .googlePlaceId("google-" + p.getGooglePlaceId())
+                                                .name(p.getName())
+                                                .rating(p.getRating())
+                                                .latitude(p.getLatitude())
+                                                .longitude(p.getLongitude())
+                                                .build())
+                        .collect(Collectors.toList());
         NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
 
-        doReturn(googleResponse).when(googlePlacesPort).getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+        doReturn(googleResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
 
         var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
 
@@ -542,7 +593,7 @@ public class GetNearbyPlacesServiceTest {
         when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
                 .thenReturn(createDbPlaces(42));
 
-        String token = PaginationTokenEncoder.encode(20, new java.util.HashSet<>(), null);
+        String token = PaginationTokenEncoder.encode(20, new HashSet<>(), null);
 
         var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
 
@@ -562,7 +613,7 @@ public class GetNearbyPlacesServiceTest {
         when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
                 .thenReturn(dbPlaces);
 
-        java.util.Set<String> shownIds = new java.util.HashSet<>();
+        Set<String> shownIds = new HashSet<>();
         shownIds.add("db-place-id-0");
         shownIds.add("db-place-id-1");
         String token = PaginationTokenEncoder.encode(0, shownIds, null);
@@ -571,10 +622,12 @@ public class GetNearbyPlacesServiceTest {
 
         assertNotNull(result);
         assertEquals(18, result.getPlaces().size());
-        result.getPlaces().forEach(p -> {
-            assertNotEquals("db-place-id-0", p.getGooglePlaceId());
-            assertNotEquals("db-place-id-1", p.getGooglePlaceId());
-        });
+        result.getPlaces()
+                .forEach(
+                        p -> {
+                            assertNotEquals("db-place-id-0", p.getGooglePlaceId());
+                            assertNotEquals("db-place-id-1", p.getGooglePlaceId());
+                        });
     }
 
     @Test
@@ -587,24 +640,28 @@ public class GetNearbyPlacesServiceTest {
         when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
                 .thenReturn(createDbPlaces(5));
 
-        List<Place> googlePlaces = createDbPlaces(20).stream()
-                .map(p -> Place.builder()
-                        .googlePlaceId("google-" + p.getGooglePlaceId())
-                        .name(p.getName())
-                        .rating(p.getRating())
-                        .latitude(p.getLatitude())
-                        .longitude(p.getLongitude())
-                        .build())
-                .collect(Collectors.toList());
+        List<Place> googlePlaces =
+                createDbPlaces(20).stream()
+                        .map(
+                                p ->
+                                        Place.builder()
+                                                .googlePlaceId("google-" + p.getGooglePlaceId())
+                                                .name(p.getName())
+                                                .rating(p.getRating())
+                                                .latitude(p.getLatitude())
+                                                .longitude(p.getLongitude())
+                                                .build())
+                        .collect(Collectors.toList());
         NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
-        doReturn(googleResponse).when(googlePlacesPort).getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+        doReturn(googleResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
 
-        String token = PaginationTokenEncoder.encode(100, new java.util.HashSet<>(), null);
+        String token = PaginationTokenEncoder.encode(100, new HashSet<>(), null);
 
         var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
 
         assertNotNull(result);
         verify(googlePlacesPort, times(1)).getNearbyPlaces(any(), any(), anyString(), any());
     }
-
 }

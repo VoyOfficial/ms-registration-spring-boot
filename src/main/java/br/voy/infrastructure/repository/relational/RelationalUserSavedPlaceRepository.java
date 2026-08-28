@@ -6,13 +6,12 @@ import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.repository.UserSavedPlaceRepository;
 import br.voy.infrastructure.model.UserSavedPlaceModel;
 import br.voy.infrastructure.repository.jpa.UserSavedPlaceJpaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -50,11 +49,12 @@ public class RelationalUserSavedPlaceRepository implements UserSavedPlaceReposit
 
         // Check if already saved
         if (!jpaRepository.existsByUserIdAndPlaceId(userId, placeId)) {
-            UserSavedPlaceModel model = UserSavedPlaceModel.builder()
-                    .userId(userId)
-                    .placeId(placeId)
-                    .savedAt(LocalDateTime.now())
-                    .build();
+            UserSavedPlaceModel model =
+                    UserSavedPlaceModel.builder()
+                            .userId(userId)
+                            .placeId(placeId)
+                            .savedAt(LocalDateTime.now())
+                            .build();
             jpaRepository.save(model);
         }
     }
@@ -74,6 +74,4 @@ public class RelationalUserSavedPlaceRepository implements UserSavedPlaceReposit
                 .map(UserSavedPlaceModel::toDomain)
                 .collect(Collectors.toList());
     }
-
 }
-

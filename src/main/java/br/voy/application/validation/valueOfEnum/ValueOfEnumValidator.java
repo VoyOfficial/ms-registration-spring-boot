@@ -1,10 +1,10 @@
 package br.voy.application.validation.valueOfEnum;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 public class ValueOfEnumValidator implements ConstraintValidator<ValueOfEnum, String> {
 
@@ -13,10 +13,10 @@ public class ValueOfEnumValidator implements ConstraintValidator<ValueOfEnum, St
     @Override
     public void initialize(ValueOfEnum valueOfEnumAnnotation) {
 
-        acceptedValues = Stream.of(valueOfEnumAnnotation.enumClass().getEnumConstants())
-                .map(Enum::name)
-                .collect(Collectors.toList());
-
+        acceptedValues =
+                Stream.of(valueOfEnumAnnotation.enumClass().getEnumConstants())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
     }
 
     @Override

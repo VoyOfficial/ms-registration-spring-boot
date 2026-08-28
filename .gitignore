@@ -36,5 +36,15 @@ build/
 ### Graphify ###
 graphify-out/cache/
 
-### .Github ###
-.github/
+### Cursor MCP secrets ###
+.cursor/mcp.env
+
+### Obsidian vault (local editor state) ###
+docs/obsidian/.obsidian/
+
+### Graphify (auto-regenerated local knowledge graph) ###
+.graphify/
+
+### Local session/management docs (never committed - see AGENTS.md section 6) ###
+CURRENT_WORK.md
+CONTEXT.md

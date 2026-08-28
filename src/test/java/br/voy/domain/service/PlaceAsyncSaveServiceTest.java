@@ -1,7 +1,13 @@
 package br.voy.domain.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import br.voy.domain.entity.Place;
 import br.voy.domain.repository.PlaceRepository;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,22 +16,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class PlaceAsyncSaveServiceTest {
 
-    @Mock
-    PlaceRepository placeRepository;
+    @Mock PlaceRepository placeRepository;
 
-    @InjectMocks
-    PlaceAsyncSaveService placeAsyncSaveService;
+    @InjectMocks PlaceAsyncSaveService placeAsyncSaveService;
 
     @Test
     @DisplayName("Should save new place when not existing in repository")
@@ -81,7 +77,8 @@ class PlaceAsyncSaveServiceTest {
     @DisplayName("Should skip place when already exists in repository")
     void shouldSkipPlaceWhenAlreadyExists() {
         Place existing = buildPlace("google-id-5", "Existing Place", "11 99999-0005", 4.0f, 1.0f);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-5")).thenReturn(Optional.of(existing));
+        when(placeRepository.findPlaceByGooglePlaceId("google-id-5"))
+                .thenReturn(Optional.of(existing));
 
         placeAsyncSaveService.savePlacesAsync(List.of(existing));
 
@@ -89,20 +86,23 @@ class PlaceAsyncSaveServiceTest {
     }
 
     @Test
-    @DisplayName("Should continue saving remaining places when one place throws unexpected exception")
+    @DisplayName(
+            "Should continue saving remaining places when one place throws unexpected exception")
     void shouldContinueSavingWhenOnePlaceThrowsException() {
         Place place1 = buildPlace("google-id-6", "Place Six", "11 99999-0006", 4.0f, 1.0f);
         Place place2 = buildPlace("google-id-7", "Place Seven", "11 99999-0007", 4.0f, 1.0f);
 
         when(placeRepository.findPlaceByGooglePlaceId("google-id-6")).thenReturn(Optional.empty());
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-7")).thenThrow(new RuntimeException("DB error"));
+        when(placeRepository.findPlaceByGooglePlaceId("google-id-7"))
+                .thenThrow(new RuntimeException("DB error"));
 
         placeAsyncSaveService.savePlacesAsync(List.of(place1, place2));
 
         verify(placeRepository, times(1)).savePlace(any(Place.class));
     }
 
-    private Place buildPlace(String googleId, String name, String contact, Float rating, Float distance) {
+    private Place buildPlace(
+            String googleId, String name, String contact, Float rating, Float distance) {
         return Place.builder()
                 .googlePlaceId(googleId)
                 .name(name)

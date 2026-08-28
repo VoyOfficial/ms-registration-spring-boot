@@ -1,27 +1,25 @@
 package br.voy.infrastructure.repository.relational;
 
+import static java.util.Objects.isNull;
+
 import br.voy.domain.entity.User;
 import br.voy.domain.exception.InvalidUserException;
 import br.voy.domain.repository.UserRepository;
 import br.voy.infrastructure.model.UserModel;
+import br.voy.infrastructure.repository.jpa.UserJpaRepository;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import br.voy.infrastructure.repository.jpa.UserJpaRepository;
-
-import java.util.Optional;
-
-import static java.util.Objects.isNull;
 
 @Repository
 public class RelationalUserRepository implements UserRepository {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private UserJpaRepository jpaRepository;
+    @Autowired private UserJpaRepository jpaRepository;
 
     @Override
     @Transactional
@@ -35,7 +33,8 @@ public class RelationalUserRepository implements UserRepository {
 
         userModel = jpaRepository.save(userModel);
 
-        logger.info("RELATIONAL USER REPOSITORY - REGISTERED USER - User ID: {}", userModel.getId());
+        logger.info(
+                "RELATIONAL USER REPOSITORY - REGISTERED USER - User ID: {}", userModel.getId());
 
         return userModel.toDomain();
     }
@@ -47,20 +46,18 @@ public class RelationalUserRepository implements UserRepository {
 
         var optionalUserModel = jpaRepository.findById(userId);
 
-        if(optionalUserModel.isPresent()){
+        if (optionalUserModel.isPresent()) {
 
             var userModel = optionalUserModel.get();
 
             logger.info("RELATIONAL USER REPOSITORY - FIND BY ID - ID: {}", userId);
 
             return Optional.of(userModel.toDomain());
-
         }
 
         logger.info("RELATIONAL USER REPOSITORY - FIND BY ID - USER NOT FOUND - ID : {}", userId);
 
         return Optional.empty();
-
     }
 
     @Override
@@ -73,16 +70,16 @@ public class RelationalUserRepository implements UserRepository {
         if (optionalUserModel.isPresent()) {
             var userModel = optionalUserModel.get();
 
-            logger.info("RELATIONAL USER REPOSITORY - FIND BY CPF - USER FOUND - ID: {}", userModel.getId());
+            logger.info(
+                    "RELATIONAL USER REPOSITORY - FIND BY CPF - USER FOUND - ID: {}",
+                    userModel.getId());
 
             return Optional.of(userModel.toDomain());
-
         }
 
         logger.info("RELATIONAL USER REPOSITORY - FIND BY CPF - USER NOT FOUND - CPF : {}", cpf);
 
         return Optional.empty();
-
     }
 
     private void userIsValid(User userDomain) {
@@ -91,7 +88,5 @@ public class RelationalUserRepository implements UserRepository {
         if (isValid) {
             throw new InvalidUserException();
         }
-
     }
-
 }

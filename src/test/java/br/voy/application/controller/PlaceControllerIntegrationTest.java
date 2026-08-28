@@ -1,5 +1,12 @@
 package br.voy.application.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+
 import br.voy.application.controller.response.PlaceResponse;
 import br.voy.application.controller.response.RecommendedPlacesResponse;
 import br.voy.domain.entity.NearbyPlaces;
@@ -11,6 +18,8 @@ import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.infrastructure.agents.PlacesApiClient;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +29,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PlaceControllerIntegrationTest {
@@ -43,29 +42,21 @@ class PlaceControllerIntegrationTest {
     private static final Double RECOMMENDATIONS_LATITUDE = -29.385436;
     private static final Double RECOMMENDATIONS_LONGITUDE = -50.877608;
 
-    @LocalServerPort
-    private int port;
+    @LocalServerPort private int port;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Autowired private TestRestTemplate restTemplate;
 
-    @MockBean
-    private PlaceRepository placeRepository;
+    @MockBean private PlaceRepository placeRepository;
 
-    @MockBean
-    private PlacesApiClient placesApiClient;
+    @MockBean private PlacesApiClient placesApiClient;
 
-    @MockBean
-    GetNearbyPlacesService getNearbyPlacesService;
+    @MockBean GetNearbyPlacesService getNearbyPlacesService;
 
-    @MockBean
-    GetPlaceDetailsService getPlaceDetailsService;
+    @MockBean GetPlaceDetailsService getPlaceDetailsService;
 
-    @MockBean
-    PlaceRegistryService placeRegistryService;
+    @MockBean PlaceRegistryService placeRegistryService;
 
-    @MockBean
-    GetRecommendedPlacesUseCase placeRecommendationUseCase;
+    @MockBean GetRecommendedPlacesUseCase placeRecommendationUseCase;
 
     @Test
     @DisplayName("Should return 200 with nearby places for valid coordinates")
@@ -74,11 +65,15 @@ class PlaceControllerIntegrationTest {
         // scenario
         var nearbyPlaces = createNearbyPlaces(5);
 
-        doReturn(nearbyPlaces).when(getNearbyPlacesService).getNearbyPlaces(any(), any(), any(), any());
+        doReturn(nearbyPlaces)
+                .when(getNearbyPlacesService)
+                .getNearbyPlaces(any(), any(), any(), any());
 
         // action - validation
-        var url = buildUrl(NEARBY_PLACES_URL,
-                "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
+        var url =
+                buildUrl(
+                        NEARBY_PLACES_URL,
+                        "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -93,11 +88,15 @@ class PlaceControllerIntegrationTest {
         // scenario
         var nearbyPlaces = createNearbyPlaces(20);
 
-        doReturn(nearbyPlaces).when(getNearbyPlacesService).getNearbyPlaces(any(), any(), any(), any());
+        doReturn(nearbyPlaces)
+                .when(getNearbyPlacesService)
+                .getNearbyPlaces(any(), any(), any(), any());
 
         // action - validation
-        var url = buildUrl(NEARBY_PLACES_URL,
-                "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
+        var url =
+                buildUrl(
+                        NEARBY_PLACES_URL,
+                        "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -114,11 +113,15 @@ class PlaceControllerIntegrationTest {
         var nextTokenPage = "AZose0kJX6a_nextToken";
         var nearbyPlaces = new NearbyPlaces(createPlaceList(5), nextTokenPage);
 
-        doReturn(nearbyPlaces).when(getNearbyPlacesService).getNearbyPlaces(any(), any(), any(), any());
+        doReturn(nearbyPlaces)
+                .when(getNearbyPlacesService)
+                .getNearbyPlaces(any(), any(), any(), any());
 
         // action - validation
-        var url = buildUrl(NEARBY_PLACES_URL,
-                "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
+        var url =
+                buildUrl(
+                        NEARBY_PLACES_URL,
+                        "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -133,12 +136,19 @@ class PlaceControllerIntegrationTest {
         // scenario
         var nearbyPlaces = createNearbyPlaces(3);
 
-        doReturn(nearbyPlaces).when(getNearbyPlacesService).getNearbyPlaces(any(), any(), any(), any());
+        doReturn(nearbyPlaces)
+                .when(getNearbyPlacesService)
+                .getNearbyPlaces(any(), any(), any(), any());
 
         // action - validation
-        var url = buildUrl(NEARBY_PLACES_URL,
-                "latitude=" + NEARBY_LATITUDE + "&longitude=" + NEARBY_LONGITUDE
-                        + "&radius=3000&placeType=restaurant");
+        var url =
+                buildUrl(
+                        NEARBY_PLACES_URL,
+                        "latitude="
+                                + NEARBY_LATITUDE
+                                + "&longitude="
+                                + NEARBY_LONGITUDE
+                                + "&radius=3000&placeType=restaurant");
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -153,12 +163,18 @@ class PlaceControllerIntegrationTest {
         // scenario
         var recommendedPlaces = createRecommendedPlacesResponse(5, false);
 
-        doReturn(recommendedPlaces).when(placeRecommendationUseCase)
+        doReturn(recommendedPlaces)
+                .when(placeRecommendationUseCase)
                 .getRecommendedPlaces(anyDouble(), anyDouble(), any(), anyInt(), anyString());
 
         // action - validation
-        var url = buildUrl(RECOMMENDATIONS_URL,
-                "latitude=" + RECOMMENDATIONS_LATITUDE + "&longitude=" + RECOMMENDATIONS_LONGITUDE);
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -174,12 +190,18 @@ class PlaceControllerIntegrationTest {
         var nextToken = "next-page-token-123";
         var recommendedPlaces = createRecommendedPlacesResponse(5, true);
 
-        doReturn(recommendedPlaces).when(placeRecommendationUseCase)
+        doReturn(recommendedPlaces)
+                .when(placeRecommendationUseCase)
                 .getRecommendedPlaces(anyDouble(), anyDouble(), any(), anyInt(), anyString());
 
         // action - validation
-        var url = buildUrl(RECOMMENDATIONS_URL,
-                "latitude=" + RECOMMENDATIONS_LATITUDE + "&longitude=" + RECOMMENDATIONS_LONGITUDE);
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -194,12 +216,18 @@ class PlaceControllerIntegrationTest {
         // scenario
         var emptyResponse = new RecommendedPlacesResponse(new ArrayList<>(), null);
 
-        doReturn(emptyResponse).when(placeRecommendationUseCase)
+        doReturn(emptyResponse)
+                .when(placeRecommendationUseCase)
                 .getRecommendedPlaces(anyDouble(), anyDouble(), any(), anyInt(), anyString());
 
         // action - validation
-        var url = buildUrl(RECOMMENDATIONS_URL,
-                "latitude=" + RECOMMENDATIONS_LATITUDE + "&longitude=" + RECOMMENDATIONS_LONGITUDE);
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -214,13 +242,20 @@ class PlaceControllerIntegrationTest {
         var pageSize = 10;
         var recommendedPlaces = createRecommendedPlacesResponse(pageSize, false);
 
-        doReturn(recommendedPlaces).when(placeRecommendationUseCase)
+        doReturn(recommendedPlaces)
+                .when(placeRecommendationUseCase)
                 .getRecommendedPlaces(anyDouble(), anyDouble(), any(), anyInt(), anyString());
 
         // action - validation
-        var url = buildUrl(RECOMMENDATIONS_URL,
-                "latitude=" + RECOMMENDATIONS_LATITUDE + "&longitude=" + RECOMMENDATIONS_LONGITUDE
-                        + "&pageSize=" + pageSize);
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE
+                                + "&pageSize="
+                                + pageSize);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -236,13 +271,20 @@ class PlaceControllerIntegrationTest {
         var nextPageToken = "page-token-from-previous-request";
         var recommendedPlaces = createRecommendedPlacesResponse(5, false);
 
-        doReturn(recommendedPlaces).when(placeRecommendationUseCase)
+        doReturn(recommendedPlaces)
+                .when(placeRecommendationUseCase)
                 .getRecommendedPlaces(anyDouble(), anyDouble(), any(), anyInt(), anyString());
 
         // action - validation
-        var url = buildUrl(RECOMMENDATIONS_URL,
-                "latitude=" + RECOMMENDATIONS_LATITUDE + "&longitude=" + RECOMMENDATIONS_LONGITUDE
-                        + "&nextPageToken=" + nextPageToken);
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE
+                                + "&nextPageToken="
+                                + nextPageToken);
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -266,7 +308,8 @@ class PlaceControllerIntegrationTest {
         return places;
     }
 
-    private RecommendedPlacesResponse createRecommendedPlacesResponse(int size, boolean hasNextPage) {
+    private RecommendedPlacesResponse createRecommendedPlacesResponse(
+            int size, boolean hasNextPage) {
         List<PlaceResponse> placeResponses = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             var place = createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i);
@@ -277,7 +320,8 @@ class PlaceControllerIntegrationTest {
     }
 
     private static Place createPlace(String id, Integer index) {
-        return new Place(null,
+        return new Place(
+                null,
                 id,
                 "Place" + index,
                 "Casual rooms in a tranquil hotel offering dining, a bar & mini-golf, plus indoor & outdoor pools.",
@@ -285,6 +329,7 @@ class PlaceControllerIntegrationTest {
                 null,
                 4.7f,
                 2599,
+                false, // isSaved
                 "photoReference",
                 "https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=photoReference&key=test_key",
                 List.of(new PlacePhoto(), new PlacePhoto()),
