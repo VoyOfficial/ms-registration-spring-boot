@@ -1,31 +1,28 @@
 package br.voy.domain.service;
 
 import br.voy.domain.entity.Place;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import br.voy.domain.entity.PlaceDetails;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.PlaceRegistryUseCase;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PlaceRegistryService implements PlaceRegistryUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private PlaceRepository repository;
+    @Autowired private PlaceRepository repository;
 
-    @Autowired
-    private GooglePlacesPort googlePlacesPort;
+    @Autowired private GooglePlacesPort googlePlacesPort;
 
     @Override
     public Long registry(Place placeDomain) {
@@ -35,7 +32,10 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
         var recommendedPlace = processingDataPlace(placeDomain);
 
         verifyIfPlaceAlreadyExistsInDatabase(recommendedPlace.getGooglePlaceId());
-        LocalDate startRecommendation = recommendedPlace.getStartRecommendation() != null ? recommendedPlace.getStartRecommendation() : LocalDate.now();
+        LocalDate startRecommendation =
+                recommendedPlace.getStartRecommendation() != null
+                        ? recommendedPlace.getStartRecommendation()
+                        : LocalDate.now();
         recommendedPlace.setStatus(true);
         recommendedPlace.setStartRecommendation(startRecommendation);
         recommendedPlace.setCreatedAt(LocalDate.now());
@@ -43,24 +43,25 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
         Place savedPlace = repository.savePlace(recommendedPlace);
 
-        logger.info("PLACE REGISTRY SERVICE - REGISTRY - Registered Recommended Place: {}", savedPlace.getName());
+        logger.info(
+                "PLACE REGISTRY SERVICE - REGISTRY - Registered Recommended Place: {}",
+                savedPlace.getName());
 
         return savedPlace.getId();
-
     }
 
     private Place processingDataPlace(Place placeDomain) {
 
         logger.info("PLACE REGISTRY SERVICE - Starting processing Data of Place");
 
-        PlaceDetails placeDetails = googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity());
+        PlaceDetails placeDetails =
+                googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity());
 
         String city = extractCityOfPlaceDetails(placeDomain.getCity(), placeDetails.getAddress());
 
         logger.info("PLACE REGISTRY SERVICE - Ending processing Data of Place");
 
-        return Place
-                .builder()
+        return Place.builder()
                 .googlePlaceId(placeDetails.getGooglePlaceId())
                 .name(placeDetails.getName())
                 .contact(placeDetails.getContact())
@@ -86,12 +87,11 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
             extractedCity = googlePlaceAddress.split(", ")[2].split(" - ")[0].trim();
         }
 
-        if(!extractedCity.contentEquals(placeDomainCity)) {
+        if (!extractedCity.contentEquals(placeDomainCity)) {
             throw new CityDifferentPlaceRecommendationException();
         }
 
         return extractedCity;
-
     }
 
     private void verifyIfPlaceAlreadyExistsInDatabase(String googlePlaceId) {
@@ -102,9 +102,6 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
             logger.info("PLACE REGISTRY SERVICE - Place Already Exists In Database");
             throw new PlaceAlreadyExistsException();
-
         }
-
     }
-
 }

@@ -7,13 +7,10 @@ public class PlaceDetailsInvalidRequestApiClientException extends RuntimeExcepti
     public PlaceDetailsInvalidRequestApiClientException(Throwable cause) {
 
         super(defaultMessage, cause);
-
     }
 
     public PlaceDetailsInvalidRequestApiClientException() {
 
         super(defaultMessage);
-
     }
-
 }

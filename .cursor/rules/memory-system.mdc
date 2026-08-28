@@ -1,0 +1,232 @@
+---
+alwaysApply: false
+description: Operational guide for the memory/session system (Obsidian-based session notes, work item tracking, and continuity between sessions).
+---
+
+# Memory System Instructions
+
+> Versao: 1.0.0
+
+Guia operacional de memoria para qualquer agente IA neste repositorio.
+
+## Objetivo
+
+- Preservar contexto entre sessoes.
+- Reduzir retrabalho antes de implementar.
+- Garantir rastreabilidade tecnica.
+
+## Regra Base
+
+- Use Obsidian como padrao de memoria: `docs/obsidian/`.
+- Para sessoes, use sempre `docs/obsidian/Sessions/`.
+- Nao use `docs/memory/session/` para leitura ou escrita de sessoes.
+- Nao use `/memories/` para contexto de trabalho deste repo.
+
+## Estrutura
+
+```text
+docs/
+  obsidian/
+    Sessions/     # Historico por sessao (padrao)
+    Work Items/
+      Features/
+      Bugs/
+      Tasks/
+    Decisions/
+    Modules/
+  memory/
+    repo/         # Convencoes e aprendizados recorrentes
+```
+
+## 1) Session Startup (obrigatorio no primeiro prompt)
+
+1. Obter branch atual: `git branch --show-current`.
+2. Identificar a Issue do GitHub relacionada (pelo nome da branch, quando existir).
+3. Ler `CURRENT_WORK.md`.
+4. Ler sessoes recentes em `docs/obsidian/Sessions/`.
+5. Se houver Issue pai/filha, carregar contexto relacionado.
+
+Saida esperada para o usuario:
+
+- 1-2 linhas com task ativa, estado atual e proximo passo.
+
+## 2) Feedforward (antes de editar codigo)
+
+1. Ler a Issue no GitHub (`gh issue view <n>`) - titulo, descricao, acceptance criteria.
+2. Consultar instrucoes relevantes em `.cursor/rules/`.
+3. Validar alinhamento com arquitetura e convencoes (Clean Architecture / Ports & Adapters, SOLID, code style).
+4. **Garantir Work Item local existe** (OBRIGATORIO):
+   - Verificar: `docs/obsidian/Work Items/[Tasks|Features|Bugs]/ISSUE-<n>.md`
+   - SE nao existir → CRIAR usando template da secao 8
+   - Paths por tipo:
+     - Feature: `docs/obsidian/Work Items/Features/ISSUE-<n>.md`
+     - Bug: `docs/obsidian/Work Items/Bugs/ISSUE-<n>.md`
+     - Task: `docs/obsidian/Work Items/Tasks/ISSUE-<n>.md`
+5. Definir estrategia de teste (unit em `domain.service`; integration em `application.controller`/`infrastructure.repository`).
+
+## 3) Ordem de Consulta (3 camadas)
+
+1. Arquitetura:
+   - `docs/architecture/`
+   - instrucoes tecnicas em `.cursor/rules/`
+2. Memoria do projeto:
+   - `docs/obsidian/Sessions/`
+   - `docs/memory/repo/`
+3. Codigo bruto:
+   - abrir codigo detalhado somente apos 1-2, ou quando necessario para editar.
+
+## 4) Session Save (obrigatorio ao encerrar trabalho significativo)
+
+Salvar sessao quando houver ao menos um dos itens:
+
+- mudanca em 3+ arquivos,
+- decisao tecnica importante,
+- workaround ou gotcha relevante,
+- investigacao interrompida que precisa retomada,
+- implementacao validada e pronta para continuidade.
+
+Processo:
+
+1. Criar ou atualizar sessao em `docs/obsidian/Sessions/YYYY-MM-DD-topic.md`.
+2. Registrar contexto, decisoes, arquivos alterados e proximos passos.
+3. Em toda sessao, definir `parent_session` explicitamente (`[[...]]` ou `none`).
+4. **Linkar sessao no Work Item local** (secao Sessions do arquivo).
+5. Ao finalizar a task (normalmente abertura de PR), fechar Work Item e sessoes com `status: closed`.
+6. Atualizar `docs/memory/repo/conventions.md` se houver novo padrao recorrente.
+7. Atualizar `CURRENT_WORK.md` (Active, Blocked, Recently Completed).
+
+## 5) Padrao Obsidian para artefatos
+
+Nomenclatura:
+
+- Session: `ISSUE-<n>-topic-slug.md` ou `YYYY-MM-DD-topic-slug.md`
+- Feature/Task: `ISSUE-<n>.md`
+- Decision: `NNN-topic-slug.md`
+- Module: `module-name.md`
+
+Links recomendados em sessoes (quando aplicavel):
+
+- Issue: `[[ISSUE-<n>]]`
+- Sessions relacionadas: `[[YYYY-MM-DD-topic-slug]]`
+- Decisoes: `[[Decisions/NNN-topic-slug]]`
+- Modulos afetados: `[[Modules/module-name]]`
+
+## 6) Regras de Qualidade
+
+- Nao marcar como done sem evidencias de validacao exigida pela task.
+- Nao duplicar sessao para o mesmo dia/topico sem necessidade.
+- Nao misturar memoria de projeto com memoria global.
+- Nao poluir sessao com logs ou detalhes irrelevantes.
+
+## 7) Template Minimo de Sessao
+
+Arquivo padrao: `docs/obsidian/Sessions/ISSUE-<n>-topic.md`
+
+```markdown
+---
+type: session
+workitems: [ISSUE-<n>]
+date: YYYY-MM-DD
+status: in-progress
+parent_workitem: [[ISSUE-<n>]]
+parent_session: none
+tags: [feature, bugfix]
+---
+
+# ISSUE-<n> - Titulo
+
+## Work Item
+
+- Primary: [[ISSUE-<n>]]
+
+## Contexto
+
+- O que estava sendo resolvido.
+
+## O que foi feito
+
+- Mudanca 1
+- Mudanca 2
+
+## Decisoes tecnicas
+
+- Decisao e justificativa curta.
+
+## Arquivos modificados
+
+- src/main/java/src/domain/service/Arquivo.java
+- src/test/java/src/domain/service/ArquivoTest.java
+
+## Proximos passos
+
+- Passo 1
+- Passo 2
+```
+
+## 8) Template Minimo de Work Item (Feature/Bug/Task)
+
+Arquivos:
+
+- Feature: `docs/obsidian/Work Items/Features/ISSUE-<n>.md`
+- Bug: `docs/obsidian/Work Items/Bugs/ISSUE-<n>.md`
+- Task: `docs/obsidian/Work Items/Tasks/ISSUE-<n>.md`
+
+```markdown
+---
+type: workitem
+id: ISSUE-<n>
+status: in-progress
+date: YYYY-MM-DD
+tags: [feature]
+---
+
+# ISSUE-<n> - Titulo
+
+## Sessions
+
+- [[YYYY-MM-DD-topic-slug]]
+
+## Decisoes
+
+- [[Decisions/NNN-topic-slug]]
+
+## Modulos
+
+- [[Modules/module-name]]
+```
+
+## 9) Template Minimo de Convencoes
+
+Arquivo: `docs/memory/repo/conventions.md`
+
+```markdown
+# Repository Conventions
+
+## Padroes recorrentes
+
+- Padrao 1
+
+## Gotchas
+
+- Problema: ...
+  Workaround: ...
+  Referencia: ISSUE-<n>
+```
+
+## Anti-Patterns
+
+- Comecar codificacao sem Session Startup + Feedforward.
+- Pular criterios de aceite e estrategia de teste.
+- Declarar done sem gate de validacao exigido.
+- Salvar memoria do projeto fora de `docs/memory/`.
+- Finalizar PR mantendo sessions/work item com status aberto.
+- Omitir `parent_session` quando a sessao depende de uma anterior.
+- Usar status nao canonico em frontmatter (`in progress`, `done`, `complete`, etc).
+
+## Instrucoes relacionadas
+
+- `harness-engineering.mdc`
+- `validation-pyramid.mdc`
+- `architecture.mdc`
+- `code-conventions.mdc`
+- `obsidian-integration.mdc`

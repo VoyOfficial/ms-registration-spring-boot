@@ -1,0 +1,98 @@
+---
+alwaysApply: true
+---
+
+# Code Conventions - ms-registration-spring-boot
+
+Este documento define convenções de código para o projeto.
+
+## 1. Nomenclatura
+
+### 1.1 Pacotes e arquivos
+
+- Pacotes: `lowercase` (ex.: `src.domain.usecase`).
+- Classes/Interfaces: `PascalCase` (ex.: `UserController.java`).
+- Métodos e variáveis: `camelCase`.
+- Testes: mesmo nome da classe alvo + `Test` (ex.: `UserControllerTest.java`).
+- Test data builders: `[Nome]Datas.java` na raiz de `src/test/java/src/` (ex.: `UserDatas.java`).
+
+### 1.2 Símbolos
+
+- Variáveis e métodos: `camelCase`.
+- Classes e interfaces: `PascalCase`.
+- Constantes: `UPPER_SNAKE_CASE` (ex.: `DEFAULT_TRIAL_DAYS`).
+- Booleanos com prefixo semântico: `is`, `has`, `can`, `should`.
+
+### 1.3 Camadas de Clean Architecture (Ports & Adapters)
+
+- Entity: `[Nome]` (ex.: `User`) — POJO puro em `domain/entity/`, sem sufixo.
+- Repository (contrato): `[Nome]Repository` (interface) — em `domain/repository/`.
+- Repository (implementação): `Relational[Nome]Repository` — em `infrastructure/repository/relational/`.
+- UseCase (interface): `[Verbo][Nome]UseCase` (ex.: `GetUserUseCase`, `UserRegistryUseCase`) — uma interface por ação de negócio, em `domain/usecase/`.
+- Service (implementação do UseCase): `[Verbo][Nome]Service` ou `[Nome][Verbo]Service` (ex.: `GetUserService`, `UserRegistryService`) — em `domain/service/`.
+- Domain Exception: `[Nome][Motivo]Exception` (ex.: `UserNotFoundException`, `InvalidUserException`) — em `domain/exception/`, mensagem via chave i18n.
+- Model (JPA): `[Nome]Model` — em `infrastructure/model/`, `@Entity` + construtor a partir do domain + `toDomain()`.
+- JPA Repository: `[Nome]JpaRepository` — em `infrastructure/repository/jpa/`, interface `JpaRepository<Model, ID>`.
+- Controller: `[Nome]Controller` — em `application/controller/`.
+- Request DTO: `[Nome]Request` — em `application/controller/request/`, com `toDomain()`.
+- Response DTO: `[Nome]Response` — em `application/controller/response/`, com construtor a partir do domain.
+- Custom Bean Validation: `@[Regra]` + `[Regra]Validator` — em `application/validation/[regra]/`.
+
+## 2. Estrutura de pacotes
+
+Ver `.cursor/rules/architecture.mdc` para a estrutura completa (Clean Architecture / Ports & Adapters) e templates de cada camada.
+
+Resumo rápido por domínio/agregado (ex.: `User`):
+
+- `domain/entity/User.java`, `domain/repository/UserRepository.java`, `domain/usecase/*.java`, `domain/service/*.java`, `domain/exception/*.java`
+- `infrastructure/model/UserModel.java`, `infrastructure/repository/jpa/UserJpaRepository.java`, `infrastructure/repository/relational/RelationalUserRepository.java`
+- `application/controller/UserController.java`, `application/controller/request/UserRequest.java`, `application/controller/response/UserResponse.java`
+
+## 3. Ordem de imports
+
+Manter esta ordem (o Java já força uma ordenação alfabética dentro de cada grupo por convenção de IDE):
+
+1. `java.*` / `javax.*`
+2. Bibliotecas de terceiros (Spring, Lombok, Swagger, etc.)
+3. Classes do próprio projeto (`src.*`)
+4. `static` imports por último
+
+## 4. Java / Spring Boot
+
+- Preferir `var` para variáveis locais quando o tipo é óbvio pelo lado direito (padrão já usado no projeto: `var userDomain = ...`).
+- Usar Lombok (`@Getter`, `@Builder`, `@EqualsAndHashCode`, `@RequiredArgsConstructor`) para reduzir boilerplate — nunca gerar getters/setters manualmente em classes que já usam Lombok.
+- Preferir injeção via campo `@Autowired` seguindo o padrão já estabelecido no projeto (o time pode migrar para injeção via construtor em uma refatoração dedicada, mas não misturar os dois estilos na mesma classe).
+- Usar `Optional<T>` como retorno de métodos de `Repository` que podem não encontrar um registro; nunca retornar `null` diretamente de um `Repository`.
+- Log estruturado com `Logger`/`LoggerFactory` (SLF4J) seguindo o padrão `"[CLASSE EM CAPS] - [AÇÃO] - contexto: {}"` (ex.: `"USER REGISTRY SERVICE - REGISTRY - User: {}"`), já usado nos `Service`/`Controller`/`Repository`.
+- Anotações de Bean Validation (`@NotBlank`, `@NotNull`, `@Size`, etc.) sempre no `Request`, nunca validação manual repetida no `Controller`/`Service`.
+- Mensagens de erro sempre como chave i18n (`messages.properties`), resolvidas via `MessageSource` no `ExceptionHandlerAdvice` — nunca strings hardcoded no domínio.
+
+## 5. Camadas / Responsabilidades
+
+- `Controller`: apenas orquestra `Request.toDomain()` → `UseCase` → `new Response(domain)`. Nenhuma regra de negócio.
+- `Service` (implementação de `UseCase`): única camada com regra de negócio. Sempre depende de `Repository` (interface), nunca de `JpaRepository`/`Model` diretamente.
+- `RelationalXxxRepository`: única classe que conhece `XxxJpaRepository`/`XxxModel`. Faz o mapeamento explícito via `toDomain()`.
+- `Model` (JPA): representa a tabela. Mapeamento Model↔Domain sempre explícito (construtor + `toDomain()`), nunca com mapper de reflection automático.
+
+## 6. Testes (convenções de escrita)
+
+- Framework: JUnit 5 (`org.junit.jupiter`) + Mockito (`@ExtendWith(MockitoExtension.class)`) para unit tests, `@WebMvcTest` + `MockMvc` para o `Controller`, `@DataJpaTest`/H2 para `Repository`.
+- Usar `@DisplayName` descritivo iniciando com "Must to..." / "Don't should..." (padrão já estabelecido no projeto).
+- Estruturar o corpo do teste com comentários `// cenary`, `// action`, `// validation` (padrão já estabelecido no projeto) — são os únicos comentários aceitáveis em teste, pois marcam estrutura (Arrange/Act/Assert), não explicam comportamento.
+- Reutilizar o test data builder (`[Nome]Datas.java`) em vez de duplicar construção de objetos entre testes.
+- Testes de `domain.service` não devem depender de contexto Spring (`@SpringBootTest`) — usar apenas Mockito.
+
+## 7. Princípios de simplicidade
+
+- Aplicar YAGNI: implementar apenas o necessário para o requisito atual.
+- Preferir soluções curtas e diretas quando não houver perda de legibilidade.
+- Evitar abstrações prematuras e generalizações sem caso de uso real.
+
+## 8. Anti-patterns
+
+- Comentários redundantes que repetem o código (exceto os marcadores de teste da seção 6).
+- Valores mágicos/hardcoded quando deveriam ser constantes nomeadas ou chaves i18n.
+- Lógica de negócio diretamente no `Controller` ou em `Request`/`Response`.
+- Import de `application`/`infrastructure` dentro de `domain` (viola a regra de dependência da Clean Architecture).
+- `UseCase`/`Service` que faz mais de uma ação de negócio (viola Single Responsibility).
+- `Repository` retornando `null` em vez de `Optional.empty()`.

@@ -1,10 +1,9 @@
 package br.voy.domain.entity;
 
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.List;
 
 @Getter
 @ToString
@@ -18,7 +17,5 @@ public class NearbyPlaces {
 
         this.places = places;
         this.nextTokenPage = nextTokenPage;
-
     }
-
 }

@@ -4,20 +4,25 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.lang.reflect.Method;
+import java.util.Set;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.*;
-
-import java.lang.reflect.Method;
-import java.util.Set;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Configuration
 public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
 
     private static final String DTO_PACKAGE = "com.seuprojeto.dtos"; // Ajuste para o seu pacote
-    private static final String CONTROLLER_PACKAGE = "br.voy.application.controller"; // Ajuste para o seu pacote
+    private static final String CONTROLLER_PACKAGE =
+            "br.voy.application.controller"; // Ajuste para o seu pacote
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -31,7 +36,8 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
 
         for (Class<?> dto : reflections.getSubTypesOf(Object.class)) {
             if (!dto.isAnnotationPresent(Schema.class)) {
-                throw new IllegalStateException("❌ A classe DTO " + dto.getName() + " precisa ter @Schema.");
+                throw new IllegalStateException(
+                        "❌ A classe DTO " + dto.getName() + " precisa ter @Schema.");
             }
         }
     }
@@ -49,8 +55,12 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
         for (Class<?> controller : controllers) {
             for (Method method : controller.getDeclaredMethods()) {
                 if (isEndpointMethod(method) && method.getAnnotation(ApiResponses.class) == null) {
-                    throw new IllegalStateException("❌ O endpoint " + method.getName() +
-                                                    " no controller " + controller.getName() + " precisa ter @ApiResponses.");
+                    throw new IllegalStateException(
+                            "❌ O endpoint "
+                                    + method.getName()
+                                    + " no controller "
+                                    + controller.getName()
+                                    + " precisa ter @ApiResponses.");
                 }
             }
         }
@@ -60,8 +70,12 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
         for (Class<?> controller : controllers) {
             for (Method method : controller.getDeclaredMethods()) {
                 if (isEndpointMethod(method) && method.getAnnotation(Operation.class) == null) {
-                    throw new IllegalStateException("❌ O endpoint " + method.getName() +
-                                                    " no controller " + controller.getName() + " precisa ter @Operation.");
+                    throw new IllegalStateException(
+                            "❌ O endpoint "
+                                    + method.getName()
+                                    + " no controller "
+                                    + controller.getName()
+                                    + " precisa ter @Operation.");
                 }
             }
         }
@@ -79,8 +93,12 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                         }
                     }
                     if (!hasParameterAnnotations) {
-                        throw new IllegalStateException("❌ O endpoint " + method.getName() +
-                                                        " no controller " + controller.getName() + " precisa ter @Parameter em pelo menos um parâmetro.");
+                        throw new IllegalStateException(
+                                "❌ O endpoint "
+                                        + method.getName()
+                                        + " no controller "
+                                        + controller.getName()
+                                        + " precisa ter @Parameter em pelo menos um parâmetro.");
                     }
                 }
             }
@@ -89,9 +107,9 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
 
     private boolean isEndpointMethod(Method method) {
         return method.isAnnotationPresent(GetMapping.class)
-               || method.isAnnotationPresent(PostMapping.class)
-               || method.isAnnotationPresent(PutMapping.class)
-               || method.isAnnotationPresent(DeleteMapping.class)
-               || method.isAnnotationPresent(RequestMapping.class);
+                || method.isAnnotationPresent(PostMapping.class)
+                || method.isAnnotationPresent(PutMapping.class)
+                || method.isAnnotationPresent(DeleteMapping.class)
+                || method.isAnnotationPresent(RequestMapping.class);
     }
 }

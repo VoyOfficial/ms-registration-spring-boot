@@ -1,0 +1,65 @@
+#!/usr/bin/env sh
+# Harness - commit-msg gate
+#
+# Validates Conventional Commits format defined in AGENTS.md (section "Commits"):
+#   <type>(<module>/<file>): <description>
+#
+# See: AGENTS.md, .cursor/rules/pre-commit-hooks.mdc
+
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file")
+
+# Merge commits keep git's default multi-line message; don't fight that.
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  exit 0
+fi
+
+valid_types="feat|fix|refactor|test|docs|style|chore|perf"
+
+# 1. Format: <type>(<module>/<file>): <description>
+if ! echo "$commit_msg" | grep -qE "^($valid_types)\([a-z0-9/_.-]+\): .+"; then
+  echo ""
+  echo "Commit bloqueado: formato de mensagem invalido."
+  echo ""
+  echo "Formato esperado (Conventional Commits): <type>(<module>/<file>): <description>"
+  echo "Tipos validos: feat, fix, refactor, test, docs, style, chore, perf"
+  echo ""
+  echo "Exemplos validos:"
+  echo "  feat(user/userregistryservice): validate duplicate cpf before persisting"
+  echo "  fix(user/usercontroller): return 404 when user is not found"
+  echo "  test(user/userregistryservice): add edge cases for invalid cpf"
+  echo ""
+  echo "Exemplos invalidos:"
+  echo "  feat: adiciona fallback           (sem escopo, e em portugues)"
+  echo "  TASK-123: fix bug                 (formato antigo baseado em Azure DevOps)"
+  echo ""
+  echo "Sua mensagem: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+# 2. No non-ASCII characters - descriptions must be in English (AGENTS.md rule #2)
+if echo "$commit_msg" | LC_ALL=C grep -q '[^ -~]'; then
+  echo ""
+  echo "Commit bloqueado: mensagem contem caracteres nao-ASCII."
+  echo "Escreva a descricao em ingles, sem acentos."
+  echo ""
+  echo "Sua mensagem: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+# 3. Single line only, no commit body (AGENTS.md rule #4).
+# Standard git trailers (e.g. "Co-authored-by:", added automatically by some
+# tools/IDEs) are allowed - they are not a prose body.
+body_lines=$(printf '%s\n' "$commit_msg" | tail -n +2 | grep -v '^#' | grep -v '^[A-Za-z][A-Za-z-]*: .\+$' | grep -c '[^[:space:]]')
+if [ "$body_lines" -gt 0 ]; then
+  echo ""
+  echo "Commit bloqueado: corpo de mensagem detectado."
+  echo "Use apenas uma linha: git commit -m \"tipo(escopo): descricao\" (sem corpo)."
+  echo "Trailers padrao (ex.: Co-authored-by:) sao permitidos."
+  echo ""
+  exit 1
+fi
+
+exit 0

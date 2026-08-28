@@ -3,14 +3,21 @@ package br.voy.infrastructure.model;
 import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Base64;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
-import java.util.Base64;
 
 @Entity
 @Table(name = "place_photos", schema = "registration")
@@ -69,7 +76,10 @@ public class PlacePhotoModel extends AbstractModel {
                 .placeId(place != null ? place.getId() : null)
                 .photoReference(photoReference)
                 .photoUrl(photoUrl)
-                .imageBase64(imageBase64 != null ? new String(imageBase64) : null) // Converte byte[] para String Base64
+                .imageBase64(
+                        imageBase64 != null
+                                ? new String(imageBase64)
+                                : null) // Converte byte[] para String Base64
                 .height(height)
                 .width(width)
                 .htmlAttributions(htmlAttributions)

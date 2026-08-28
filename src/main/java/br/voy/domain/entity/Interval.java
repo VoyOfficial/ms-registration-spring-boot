@@ -1,6 +1,10 @@
 package br.voy.domain.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @Builder
@@ -11,5 +15,4 @@ public class Interval {
 
     private String start;
     private String end;
-
 }

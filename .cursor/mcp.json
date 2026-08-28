@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:password@localhost:5432/voy"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "envFile": "${workspaceFolder}/.cursor/mcp.env"
+    },
+    "obsidian": {
+      "command": "uvx",
+      "args": ["mcp-obsidian"],
+      "envFile": "${workspaceFolder}/.cursor/mcp.env"
+    },
+    "graphify": {
+      "command": "graphify",
+      "args": ["serve", "${workspaceFolder}/.graphify/graph.json"]
+    }
+  }
+}

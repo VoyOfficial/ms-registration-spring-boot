@@ -1,22 +1,20 @@
 package br.voy.application.controller.request;
 
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-import org.hibernate.validator.constraints.br.CPF;
 import br.voy.application.validation.cpfAlreadyExists.CpfAlreadyExist;
 import br.voy.application.validation.valueOfEnum.ValueOfEnum;
 import br.voy.domain.entity.User;
 import br.voy.infrastructure.model.enums.MaritalStatusEnum;
 import br.voy.infrastructure.model.enums.SexEnum;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
+import lombok.Builder;
+import lombok.Getter;
+import org.hibernate.validator.constraints.br.CPF;
 
 @Getter
 @Builder
@@ -41,12 +39,18 @@ public class UserRequest extends AbstractRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
     private LocalDate dateBirth;
 
-    @Schema(type = "string", allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
+    @Schema(
+            type = "string",
+            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
     @NotBlank
-    @ValueOfEnum(enumClass = MaritalStatusEnum.class, message = "{user.marital.status.message.invalid}")
+    @ValueOfEnum(
+            enumClass = MaritalStatusEnum.class,
+            message = "{user.marital.status.message.invalid}")
     private String maritalStatus;
 
-    @Schema(type = "string", allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
+    @Schema(
+            type = "string",
+            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
     @NotEmpty
     @ValueOfEnum(enumClass = SexEnum.class, message = "{user.sex.message.invalid}")
     private String sex;
@@ -75,8 +79,7 @@ public class UserRequest extends AbstractRequest {
     @Override
     public User toDomain() {
 
-        return User
-                .builder()
+        return User.builder()
                 .id(null)
                 .name(name)
                 .surname(surname)
@@ -89,7 +92,5 @@ public class UserRequest extends AbstractRequest {
                 .cpf(cpf)
                 .occupation(occupation)
                 .build();
-
     }
-
 }

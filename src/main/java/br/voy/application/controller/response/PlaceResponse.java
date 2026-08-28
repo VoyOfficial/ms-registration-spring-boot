@@ -1,11 +1,14 @@
 package br.voy.application.controller.response;
 
+import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-import br.voy.domain.entity.Place;
-
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @Builder
@@ -36,8 +39,7 @@ public class PlaceResponse {
     private String distanceFromUserLocation;
 
     // Construtor padrão (necessário para frameworks como Jackson e JPA)
-    public PlaceResponse() {
-    }
+    public PlaceResponse() {}
 
     // Construtor completo
     public PlaceResponse(Place place) {
@@ -66,8 +68,7 @@ public class PlaceResponse {
     }
 
     public static PlaceResponse toNearbyPlaceResponse(Place place) {
-        return PlaceResponse
-                .builder()
+        return PlaceResponse.builder()
                 .id(place.getId())
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
@@ -87,8 +88,10 @@ public class PlaceResponse {
         }
 
         return place.getPhotos().stream()
-                .filter(p -> p.getPhotoReference() != null &&
-                        p.getPhotoReference().equals(place.getPrincipalPhoto()))
+                .filter(
+                        p ->
+                                p.getPhotoReference() != null
+                                        && p.getPhotoReference().equals(place.getPrincipalPhoto()))
                 .map(PlacePhoto::getImageBase64)
                 .findFirst()
                 .orElse(null);

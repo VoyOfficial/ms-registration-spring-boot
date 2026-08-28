@@ -1,9 +1,14 @@
 package br.voy.infrastructure.repository.relational;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import br.voy.UserDatas;
 import br.voy.domain.exception.InvalidUserException;
 import br.voy.infrastructure.model.UserModel;
-import br.voy.UserDatas;
 import br.voy.infrastructure.repository.jpa.UserJpaRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,20 +16,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class RelationalUserRepositoryTest {
 
-    @InjectMocks
-    RelationalUserRepository relationalRepository;
+    @InjectMocks RelationalUserRepository relationalRepository;
 
-    @Mock
-    UserJpaRepository jpaRepository;
+    @Mock UserJpaRepository jpaRepository;
 
     @Test
     @DisplayName("Must to save an User")
@@ -47,7 +44,6 @@ class RelationalUserRepositoryTest {
         assertEquals(userDomain, savedUser);
 
         verify(jpaRepository, times(1)).save(any(UserModel.class));
-
     }
 
     @Test
@@ -59,14 +55,14 @@ class RelationalUserRepositoryTest {
         var expectedMessage = "invalid.user.default.message";
 
         // action
-        var raisedException = assertThrows(InvalidUserException.class,
-                () -> relationalRepository.saveUser(invalidUser)
-        );
+        var raisedException =
+                assertThrows(
+                        InvalidUserException.class,
+                        () -> relationalRepository.saveUser(invalidUser));
 
         // Validation
         assertEquals(InvalidUserException.class, raisedException.getClass());
         assertEquals(expectedMessage, raisedException.getMessage());
-
     }
 
     @Test
@@ -75,21 +71,16 @@ class RelationalUserRepositoryTest {
 
         // scenario
         var userCpf = UserDatas.CPF;
-        var expectedOptionalUser = Optional.of(
-                UserDatas.makeAnUserDomain(UserDatas.ID)
-        );
+        var expectedOptionalUser = Optional.of(UserDatas.makeAnUserDomain(UserDatas.ID));
 
-        when(jpaRepository.findByCpf(userCpf)).thenReturn(Optional.of(
-                        new UserModel(expectedOptionalUser.get())
-                )
-        );
+        when(jpaRepository.findByCpf(userCpf))
+                .thenReturn(Optional.of(new UserModel(expectedOptionalUser.get())));
 
         // action
         var optionalUser = relationalRepository.findByCpf(userCpf);
 
         // validation
         assertEquals(expectedOptionalUser, optionalUser);
-
     }
 
     @Test
@@ -106,7 +97,6 @@ class RelationalUserRepositoryTest {
 
         // validation
         assertTrue(optionalUser.isEmpty());
-
     }
 
     @Test
@@ -115,21 +105,16 @@ class RelationalUserRepositoryTest {
 
         // scenario
         var userId = UserDatas.ID;
-        var expectedOptionalUser = Optional.of(
-                UserDatas.makeAnUserDomain(UserDatas.ID)
-        );
+        var expectedOptionalUser = Optional.of(UserDatas.makeAnUserDomain(UserDatas.ID));
 
-        when(jpaRepository.findById(userId)).thenReturn(Optional.of(
-                        new UserModel(expectedOptionalUser.get())
-                )
-        );
+        when(jpaRepository.findById(userId))
+                .thenReturn(Optional.of(new UserModel(expectedOptionalUser.get())));
 
         // action
         var optionalUser = relationalRepository.findById(userId);
 
         // validation
         assertEquals(expectedOptionalUser, optionalUser);
-
     }
 
     @Test
@@ -146,7 +131,5 @@ class RelationalUserRepositoryTest {
 
         // validation
         assertTrue(optionalUser.isEmpty());
-
     }
-
 }
