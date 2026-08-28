@@ -15,23 +15,35 @@ valid_types="feat|fix|refactor|test|docs|style|chore|perf"
 echo ""
 echo "Pre-push: validando mensagens de commit no range do push..."
 
-# Instead of guessing a single "base branch" name (upstream, or the remote's
-# default branch), compute the merge-base against every remote branch and keep
-# the closest (most recent) one. This correctly detects the real fork point
-# even on the first push of a branch created from a non-default branch (e.g.
-# `develop` instead of `main`), where guessing the wrong base would wrongly
-# include that whole branch's history in the validation range.
-merge_base=""
-for candidate in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin | grep -v 'HEAD$'); do
-  candidate_base=$(git merge-base HEAD "$candidate" 2>/dev/null) || continue
-  [ -z "$candidate_base" ] && continue
+# If the current branch already tracks a remote branch, that is always the
+# correct base: commits already present there were already validated/pushed
+# and must never re-enter the range, no matter how other branches evolve.
+#
+# Only when there is no upstream (first push of a brand new branch) do we fall
+# back to guessing: compute the merge-base against every remote branch and
+# keep the closest (most recent) one that is still an ancestor of the
+# branch's own already-pushed tip (when one exists) or, absent that too, the
+# closest overall. This correctly detects the real fork point even when the
+# branch was created from a non-default branch (e.g. `develop` instead of
+# `main`), where guessing the wrong base would wrongly include that whole
+# branch's history in the validation range.
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
 
-  if [ -z "$merge_base" ]; then
-    merge_base="$candidate_base"
-  elif git merge-base --is-ancestor "$merge_base" "$candidate_base" 2>/dev/null; then
-    merge_base="$candidate_base"
-  fi
-done
+if [ -n "$upstream" ]; then
+  merge_base=$(git merge-base HEAD "$upstream" 2>/dev/null)
+else
+  merge_base=""
+  for candidate in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin | grep -v 'HEAD$'); do
+    candidate_base=$(git merge-base HEAD "$candidate" 2>/dev/null) || continue
+    [ -z "$candidate_base" ] && continue
+
+    if [ -z "$merge_base" ]; then
+      merge_base="$candidate_base"
+    elif git merge-base --is-ancestor "$merge_base" "$candidate_base" 2>/dev/null; then
+      merge_base="$candidate_base"
+    fi
+  done
+fi
 
 if [ -z "$merge_base" ]; then
   echo "  Nao foi possivel determinar o range (branch nova/sem upstream), pulando validacao de commits."
