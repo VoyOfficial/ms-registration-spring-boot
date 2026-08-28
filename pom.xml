@@ -199,6 +199,36 @@
                 </configuration>
             </plugin>
 
+            <!-- Mutation testing (harness, manual/optional - not bound to any lifecycle phase
+                 on purpose, too slow for pre-commit/pre-push): run before opening a PR that
+                 touches domain/business logic with:
+                 `./mvnw test-compile org.pitest:pitest-maven:mutationCoverage`
+                 Report: target/pit-reports/<timestamp>/index.html -->
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.25.9</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.3</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>br.voy.domain.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>br.voy.*</param>
+                    </targetTests>
+                    <outputFormats>
+                        <param>HTML</param>
+                        <param>XML</param>
+                    </outputFormats>
+                </configuration>
+            </plugin>
+
             <!-- Auto-installs the versioned git hooks (.githooks/) on every Maven run,
                  equivalent to Husky's `prepare` script but without a Node dependency. -->
             <plugin>
