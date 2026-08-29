@@ -10,6 +10,7 @@ import br.voy.application.controller.response.PlaceDetailsResponse;
 import br.voy.application.controller.response.PlaceResponse;
 import br.voy.domain.entity.Coordinates;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.RecommendedPlacesNotFoundException;
 import br.voy.domain.exception.StandardError;
 import br.voy.domain.usecase.GetNearbyPlacesUseCase;
 import br.voy.domain.usecase.GetPlaceDetailsUseCase;
@@ -25,13 +26,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Place", description = "Endpoint with all operations of Places")
@@ -50,9 +49,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class PlaceController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Value("${error.places.recommendation.status404.message}")
-    private String RECOMMENDATION_PLACE_NOT_FOUND_MESSAGE;
 
     @Autowired private GetNearbyPlacesUseCase getNearbyPlacesUseCase;
 
@@ -409,8 +405,10 @@ public class PlaceController {
                         latitude, longitude, range, pageSize, nextPageToken);
 
         if (recommendedPlaces.getPlaces().isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, RECOMMENDATION_PLACE_NOT_FOUND_MESSAGE);
+            if (nextPageToken != null && !nextPageToken.isBlank()) {
+                return ResponseEntity.ok(new NearbyPlacesResponse(Collections.emptyList(), null));
+            }
+            throw new RecommendedPlacesNotFoundException();
         }
 
         var placeResponses =

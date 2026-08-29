@@ -208,6 +208,39 @@ class PlaceControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with empty places when pagination is past the last page")
+    void shouldReturn200WithEmptyPlacesWhenPaginationIsPastLastPage() {
+
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
+        var nextPageToken = "pagination-token-past-end";
+
+        doReturn(emptyResponse)
+                .when(placeRecommendationUseCase)
+                .getRecommendedPlaces(
+                        anyDouble(),
+                        anyDouble(),
+                        any(),
+                        anyInt(),
+                        org.mockito.ArgumentMatchers.eq(nextPageToken));
+
+        var url =
+                buildUrl(
+                        RECOMMENDATIONS_URL,
+                        "latitude="
+                                + RECOMMENDATIONS_LATITUDE
+                                + "&longitude="
+                                + RECOMMENDATIONS_LONGITUDE
+                                + "&nextPageToken="
+                                + nextPageToken
+                                + "&pageSize=5");
+
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"places\":[]");
+    }
+
+    @Test
     @DisplayName("Should return 404 when no recommended places found for coordinates")
     void shouldReturn404WhenNoRecommendedPlacesFoundForCoordinates() {
 

@@ -709,6 +709,33 @@ class PlaceControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with empty places when pagination offset exceeds total")
+    void shouldReturn200WithEmptyPlacesWhenPaginationOffsetExceedsTotal() throws Exception {
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var nextPageToken = "valid-pagination-token";
+        var pageSize = 5;
+
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
+
+        doReturn(emptyResponse)
+                .when(placeRecommendationUseCase)
+                .getRecommendedPlaces(latitude, longitude, null, pageSize, nextPageToken);
+
+        mockMvc.perform(
+                        get(URL + "/recommendations")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("latitude", String.valueOf(latitude))
+                                .param("longitude", String.valueOf(longitude))
+                                .param("nextPageToken", nextPageToken)
+                                .param("pageSize", String.valueOf(pageSize)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.places").isEmpty())
+                .andExpect(jsonPath("$.nextTokenPage").doesNotExist());
+    }
+
+    @Test
     @DisplayName("Should navigate to next page with nextPageToken")
     void shouldNavigateToNextPageWithNextPageToken() throws Exception {
         // scenario
