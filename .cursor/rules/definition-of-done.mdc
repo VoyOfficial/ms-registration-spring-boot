@@ -51,16 +51,26 @@ Quando E2E for configurado:
 
 **Comando:**
 ```bash
-/code-reviewer revisar branch [branch-name] contra main
+/code-reviewer <target-branch>
 ```
 
-**Criterios:**
-- [ ] Sem issues BLOCKING
+O agente executa **duas passagens** (ver `.cursor/agents/code-reviewer.md`):
+
+1. **Pass 1 — Correctness & Safety:** bugs, regressões, segurança, testes, contratos de API
+2. **Pass 2 — Structural Quality (thermo-nuclear):** Clean Architecture, SOLID, code judo, maintainability
+
+**Criterios Pass 1 (BLOCKING se falhar):**
+- [ ] Sem issues **High** (bugs, regressões comportamentais, segurança, testes críticos ausentes)
+- [ ] Contratos de API e códigos HTTP corretos
+- [ ] Sem secrets/chaves expostas no diff
+
+**Criterios Pass 2 (BLOCKING se falhar):**
+- [ ] Sem issues BLOCKING estruturais
 - [ ] Clean Architecture (regra de dependencia) + SOLID validados
 - [ ] Sem hardcoded values/mensagens que deveriam ser constantes ou chaves i18n
 - [ ] Sem transactions/queries N+1 obvias introduzidas sem necessidade
 
-**Se issues:** Corrigir → Re-rodar Gate 1 → Re-review.
+**Se issues:** Corrigir Pass 1 primeiro → Re-rodar Gate 1 → Re-review.
 
 ---
 
