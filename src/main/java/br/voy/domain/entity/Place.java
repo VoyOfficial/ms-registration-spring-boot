@@ -31,13 +31,14 @@ public class Place {
     private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private Boolean isSaved = false;
+    @Setter private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar
     // https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String principalPhotoUrl;
     private List<PlacePhoto> photos;
     private String address;
     private String city;
+    private String state;
 
     @Setter private boolean status;
 
@@ -54,6 +55,7 @@ public class Place {
     private double latitude;
     private double longitude;
     @Setter private String distanceFromUserLocation;
+    private String googleTypes;
 
     private static String extractPhotoReference(PlacesSearchResult placeSearchResult) {
         if (Objects.nonNull(placeSearchResult.photos)) {
@@ -69,27 +71,13 @@ public class Place {
 
         var photoReference = extractPhotoReference(placeSearchResult);
 
-        return Place.builder()
-                .googlePlaceId(placeSearchResult.placeId)
-                .name(placeSearchResult.name)
-                .about("") // todo refatorar
-                .rating(placeSearchResult.rating)
-                .userRatingsTotal(placeSearchResult.userRatingsTotal)
-                .address(placeSearchResult.vicinity)
-                .principalPhoto(photoReference)
-                .build();
-    }
+        double latitude = 0.0;
+        double longitude = 0.0;
 
-    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
-
-        var photoReference = extractPhotoReference(placeSearchResult);
-        String photoUrl = null;
-
-        if (!photoReference.isEmpty()) {
-            photoUrl =
-                    String.format(
-                            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
-                            photoReference, apiKey);
+        if (Objects.nonNull(placeSearchResult.geometry)
+                && Objects.nonNull(placeSearchResult.geometry.location)) {
+            latitude = placeSearchResult.geometry.location.lat;
+            longitude = placeSearchResult.geometry.location.lng;
         }
 
         return Place.builder()
@@ -100,7 +88,20 @@ public class Place {
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
                 .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
-                .principalPhotoUrl(photoUrl)
+                .googleTypes(joinGoogleTypes(placeSearchResult))
+                .latitude(latitude)
+                .longitude(longitude)
                 .build();
+    }
+
+    public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
+        return toNearbyPlace(placeSearchResult);
+    }
+
+    private static String joinGoogleTypes(PlacesSearchResult placeSearchResult) {
+        if (placeSearchResult.types == null || placeSearchResult.types.length == 0) {
+            return null;
+        }
+        return String.join(",", placeSearchResult.types);
     }
 }

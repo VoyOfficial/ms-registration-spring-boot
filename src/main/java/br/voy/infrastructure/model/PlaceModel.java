@@ -42,19 +42,20 @@ public class PlaceModel extends AbstractModel {
     private String contact;
     private String address;
     private String city;
+    private String state;
     private Float rating;
 
     @Column(name = "userratingstotal")
     private Integer userRatingsTotal;
-
-    @Column(name = "issaved")
-    private Boolean isSaved;
 
     @Column(name = "principal_photo")
     private String principalPhoto;
 
     @Column(name = "principal_photo_url")
     private String principalPhotoUrl;
+
+    @Column(name = "google_types")
+    private String googleTypes;
 
     private Boolean status;
     private Integer ranking;
@@ -74,14 +75,18 @@ public class PlaceModel extends AbstractModel {
     private Double latitude;
     private Double longitude;
 
+    @Column(name = "distanceoflocal")
+    private Float distanceOfLocal;
+
     @ToString.Exclude
     @Builder.Default
-    @OneToMany(mappedBy = "place", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "place", fetch = FetchType.LAZY)
     @JsonManagedReference
     @JsonIgnore
     private List<PlacePhotoModel> placePhotoModel = new ArrayList<>();
 
     public PlaceModel(Place placeDomain) {
+        // Copiar o ID se existir para que o Hibernate saiba que é uma atualização
         if (placeDomain.getId() != null) {
             this.id = placeDomain.getId();
         }
@@ -91,11 +96,12 @@ public class PlaceModel extends AbstractModel {
         this.contact = placeDomain.getContact();
         this.address = placeDomain.getAddress();
         this.city = placeDomain.getCity();
+        this.state = placeDomain.getState();
         this.rating = placeDomain.getRating();
         this.userRatingsTotal = placeDomain.getUserRatingsTotal();
-        this.isSaved = placeDomain.getIsSaved();
         this.principalPhoto = placeDomain.getPrincipalPhoto();
         this.principalPhotoUrl = placeDomain.getPrincipalPhotoUrl();
+        this.googleTypes = placeDomain.getGoogleTypes();
         this.status = placeDomain.isStatus();
         this.ranking = placeDomain.getRanking();
         this.startRecommendation = placeDomain.getStartRecommendation();
@@ -104,6 +110,7 @@ public class PlaceModel extends AbstractModel {
         this.lastCancel = placeDomain.getLastCancel();
         this.latitude = placeDomain.getLatitude();
         this.longitude = placeDomain.getLongitude();
+        this.distanceOfLocal = placeDomain.getDistanceOfLocal();
         // Populate placePhotoModel from domain photos (if any)
         populatePhotosFromDomain(placeDomain);
     }
@@ -122,11 +129,13 @@ public class PlaceModel extends AbstractModel {
                         .contact(contact)
                         .address(address)
                         .city(city)
+                        .state(state)
                         .rating(rating)
                         .userRatingsTotal(userRatingsTotal)
-                        .isSaved(isSaved != null ? isSaved : false)
+                        .isSaved(false)
                         .principalPhoto(principalPhoto)
                         .principalPhotoUrl(principalPhotoUrl)
+                        .googleTypes(googleTypes)
                         .status(status != null ? status : false)
                         .ranking(ranking)
                         .startRecommendation(startRecommendation)
@@ -135,10 +144,40 @@ public class PlaceModel extends AbstractModel {
                         .lastCancel(lastCancel)
                         .latitude(latitude != null ? latitude : 0.0)
                         .longitude(longitude != null ? longitude : 0.0)
+                        .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
                         .photos(placePhotos)
                         .build();
 
         return domain;
+    }
+
+    public Place toListDomain() {
+        return Place.builder()
+                .id(id)
+                .googlePlaceId(googlePlaceId)
+                .name(name)
+                .about(about)
+                .contact(contact)
+                .address(address)
+                .city(city)
+                .state(state)
+                .rating(rating)
+                .userRatingsTotal(userRatingsTotal)
+                .isSaved(false)
+                .principalPhoto(principalPhoto)
+                .principalPhotoUrl(principalPhotoUrl)
+                .googleTypes(googleTypes)
+                .status(status != null ? status : false)
+                .ranking(ranking)
+                .startRecommendation(startRecommendation)
+                .endRecommendation(endRecommendation)
+                .createdAt(createdDate)
+                .lastCancel(lastCancel)
+                .latitude(latitude != null ? latitude : 0.0)
+                .longitude(longitude != null ? longitude : 0.0)
+                .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
+                .photos(List.of())
+                .build();
     }
 
     private List<PlacePhoto> convertPhotosToDomain() {

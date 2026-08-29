@@ -39,6 +39,7 @@ metadata:
 ## Constraints and guardrails
 
 - Use `docs/obsidian/Sessions/` as source of truth.
+- Commit session notes, work items, and `docs/obsidian/CURRENT_WORK.md` (do not gitignore the vault).
 - Keep notes concise and actionable.
 - Record decisions and blockers explicitly.
 

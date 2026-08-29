@@ -46,7 +46,7 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
         // Process all places in parallel
         var places =
                 Arrays.stream(response.results)
-                        .parallel()
+                        .parallel() // Enable parallel processing
                         .map(this::processPlaceResult)
                         .collect(Collectors.toList());
 
@@ -60,7 +60,7 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     private Place processPlaceResult(com.google.maps.model.PlacesSearchResult result) {
-        Place basePlace = Place.toNearbyPlace(result, placesApiClient.getApiKey());
+        Place basePlace = Place.toNearbyPlace(result);
 
         // Enrich with additional photos if available
         if (result.photos != null && result.photos.length > 0) {
@@ -82,6 +82,9 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
                 .address(basePlace.getAddress())
                 .principalPhoto(basePlace.getPrincipalPhoto())
                 .principalPhotoUrl(basePlace.getPrincipalPhotoUrl())
+                .googleTypes(basePlace.getGoogleTypes())
+                .latitude(basePlace.getLatitude())
+                .longitude(basePlace.getLongitude())
                 .photos(photos)
                 .build();
     }

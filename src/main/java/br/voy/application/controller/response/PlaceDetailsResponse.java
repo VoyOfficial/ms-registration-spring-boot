@@ -29,6 +29,8 @@ public class PlaceDetailsResponse {
     private String principalPhoto;
     private List<PlacePhoto> photos;
     private String address;
+    private Double latitude;
+    private Double longitude;
 
     public static PlaceDetailsResponse toPlaceDetailsResponse(PlaceDetails place) {
 
@@ -47,6 +49,8 @@ public class PlaceDetailsResponse {
                 .photos(place.getPhotos())
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .address(place.getAddress())
+                .latitude(place.getLatitude())
+                .longitude(place.getLongitude())
                 .build();
     }
 }

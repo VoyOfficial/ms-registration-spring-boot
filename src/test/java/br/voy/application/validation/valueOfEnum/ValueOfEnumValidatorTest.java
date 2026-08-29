@@ -1,6 +1,6 @@
 package br.voy.application.validation.valueOfEnum;
 
-import br.voy.infrastructure.model.enums.SexEnum;
+import br.voy.domain.entity.enums.SexEnum;
 import java.lang.annotation.Annotation;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;

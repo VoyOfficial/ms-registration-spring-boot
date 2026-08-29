@@ -622,10 +622,9 @@ class PlaceControllerTest {
                                 .param("pageSize", String.valueOf(pageSize))
                                 .param("nextPageToken", nextPageToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty())
-                .andExpect(jsonPath("$.data.places", hasSize(5)))
-                .andExpect(jsonPath("$.data.nextTokenPage").value("next-page-token-123"));
+                .andExpect(jsonPath("$.places").isNotEmpty())
+                .andExpect(jsonPath("$.places", hasSize(5)))
+                .andExpect(jsonPath("$.nextTokenPage").value("next-page-token-123"));
     }
 
     @Test
@@ -655,10 +654,9 @@ class PlaceControllerTest {
                                 .param("pageSize", String.valueOf(pageSize))
                                 .param("nextPageToken", nextPageToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty())
-                .andExpect(jsonPath("$.data.places", hasSize(5)))
-                .andExpect(jsonPath("$.data.nextTokenPage").doesNotExist());
+                .andExpect(jsonPath("$.places").isNotEmpty())
+                .andExpect(jsonPath("$.places", hasSize(5)))
+                .andExpect(jsonPath("$.nextTokenPage").doesNotExist());
     }
 
     @Test
@@ -684,8 +682,7 @@ class PlaceControllerTest {
                                 .param("longitude", String.valueOf(longitude))
                                 .param("range", String.valueOf(range)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty());
+                .andExpect(jsonPath("$.places").isNotEmpty());
     }
 
     @Test
@@ -695,9 +692,7 @@ class PlaceControllerTest {
         var latitude = -29.35995;
         var longitude = -50.84805;
 
-        var emptyResponse =
-                new br.voy.application.controller.response.RecommendedPlacesResponse(
-                        new ArrayList<>(), null);
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
 
         doReturn(emptyResponse)
                 .when(placeRecommendationUseCase)
@@ -711,6 +706,33 @@ class PlaceControllerTest {
                                 .param("latitude", String.valueOf(latitude))
                                 .param("longitude", String.valueOf(longitude)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return 200 with empty places when pagination offset exceeds total")
+    void shouldReturn200WithEmptyPlacesWhenPaginationOffsetExceedsTotal() throws Exception {
+        var latitude = -29.35995;
+        var longitude = -50.84805;
+        var nextPageToken = "valid-pagination-token";
+        var pageSize = 5;
+
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
+
+        doReturn(emptyResponse)
+                .when(placeRecommendationUseCase)
+                .getRecommendedPlaces(latitude, longitude, null, pageSize, nextPageToken);
+
+        mockMvc.perform(
+                        get(URL + "/recommendations")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("latitude", String.valueOf(latitude))
+                                .param("longitude", String.valueOf(longitude))
+                                .param("nextPageToken", nextPageToken)
+                                .param("pageSize", String.valueOf(pageSize)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.places").isEmpty())
+                .andExpect(jsonPath("$.nextTokenPage").doesNotExist());
     }
 
     @Test
@@ -738,24 +760,18 @@ class PlaceControllerTest {
                                 .param("nextPageToken", nextPageToken)
                                 .param("pageSize", String.valueOf(pageSize)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.places").isNotEmpty());
+                .andExpect(jsonPath("$.places").isNotEmpty());
     }
 
-    private static br.voy.application.controller.response.RecommendedPlacesResponse
-            createRecommendedPlacesResponse(int size, boolean hasNextPage) {
-        List<br.voy.application.controller.response.PlaceResponse> placeResponses =
-                new ArrayList<>();
+    private static NearbyPlaces createRecommendedPlacesResponse(int size, boolean hasNextPage) {
+        List<Place> places = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
-            var place = createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i);
-            placeResponses.add(
-                    br.voy.application.controller.response.PlaceResponse.fromDomain(place));
+            places.add(createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i));
         }
 
         String nextToken = hasNextPage ? "next-page-token-123" : null;
-        return new br.voy.application.controller.response.RecommendedPlacesResponse(
-                placeResponses, nextToken);
+        return new NearbyPlaces(places, nextToken);
     }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {
@@ -822,6 +838,7 @@ class PlaceControllerTest {
                 List.of(new PlacePhoto(), new PlacePhoto()),
                 "R. da Bavária, 543 - Bavária, Gramado - RS, 95670-000, Brazil",
                 "Gramado",
+                "RS", // state
                 true, // status
                 1, // ranking
                 null, // startRecommendation
@@ -832,7 +849,8 @@ class PlaceControllerTest {
                 65.2f, // distanceOfLocal
                 65.2, // latitude
                 65.2, // longitude
-                ""); // distanceFromUserLocation
+                "", // distanceFromUserLocation
+                null); // googleTypes
     }
 
     private br.voy.domain.entity.PlaceDetails createPlaceDetails(String placeId) {

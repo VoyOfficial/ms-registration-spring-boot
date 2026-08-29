@@ -22,4 +22,24 @@ public interface PlaceJpaRepository extends JpaRepository<PlaceModel, Long> {
             @Param("maxLat") double maxLat,
             @Param("minLon") double minLon,
             @Param("maxLon") double maxLon);
+
+    @Query(
+            value =
+                    "SELECT * FROM registration.place p "
+                            + "WHERE p.latitude != 0 AND p.longitude != 0 "
+                            + "AND (6371000 * acos(cos(radians(:latitude)) * cos(radians(p.latitude)) * "
+                            + "cos(radians(p.longitude) - radians(:longitude)) + sin(radians(:latitude)) * "
+                            + "sin(radians(p.latitude)))) <= :radiusInMeters "
+                            + "ORDER BY (6371000 * acos(cos(radians(:latitude)) * cos(radians(p.latitude)) * "
+                            + "cos(radians(p.longitude) - radians(:longitude)) + sin(radians(:latitude)) * "
+                            + "sin(radians(p.latitude))))",
+            nativeQuery = true)
+    List<PlaceModel> findNearbyPlacesByCoordinates(
+            @Param("latitude") double latitude,
+            @Param("longitude") double longitude,
+            @Param("radiusInMeters") int radiusInMeters);
+
+    @Query(
+            "SELECT p FROM PlaceModel p WHERE (p.latitude = 0 OR p.latitude IS NULL) AND (p.longitude = 0 OR p.longitude IS NULL) AND p.googlePlaceId IS NOT NULL")
+    List<PlaceModel> findPlacesWithMissingCoordinates();
 }

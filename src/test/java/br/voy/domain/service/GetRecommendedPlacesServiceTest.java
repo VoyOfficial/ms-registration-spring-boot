@@ -8,18 +8,29 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
+import br.voy.domain.exception.PlacePageSizeExceededException;
+import br.voy.domain.exception.PlaceSearchRangeExceededException;
+import br.voy.domain.exception.RecommendedPlacesNotFoundException;
+import br.voy.domain.ports.CurrentUserPort;
 import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.repository.UserSavedPlaceRepository;
 import br.voy.domain.utils.BoundingBox;
 import br.voy.domain.utils.PaginationTokenEncoder;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,26 +39,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 public class GetRecommendedPlacesServiceTest {
 
     @Mock private PlaceRepository placeRepository;
 
+    @Mock private UserSavedPlaceRepository userSavedPlaceRepository;
+
+    @Mock private CurrentUserPort currentUserPort;
+
     @InjectMocks private GetRecommendedPlacesService placeService;
-
-    @Value("${voy.services.places.limitMaxBoundingBox}")
-    private double LIMIT_MAX_BOUNDING_BOX;
-
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.message}")
-    private String OUT_OF_MAX_RANGE_MESSAGE;
-
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.km}")
-    private String KM;
 
     @BeforeEach
     public void setup() {
@@ -57,9 +60,7 @@ public class GetRecommendedPlacesServiceTest {
         ReflectionTestUtils.setField(placeService, "MAX_PLACE_SIZE_LIST", 5);
         ReflectionTestUtils.setField(placeService, "LIMIT_MAX_BOUNDING_BOX", 50);
         ReflectionTestUtils.setField(placeService, "EARTH_RADIUS_KM", 6371.0);
-        ReflectionTestUtils.setField(
-                placeService, "OUT_OF_MAX_RANGE_MESSAGE", "raio de busca máxima é de ");
-        ReflectionTestUtils.setField(placeService, "KM", " km");
+        ReflectionTestUtils.setField(placeService, "MAX_PAGE_SIZE", 50);
     }
 
     @Test
@@ -181,13 +182,13 @@ public class GetRecommendedPlacesServiceTest {
             "O método GetRecommendedPlaces deve lançar uma exceção quando o raio de busca providenciado for maior que o limite")
     void testGetRecommendedPlacesThrowsExceptionWhenRadiusExceedsLimit() {
 
-        ResponseStatusException exception =
+        PlaceSearchRangeExceededException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        PlaceSearchRangeExceededException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, 130.0));
 
-        assertTrue(exception.getStatus() == HttpStatus.BAD_REQUEST);
-        assertEquals("raio de busca máxima é de 50.0 km", exception.getReason());
+        assertEquals(PlaceSearchRangeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50.0, exception.getLimitKm());
     }
 
     @Test
@@ -198,13 +199,12 @@ public class GetRecommendedPlacesServiceTest {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.empty());
 
-        ResponseStatusException exception =
+        RecommendedPlacesNotFoundException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        RecommendedPlacesNotFoundException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.NOT_FOUND);
-        assertEquals("não encontrado", exception.getReason());
+        assertEquals(RecommendedPlacesNotFoundException.MESSAGE_KEY, exception.getMessage());
     }
 
     @Test
@@ -215,13 +215,12 @@ public class GetRecommendedPlacesServiceTest {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.of(new ArrayList<>()));
 
-        ResponseStatusException exception =
+        RecommendedPlacesNotFoundException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        RecommendedPlacesNotFoundException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.NOT_FOUND);
-        assertEquals("não encontrado", exception.getReason());
+        assertEquals(RecommendedPlacesNotFoundException.MESSAGE_KEY, exception.getMessage());
     }
 
     @Test
@@ -273,8 +272,9 @@ public class GetRecommendedPlacesServiceTest {
         assertNotNull(
                 response.getNextTokenPage(), "esperado que tenha um token para a próxima página");
 
-        int decodedOffset = PaginationTokenEncoder.decode(response.getNextTokenPage());
-        assertEquals(3, decodedOffset, "esperado que o token decodificado seja '3'");
+        PaginationTokenEncoder.PaginationState decodedState =
+                PaginationTokenEncoder.decode(response.getNextTokenPage());
+        assertEquals(3, decodedState.getOffset(), "esperado que o token decodificado seja '3'");
 
         assertTrue(
                 response.getNextTokenPage().length() > 10,
@@ -359,15 +359,46 @@ public class GetRecommendedPlacesServiceTest {
     @DisplayName(
             "O método GetRecommendedPlaces com paginação deve lançar exceção quando raio exceder limite")
     void testGetRecommendedPlacesWithPaginationThrowsExceptionWhenRadiusExceedsLimit() {
-        ResponseStatusException exception =
+        PlaceSearchRangeExceededException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        PlaceSearchRangeExceededException.class,
                         () ->
                                 placeService.getRecommendedPlaces(
                                         -29.35995, -50.84805, 130.0, 5, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.BAD_REQUEST);
-        assertEquals("raio de busca máxima é de 50.0 km", exception.getReason());
+        assertEquals(PlaceSearchRangeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50.0, exception.getLimitKm());
+    }
+
+    @Test
+    @DisplayName(
+            "O método GetRecommendedPlaces com paginação deve retornar lista vazia quando o offset for maior que o total")
+    void testGetRecommendedPlacesWithPaginationReturnsEmptyWhenOffsetExceedsTotal() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(generatePlaceList()));
+
+        String nextPageToken = PaginationTokenEncoder.encode(10_000);
+        var response =
+                placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, nextPageToken);
+
+        assertNotNull(response);
+        assertTrue(response.getPlaces().isEmpty());
+        assertNull(response.getNextTokenPage());
+    }
+
+    @Test
+    @DisplayName(
+            "O método GetRecommendedPlaces com paginação deve lançar exceção quando pageSize exceder o máximo")
+    void testGetRecommendedPlacesWithPaginationThrowsWhenPageSizeExceedsMax() {
+        PlacePageSizeExceededException exception =
+                assertThrows(
+                        PlacePageSizeExceededException.class,
+                        () ->
+                                placeService.getRecommendedPlaces(
+                                        -29.35995, -50.84805, null, 51, null));
+
+        assertEquals(PlacePageSizeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50, exception.getMaxPageSize());
     }
 
     @Test
@@ -399,6 +430,135 @@ public class GetRecommendedPlacesServiceTest {
         assertFalse(hasExpiredPlace, "esperado que o lugar expirado seja removido");
     }
 
+    @Test
+    @DisplayName("Should mark place as saved when user has saved it")
+    void shouldMarkPlaceAsSavedWhenUserHasSavedIt() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserPort.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.findSavedPlaceIdsByUser(42L))
+                .thenReturn(Set.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        response.getPlaces()
+                .forEach(
+                        place ->
+                                assertTrue(
+                                        place.getIsSaved(), "esperado que o lugar esteja salvo"));
+        verify(userSavedPlaceRepository, times(1)).findSavedPlaceIdsByUser(42L);
+    }
+
+    @Test
+    @DisplayName("Should mark place as not saved when user has not saved it")
+    void shouldMarkPlaceAsNotSavedWhenUserHasNotSavedIt() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserPort.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.findSavedPlaceIdsByUser(42L)).thenReturn(Set.of());
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        response.getPlaces()
+                .forEach(
+                        place ->
+                                assertFalse(
+                                        place.getIsSaved(),
+                                        "esperado que o lugar não esteja salvo"));
+    }
+
+    @Test
+    @DisplayName("Should skip saved check when no authenticated user")
+    void shouldSkipSavedCheckWhenNoAuthenticatedUser() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(generatePlaceList()));
+        when(currentUserPort.getCurrentUserId()).thenReturn(null);
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        assertFalse(response.getPlaces().isEmpty());
+        verify(userSavedPlaceRepository, never()).findSavedPlaceIdsByUser(anyLong());
+    }
+
+    @Test
+    @DisplayName("Should expand bounding box when initial radius has insufficient places")
+    void shouldExpandBoundingBoxWhenInitialRadiusHasInsufficientPlaces() {
+        List<Place> singlePlace = generatePlaceList().subList(0, 1);
+        List<Place> fullList = generatePlaceList();
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(singlePlace))
+                .thenReturn(Optional.of(fullList));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
+
+        assertNotNull(response.getPlaces());
+        verify(placeRepository, atLeast(2)).findPlacesWithinBoundingBox(any(BoundingBox.class));
+    }
+
+    @Test
+    @DisplayName("Should expand radius when the first bounding box is empty")
+    void shouldExpandRadiusWhenFirstBoundingBoxIsEmpty() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(List.of()))
+                .thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null);
+
+        assertFalse(response.isEmpty());
+        verify(placeRepository, atLeast(2)).findPlacesWithinBoundingBox(any(BoundingBox.class));
+    }
+
+    @Test
+    @DisplayName("Should exclude recommendations that are disabled or not started yet")
+    void shouldExcludeDisabledAndFutureRecommendations() {
+        Place disabled = generatePlaceList().get(0);
+        disabled.setStatus(false);
+
+        Place future =
+                createPlace(
+                        99L,
+                        "future-google-id",
+                        "Future Place",
+                        "about",
+                        "(54) 0000-0000",
+                        null,
+                        4.5f,
+                        10,
+                        "photoString",
+                        new ArrayList<>(),
+                        "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
+                        "Gramado",
+                        true,
+                        1,
+                        LocalDate.now().plusDays(10),
+                        LocalDate.now().plusMonths(1),
+                        LocalDate.now(),
+                        null,
+                        null,
+                        -29.37855,
+                        -50.8744,
+                        null);
+
+        List<Place> mixed = new ArrayList<>();
+        mixed.add(disabled);
+        mixed.add(future);
+        mixed.addAll(generatePlaceList());
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(mixed));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null);
+
+        assertTrue(response.stream().noneMatch(place -> "Future Place".equals(place.getName())));
+        assertTrue(response.stream().allMatch(Place::isStatus));
+    }
+
     private Place generateFarPlace() {
         return Place.builder()
                 .id(123L)
@@ -409,7 +569,6 @@ public class GetRecommendedPlacesServiceTest {
                 .businessHours(null)
                 .rating(null)
                 .userRatingsTotal(null)
-                .isSaved(false)
                 .principalPhoto("photoString")
                 .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
@@ -437,7 +596,6 @@ public class GetRecommendedPlacesServiceTest {
                 .businessHours(null)
                 .rating(null)
                 .userRatingsTotal(null)
-                .isSaved(false)
                 .principalPhoto("photoString")
                 .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
@@ -465,7 +623,6 @@ public class GetRecommendedPlacesServiceTest {
                 .businessHours(null)
                 .rating(null)
                 .userRatingsTotal(null)
-                .isSaved(false)
                 .principalPhoto("photoString")
                 .photos(new ArrayList<>())
                 .address("R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil")
@@ -492,7 +649,6 @@ public class GetRecommendedPlacesServiceTest {
             BusinessHours businessHours,
             Float rating,
             Integer userRatingsTotal,
-            Boolean isSaved,
             String principalPhoto,
             List<String> images,
             String address,
@@ -516,7 +672,6 @@ public class GetRecommendedPlacesServiceTest {
                 .businessHours(businessHours)
                 .rating(rating)
                 .userRatingsTotal(userRatingsTotal)
-                .isSaved(isSaved)
                 .principalPhoto(principalPhoto)
                 .photos(List.of(new PlacePhoto(), new PlacePhoto()))
                 .address(address)
@@ -550,12 +705,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -576,12 +730,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -602,12 +755,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias - Portico, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -628,12 +780,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -654,12 +805,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -680,12 +830,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         5,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -706,12 +855,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -732,12 +880,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -758,12 +905,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -784,12 +930,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -816,12 +961,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2023, 11, 17),
                         LocalDate.of(2023, 12, 17),
@@ -842,12 +986,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -868,12 +1011,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias - Portico, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -894,12 +1036,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -920,12 +1061,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -946,12 +1086,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         5,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -972,12 +1111,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -998,12 +1136,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1024,12 +1161,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1050,12 +1186,11 @@ public class GetRecommendedPlacesServiceTest {
                         null,
                         null,
                         null,
-                        false,
                         "photoString",
                         new ArrayList<>(),
                         "Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),

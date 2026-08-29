@@ -118,6 +118,10 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     @Override
     public br.voy.domain.entity.PlaceDetails getPlaceDetails(String placeId) {
 
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - GET PLACE DETAILS MOCKED - Place Id: {}",
+                placeId);
+
         com.google.maps.model.PlaceDetails details = new com.google.maps.model.PlaceDetails();
 
         details.addressComponents = new AddressComponent[] {new AddressComponent()};
@@ -131,6 +135,8 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.formattedAddress = "Formatted Address";
         details.formattedPhoneNumber = "123-456-7890";
         details.geometry = new Geometry();
+        details.geometry.location =
+                new LatLng(-23.5505, -46.6333); // São Paulo coordinates as example
         details.internationalPhoneNumber = "+1 123-456-7890";
         details.name = "Random Place";
         details.openingHours = new OpeningHours();
@@ -162,6 +168,10 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
         details.vicinity = "Random Vicinity";
         details.wheelchairAccessibleEntrance = true;
         details.htmlAttributions = new String[] {"attribution1", "attribution2"};
+
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - FINISH GET PLACE DETAILS MOCKED - Place: {}",
+                details.name);
 
         return br.voy.domain.entity.PlaceDetails.toPlaceDetailsByGoogle(details);
     }

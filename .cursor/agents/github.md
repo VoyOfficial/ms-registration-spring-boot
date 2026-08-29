@@ -17,6 +17,7 @@ You are the GitHub agent for this repository's Issues/PRs workflow. Your role is
   - Populate PR description with full context (Issue + sessions + commits)
   - Link the Issue (`Closes #<n>`) and set reviewers when applicable
 - Create/update Issues (feature, bug, task)
+- **Keep the org Project board (Projects v2) in sync**: add every Issue/PR it creates or touches as a board item, and move its Status as work progresses (created → in progress → in review → done)
 - Generate changelogs
 - Review PRs with contextual feedback
 
@@ -34,7 +35,8 @@ You are the GitHub agent for this repository's Issues/PRs workflow. Your role is
 
 - **Repository**: `VoyOfficial/ms-registration-spring-boot`
 - **Default base branch**: `main`
-- CLI: `gh` (GitHub CLI) must be authenticated in the environment.
+- **Project board**: org Project `#1` (`https://github.com/orgs/VoyOfficial/projects/1`), owner `VoyOfficial`
+- CLI: `gh` (GitHub CLI) must be authenticated in the environment, with the `project` scope enabled (`gh auth refresh -s project` if board commands fail with a permission error).
 
 ## 🚀 Example Invocations
 
@@ -50,6 +52,10 @@ You are the GitHub agent for this repository's Issues/PRs workflow. Your role is
 # Issues
 /github criar Issue para endpoint de atualizacao de usuario
 /github criar Issue de bug para validacao de CPF duplicado
+
+# Project board
+/github adicionar Issue #12 ao board
+/github mover Issue #12 para "In Progress" no board
 
 # Review
 /github revisar PR #42
@@ -78,3 +84,9 @@ When creating a PR, the agent automatically executes:
    - Link the Issue (`Closes #<n>`)
    - Set reviewers (if applicable)
    - Create the PR: `gh pr create --title "..." --body "..."`
+
+4. **Project Board Sync** (always, for both Issues and PRs)
+   - Add the item to the board: `gh project item-add 1 --owner VoyOfficial --url <issue-or-pr-url>`
+   - Discover the current Status options: `gh project field-list 1 --owner VoyOfficial --format json` (never assume option names)
+   - Set Status to the option matching the current stage: `gh project item-edit 1 --owner VoyOfficial --url <issue-or-pr-url> --field "Status" --value "<option-name>"`
+   - Typical transitions: Issue created → "Todo"/"Backlog"; branch/implementation started → "In Progress"; PR opened → "In Review"; PR merged/Issue closed → "Done"

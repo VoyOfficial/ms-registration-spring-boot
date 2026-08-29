@@ -62,6 +62,16 @@ git config --get remote.origin.url
 > [!CAUTION]
 > UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL
 
+## Project Board Sync
+
+After each Issue is created, add it as an item on the org Project board so it is visible on `https://github.com/orgs/VoyOfficial/projects/1`:
+
+1. Add the Issue to the board: `gh project item-add 1 --owner VoyOfficial --url <issue-url>`
+2. Discover the current Status field options (never assume option names — they can be renamed on the board): `gh project field-list 1 --owner VoyOfficial --format json`
+3. Set the Status to the option representing "not started yet" (e.g. `Todo`/`Backlog`, whichever the board actually has): `gh project item-edit 1 --owner VoyOfficial --url <issue-url> --field "Status" --value "<option-name>"`
+
+If any `gh project` command fails (e.g. missing `project` scope or invalid auth), report the created Issues to the user and note that the board sync step needs `gh auth refresh -s project` before it can complete — do not block Issue creation on this step.
+
 ## Post-Execution Checks
 
 **Check for extension hooks (after tasks-to-issues conversion)**:

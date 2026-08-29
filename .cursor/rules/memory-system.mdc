@@ -19,6 +19,8 @@ Guia operacional de memoria para qualquer agente IA neste repositorio.
 
 - Use Obsidian como padrao de memoria: `docs/obsidian/`.
 - Para sessoes, use sempre `docs/obsidian/Sessions/`.
+- **Commitar** Sessions, Work Items, Decisions, Modules e `docs/obsidian/CURRENT_WORK.md` junto com a task. Nao deixar sessao so na working tree.
+- Ignorar apenas `docs/obsidian/.obsidian/` (estado do editor), `/CURRENT_WORK.md` e `/CONTEXT.md` na raiz.
 - Nao use `docs/memory/session/` para leitura ou escrita de sessoes.
 - Nao use `/memories/` para contexto de trabalho deste repo.
 
@@ -42,7 +44,7 @@ docs/
 
 1. Obter branch atual: `git branch --show-current`.
 2. Identificar a Issue do GitHub relacionada (pelo nome da branch, quando existir).
-3. Ler `CURRENT_WORK.md`.
+3. Ler `docs/obsidian/CURRENT_WORK.md`.
 4. Ler sessoes recentes em `docs/obsidian/Sessions/`.
 5. Se houver Issue pai/filha, carregar contexto relacionado.
 
@@ -93,7 +95,7 @@ Processo:
 4. **Linkar sessao no Work Item local** (secao Sessions do arquivo).
 5. Ao finalizar a task (normalmente abertura de PR), fechar Work Item e sessoes com `status: closed`.
 6. Atualizar `docs/memory/repo/conventions.md` se houver novo padrao recorrente.
-7. Atualizar `CURRENT_WORK.md` (Active, Blocked, Recently Completed).
+7. Atualizar e commitar `docs/obsidian/CURRENT_WORK.md` (Active, Blocked, Recently Completed).
 
 ## 5) Padrao Obsidian para artefatos
 

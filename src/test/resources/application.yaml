@@ -45,7 +45,7 @@ spring:
     default-property-inclusion: non_null
   # Datasource
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REGISTRATION
     driverClassName: org.h2.Driver
     username: sa
     password: password
@@ -77,7 +77,9 @@ voy:
       initialDefaultBoundingBoxRadiusKM: ${INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM:10.0}
       incrementalBoundingBoxRadiusKM: ${INCREMENTAL_BOUNDING_BOX_RADIUS_KM:5.0}
       maxPlaceSizeList: ${MAX_PLACE_SIZE_LIST:5}
+      nearbyPageSize: ${NEARBY_PLACE_PAGE_SIZE:20}
       limitMaxBoundingBox: ${LIMIT_MAX_BOUNDING_BOX:50}
+      maxPageSize: ${MAX_PLACE_PAGE_SIZE:50}
       earthRadiusKM: ${EARTH_RADIUS_KM:6371.0}
       google:
         api_key: ${PLACES_API_KEY:fake_key}

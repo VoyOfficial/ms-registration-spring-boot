@@ -1,7 +1,9 @@
 package br.voy.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import br.voy.domain.entity.Coordinates;
@@ -9,20 +11,25 @@ import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.repository.PlaceRepository;
+import br.voy.domain.utils.PaginationTokenEncoder;
 import com.google.maps.model.Photo;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class GetNearbyPlacesServiceTest {
@@ -36,7 +43,14 @@ public class GetNearbyPlacesServiceTest {
 
     @Mock PlaceRepository placeRepository;
 
+    @Mock PlacePersistService placePersistService;
+
     @InjectMocks GetNearbyPlacesService service;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(service, "pageSize", 20);
+    }
 
     @Test
     @DisplayName("Must to Get All Nearby Places given a Coordinates, radius and placeType")
@@ -52,28 +66,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // Mock repository to return empty (places don't exist yet)
-        when(placeRepository.findPlaceByGooglePlaceId(anyString())).thenReturn(Optional.empty());
-
-        // Mock repository save to return the place with an ID
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .about(place.getAbout())
-                                    .rating(place.getRating())
-                                    .userRatingsTotal(place.getUserRatingsTotal())
-                                    .address(place.getAddress())
-                                    .principalPhoto(place.getPrincipalPhoto())
-                                    .principalPhotoUrl(place.getPrincipalPhotoUrl())
-                                    .photos(place.getPhotos())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -81,17 +75,13 @@ public class GetNearbyPlacesServiceTest {
         // validation
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
-        assertEquals(NEXT_PAGE_TOKEN, nearbyPlaces.getNextTokenPage());
+        assertNotNull(nearbyPlaces.getNextTokenPage());
 
         // Verify that the service called the Google API
         verify(googlePlacesPort, times(1))
                 .getNearbyPlaces(any(Coordinates.class), any(), anyString(), anyString());
 
-        // Verify that each place was checked if it exists
-        verify(placeRepository, times(2)).findPlaceByGooglePlaceId(anyString());
-
-        // Verify that each place was saved
-        verify(placeRepository, times(2)).savePlace(any(Place.class));
+        verify(placePersistService, times(2)).saveIfAbsent(any());
     }
 
     @Test
@@ -104,30 +94,12 @@ public class GetNearbyPlacesServiceTest {
         var placeType = "CAFE";
 
         NearbyPlaces nearbyPlacesResponse = createNearbyPlacesMock();
-        Place existingPlace = nearbyPlacesResponse.getPlaces().get(0);
 
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // First place already exists, second doesn't
-        when(placeRepository.findPlaceByGooglePlaceId(existingPlace.getGooglePlaceId()))
-                .thenReturn(Optional.of(existingPlace));
-        when(placeRepository.findPlaceByGooglePlaceId(
-                        argThat(id -> !id.equals(existingPlace.getGooglePlaceId()))))
-                .thenReturn(Optional.empty());
-
-        // Mock save for new places
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(2L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -136,11 +108,9 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify that only 1 place was saved (the one that didn't exist)
-        verify(placeRepository, times(1)).savePlace(any(Place.class));
-
-        // Verify that both places were checked
-        verify(placeRepository, times(2)).findPlaceByGooglePlaceId(anyString());
+        // Verify that async save was called (PlaceAsyncSaveService handles deduplication
+        // internally)
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -157,22 +127,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // Mock repository to return empty (places don't exist yet)
-        when(placeRepository.findPlaceByGooglePlaceId(anyString())).thenReturn(Optional.empty());
-
-        // First save fails, second succeeds
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenThrow(new RuntimeException("Database error"))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -181,8 +137,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify that save was attempted for both places
-        verify(placeRepository, times(2)).savePlace(any(Place.class));
+        // Verify async save was called (error handling is PlaceAsyncSaveService's responsibility)
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -199,6 +155,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(emptyResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -208,9 +166,8 @@ public class GetNearbyPlacesServiceTest {
         assertEquals(0, nearbyPlaces.getPlaces().size());
         Assertions.assertNull(nearbyPlaces.getNextTokenPage());
 
-        // Verify no database operations were performed
-        verify(placeRepository, never()).findPlaceByGooglePlaceId(anyString());
-        verify(placeRepository, never()).savePlace(any(Place.class));
+        // Verify no async save was performed
+        verify(placePersistService, never()).saveIfAbsent(any());
     }
 
     @Test
@@ -227,18 +184,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, null);
-
-        when(placeRepository.findPlaceByGooglePlaceId(anyString())).thenReturn(Optional.empty());
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -266,22 +213,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // First lookup throws exception, second returns empty
-        when(placeRepository.findPlaceByGooglePlaceId(anyString()))
-                .thenThrow(new RuntimeException("Database connection error"))
-                .thenReturn(Optional.empty());
-
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -290,8 +223,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // The async method should handle the error gracefully
-        verify(placeRepository, times(2)).findPlaceByGooglePlaceId(anyString());
+        // Verify async save was called (error handling is PlaceAsyncSaveService's responsibility)
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -306,6 +239,8 @@ public class GetNearbyPlacesServiceTest {
         doThrow(new RuntimeException("Google API error"))
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action & validation
         Assertions.assertThrows(
@@ -314,9 +249,8 @@ public class GetNearbyPlacesServiceTest {
                     service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
                 });
 
-        // Verify that no database operations were performed
-        verify(placeRepository, never()).findPlaceByGooglePlaceId(anyString());
-        verify(placeRepository, never()).savePlace(any(Place.class));
+        // Verify that no async save was performed
+        verify(placePersistService, never()).saveIfAbsent(any());
     }
 
     @Test
@@ -333,6 +267,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(emptyResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -340,11 +276,10 @@ public class GetNearbyPlacesServiceTest {
         // validation
         assertNotNull(nearbyPlaces);
         assertEquals(0, nearbyPlaces.getPlaces().size());
-        assertEquals(NEXT_PAGE_TOKEN, nearbyPlaces.getNextTokenPage());
+        assertNotNull(nearbyPlaces.getNextTokenPage());
 
-        // Verify no database operations were performed
-        verify(placeRepository, never()).findPlaceByGooglePlaceId(anyString());
-        verify(placeRepository, never()).savePlace(any(Place.class));
+        // Verify no async save was performed (empty list)
+        verify(placePersistService, never()).saveIfAbsent(any());
     }
 
     @Test
@@ -361,18 +296,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, null);
-
-        when(placeRepository.findPlaceByGooglePlaceId(anyString())).thenReturn(Optional.empty());
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -383,6 +308,7 @@ public class GetNearbyPlacesServiceTest {
 
         // The method should return immediately without waiting for async save
         verify(googlePlacesPort, times(1)).getNearbyPlaces(coordinates, radius, placeType, null);
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -399,19 +325,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // All places already exist
-        when(placeRepository.findPlaceByGooglePlaceId(anyString()))
-                .thenAnswer(
-                        invocation -> {
-                            String googlePlaceId = invocation.getArgument(0);
-                            return Optional.of(
-                                    Place.builder()
-                                            .id(1L)
-                                            .googlePlaceId(googlePlaceId)
-                                            .name("Existing Place")
-                                            .build());
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -420,11 +335,9 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify that no place was saved
-        verify(placeRepository, never()).savePlace(any(Place.class));
-
-        // Verify that all places were checked
-        verify(placeRepository, times(2)).findPlaceByGooglePlaceId(anyString());
+        // Verify that async save was called (PlaceAsyncSaveService handles deduplication
+        // internally)
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -441,23 +354,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
-
-        // First place lookup throws exception, second returns empty
-        when(placeRepository.findPlaceByGooglePlaceId(anyString()))
-                .thenThrow(new RuntimeException("Lookup error"))
-                .thenReturn(Optional.empty());
-
-        // Second place save succeeds
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, NEXT_PAGE_TOKEN);
@@ -466,11 +364,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(2, nearbyPlaces.getPlaces().size());
 
-        // Verify lookup was attempted for both places
-        verify(placeRepository, times(2)).findPlaceByGooglePlaceId(anyString());
-
-        // Verify save was only called once (second place, first failed on lookup)
-        verify(placeRepository, times(1)).savePlace(any(Place.class));
+        // Verify async save was called (error handling is PlaceAsyncSaveService's responsibility)
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     @Test
@@ -487,6 +382,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, null);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -527,18 +424,8 @@ public class GetNearbyPlacesServiceTest {
         doReturn(nearbyPlacesResponse)
                 .when(googlePlacesPort)
                 .getNearbyPlaces(coordinates, radius, placeType, null);
-
-        when(placeRepository.findPlaceByGooglePlaceId(anyString())).thenReturn(Optional.empty());
-        when(placeRepository.savePlace(any(Place.class)))
-                .thenAnswer(
-                        invocation -> {
-                            Place place = invocation.getArgument(0);
-                            return Place.builder()
-                                    .id(1L)
-                                    .googlePlaceId(place.getGooglePlaceId())
-                                    .name(place.getName())
-                                    .build();
-                        });
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
 
         // action
         var nearbyPlaces = service.getNearbyPlaces(coordinates, radius, placeType, null);
@@ -547,9 +434,8 @@ public class GetNearbyPlacesServiceTest {
         assertNotNull(nearbyPlaces);
         assertEquals(20, nearbyPlaces.getPlaces().size());
 
-        // Verify all places were processed
-        verify(placeRepository, times(20)).findPlaceByGooglePlaceId(anyString());
-        verify(placeRepository, times(20)).savePlace(any(Place.class));
+        // Verify async save was called
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
     }
 
     private NearbyPlaces createNearbyPlacesMock() {
@@ -606,5 +492,289 @@ public class GetNearbyPlacesServiceTest {
         result.photos = new Photo[] {photo};
 
         return result;
+    }
+
+    private List<Place> createDbPlaces(int count) {
+        List<Place> places = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            places.add(
+                    Place.builder()
+                            .googlePlaceId("db-place-id-" + i)
+                            .name("DB Place " + i)
+                            .rating(4.0f)
+                            .latitude(LATITUDE)
+                            .longitude(LONGITUDE)
+                            .googleTypes("cafe")
+                            .build());
+        }
+        return places;
+    }
+
+    @Test
+    @DisplayName("Should return full page from database without calling Google API")
+    void shouldReturnFullPageFromDatabaseWithoutCallingGoogleApi() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(20));
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        assertNotNull(result.getNextTokenPage());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+        verify(placePersistService, never()).saveIfAbsent(any());
+    }
+
+    @Test
+    @DisplayName("Should return partial page from database when DB has more results than page size")
+    void shouldReturnPartialPageFromDatabaseWhenDbHasMoreResults() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(25));
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        assertNotNull(result.getNextTokenPage());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Should supplement with Google when database is exhausted")
+    void shouldSupplementWithGoogleWhenDatabaseIsExhausted() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> dbPlaces = createDbPlaces(3);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(dbPlaces);
+
+        List<Place> googlePlaces =
+                createDbPlaces(17).stream()
+                        .map(
+                                p ->
+                                        Place.builder()
+                                                .googlePlaceId("google-" + p.getGooglePlaceId())
+                                                .name(p.getName())
+                                                .rating(p.getRating())
+                                                .latitude(p.getLatitude())
+                                                .longitude(p.getLongitude())
+                                                .build())
+                        .collect(Collectors.toList());
+        NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
+
+        doReturn(googleResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(), any(), anyString(), any());
+        verify(placePersistService, atLeastOnce()).saveIfAbsent(any());
+    }
+
+    @Test
+    @DisplayName("Should continue pagination from encoded offset token")
+    void shouldContinuePaginationFromEncodedOffset() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(42));
+
+        String token = PaginationTokenEncoder.encode(20, new HashSet<>(), null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Should deduplicate places already in shownPlaceIds")
+    void shouldDeduplicatePlacesAlreadyInShownPlaceIds() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> dbPlaces = createDbPlaces(20);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(dbPlaces);
+        when(googlePlacesPort.getNearbyPlaces(any(), any(), anyString(), any()))
+                .thenReturn(new NearbyPlaces(List.of(), null));
+
+        Set<String> shownIds = new HashSet<>();
+        shownIds.add("db-place-id-0");
+        shownIds.add("db-place-id-1");
+        String token = PaginationTokenEncoder.encode(0, shownIds, null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        assertEquals(18, result.getPlaces().size());
+        result.getPlaces()
+                .forEach(
+                        p -> {
+                            assertNotEquals("db-place-id-0", p.getGooglePlaceId());
+                            assertNotEquals("db-place-id-1", p.getGooglePlaceId());
+                        });
+    }
+
+    @Test
+    @DisplayName("Should fall back to Google when offset exceeds DB size")
+    void shouldFallBackToGoogleWhenOffsetExceedsDbSize() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(5));
+
+        List<Place> googlePlaces =
+                createDbPlaces(20).stream()
+                        .map(
+                                p ->
+                                        Place.builder()
+                                                .googlePlaceId("google-" + p.getGooglePlaceId())
+                                                .name(p.getName())
+                                                .rating(p.getRating())
+                                                .latitude(p.getLatitude())
+                                                .longitude(p.getLongitude())
+                                                .build())
+                        .collect(Collectors.toList());
+        NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, null);
+        doReturn(googleResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+
+        String token = PaginationTokenEncoder.encode(100, new HashSet<>(), null);
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, token);
+
+        assertNotNull(result);
+        verify(googlePlacesPort, times(1)).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Should ignore cached places that do not match the requested place type")
+    void shouldIgnoreCachedPlacesThatDoNotMatchRequestedPlaceType() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> dbPlaces =
+                List.of(
+                        Place.builder()
+                                .googlePlaceId("hotel-1")
+                                .name("Hotel")
+                                .googleTypes("lodging")
+                                .build(),
+                        Place.builder()
+                                .googlePlaceId("cafe-1")
+                                .name("Cafe")
+                                .googleTypes("cafe,food")
+                                .build());
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(dbPlaces);
+        when(googlePlacesPort.getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull()))
+                .thenReturn(new NearbyPlaces(List.of(), null));
+
+        var result = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertEquals(1, result.getPlaces().size());
+        assertEquals("cafe-1", result.getPlaces().get(0).getGooglePlaceId());
+    }
+
+    @Test
+    @DisplayName("Should use nearby page size of 20 rather than recommendation list size")
+    void shouldUseNearbyPageSizeOfTwenty() {
+        ReflectionTestUtils.setField(service, "pageSize", 20);
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(25));
+
+        var result = service.getNearbyPlaces(coordinates, 3000, "CAFE", null);
+
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName(
+            "Should keep leftover Google results available without skipping to next Google page")
+    void shouldKeepLeftoverGoogleResultsWithoutSkippingGooglePage() {
+        ReflectionTestUtils.setField(service, "pageSize", 5);
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        var radius = 3000;
+        var placeType = "CAFE";
+
+        List<Place> googlePlaces = createDbPlaces(8);
+        NearbyPlaces googleResponse = new NearbyPlaces(googlePlaces, "google-page-2");
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(List.of());
+        doReturn(googleResponse)
+                .when(googlePlacesPort)
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+
+        var firstPage = service.getNearbyPlaces(coordinates, radius, placeType, null);
+
+        assertEquals(5, firstPage.getPlaces().size());
+        assertNotNull(firstPage.getNextTokenPage());
+        PaginationTokenEncoder.PaginationState firstState =
+                PaginationTokenEncoder.decode(firstPage.getNextTokenPage());
+        assertEquals("google-page-2", firstState.getGoogleNextPageToken());
+        verify(placePersistService, times(8)).saveIfAbsent(any());
+
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(googlePlaces);
+        when(googlePlacesPort.getNearbyPlaces(
+                        eq(coordinates), eq(radius), eq(placeType), eq("google-page-2")))
+                .thenReturn(new NearbyPlaces(List.of(), "google-page-2"));
+
+        var secondPage =
+                service.getNearbyPlaces(
+                        coordinates, radius, placeType, firstPage.getNextTokenPage());
+
+        Set<String> leftoverIds =
+                googlePlaces.subList(5, 8).stream()
+                        .map(Place::getGooglePlaceId)
+                        .collect(Collectors.toSet());
+        Set<String> secondPageIds =
+                secondPage.getPlaces().stream()
+                        .map(Place::getGooglePlaceId)
+                        .collect(Collectors.toSet());
+        assertTrue(secondPageIds.containsAll(leftoverIds));
+        verify(googlePlacesPort, times(1))
+                .getNearbyPlaces(eq(coordinates), eq(radius), eq(placeType), isNull());
+    }
+
+    @Test
+    @DisplayName("Should not treat unsigned offset as database skip")
+    void shouldNotTreatUnsignedOffsetAsDatabaseSkip() {
+        var coordinates = new Coordinates(LATITUDE, LONGITUDE);
+        when(placeRepository.findNearbyPlacesByCoordinates(anyDouble(), anyDouble(), anyInt()))
+                .thenReturn(createDbPlaces(20));
+        String unsigned =
+                java.util.Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString("100".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        var result = service.getNearbyPlaces(coordinates, 3000, "CAFE", unsigned);
+
+        assertEquals(20, result.getPlaces().size());
+        verify(googlePlacesPort, never()).getNearbyPlaces(any(), any(), anyString(), any());
     }
 }

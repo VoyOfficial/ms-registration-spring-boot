@@ -16,6 +16,7 @@ GitHub integration for Issue management and PR automation using the `gh` CLI.
 
 - 📋 Create/manage Issues (feature, bug, task)
 - 🔀 Create, review, or update Pull Requests
+- 🗂️ Sync Issues/PRs to the org Project board (Projects v2) and move them across Status columns
 - 📝 Generate changelogs
 - ✅ Validate implementation completeness before closing an Issue
 
@@ -32,13 +33,14 @@ GitHub integration for Issue management and PR automation using the `gh` CLI.
 ## Outputs
 
 - ✅ Created/updated Issues
+- ✅ Issues/PRs synced as items on the org Project board, with Status kept up to date
 - ✅ PR drafts with complete context and description
 - ✅ Review comments and feedback
 - ✅ Implementation completeness validation reports (via `spec-driven-eval`)
 
 ## Allowed tools
 
-- `gh` CLI (issues, PRs, repo, api) via terminal
+- `gh` CLI (issues, PRs, repo, project, api) via terminal
 - `git` for branch/commit context
 - Workspace read tools for context gathering (sessions, Work Items)
 
@@ -46,6 +48,8 @@ GitHub integration for Issue management and PR automation using the `gh` CLI.
 
 - ⚠️ Default target/base branch: `main`
 - ⚠️ Repository: `VoyOfficial/ms-registration-spring-boot`
+- ⚠️ Project board: org Project `#1` (`https://github.com/orgs/VoyOfficial/projects/1`), owner `VoyOfficial` — every Issue/PR created by this skill must be added to it
+- ⚠️ Never hardcode Status option names — run `gh project field-list` first, since column/option names can be renamed on the board without notice
 - ⚠️ Always follow the [PR Context Gathering Workflow](references/pr-context-gathering-workflow.md) before creating any PR
 - ⚠️ Only close an Issue after required tests pass (`mvn clean verify`) and (when relevant) spec-driven-eval score ≥90%
 - ⚠️ Commit messages referenced/quoted in PR descriptions must follow the Conventional Commits format defined in `AGENTS.md`
@@ -66,7 +70,29 @@ gh issue edit <n> --add-label ready-for-review
 gh issue comment <n> --body "..."
 ```
 
-### 2. Pull Request Automation
+**After every `gh issue create`, sync it to the board immediately** (see section 2 below).
+
+### 2. Project Board Sync (Projects v2)
+
+- Every Issue/PR created or picked up by this skill must have a matching item on org Project `#1`
+- Never assume Status option names — always discover them first with `field-list` (they can differ from what's shown in a stale context)
+- Move the item's Status as the work progresses (e.g. when a branch is created, when the PR opens, when it's ready for review, when it's merged/closed)
+
+```bash
+# Add a newly created Issue (or an existing PR) to the board
+gh project item-add 1 --owner VoyOfficial --url https://github.com/VoyOfficial/ms-registration-spring-boot/issues/<n>
+
+# Discover the board's fields and valid Status options before setting one
+gh project field-list 1 --owner VoyOfficial --format json
+
+# Move the item to a Status column (use an option name returned above, e.g. "In Progress", "In Review", "Done")
+gh project item-edit 1 --owner VoyOfficial --url https://github.com/VoyOfficial/ms-registration-spring-boot/issues/<n> --field "Status" --value "<option-name>"
+
+# Sanity check: open the board in the browser
+gh project view 1 --owner VoyOfficial --web
+```
+
+### 3. Pull Request Automation
 
 - Create PRs with auto-generated descriptions synthesizing full Issue context
 - **Automatically infer PR type** (bug/feature/chore) from branch name or Issue labels
@@ -82,7 +108,9 @@ gh issue comment <n> --body "..."
 - [references/pr-creation-guide.md](references/pr-creation-guide.md) - Template selection and structure
 - [references/pr-review-guide.md](references/pr-review-guide.md) - Review comments and feedback
 
-### 3. Implementation Completeness Validation
+**When the PR is created, also add it to the board and set Status to "In Review" (or the equivalent option discovered via `field-list`).**
+
+### 4. Implementation Completeness Validation
 
 - Extract acceptance criteria from the Issue
 - Run `spec-driven-eval` against implementation + tests
@@ -98,6 +126,14 @@ gh issue comment <n> --body "..."
 /github criar Issue de bug para validacao de CPF duplicado
 /github atualizar Issue #12 para status ready-for-review
 /github linkar Issue #12 a Issue pai #10
+```
+
+### Project Board Sync
+
+```markdown
+/github adicionar Issue #12 ao board
+/github mover Issue #12 para "In Progress" no board
+/github sincronizar board com as Issues abertas
 ```
 
 ### Pull Request Automation
@@ -164,6 +200,7 @@ For comprehensive workflows and patterns, consult:
 
 - Repository: `VoyOfficial/ms-registration-spring-boot`
 - Default base branch: `main`
-- CLI: `gh` (must be authenticated: `gh auth status`)
+- Project board: org Project `#1` (`https://github.com/orgs/VoyOfficial/projects/1`), owner `VoyOfficial`
+- CLI: `gh` (must be authenticated: `gh auth status`; needs the `project` scope to read/write board items — `gh auth refresh -s project` if `item-add`/`item-edit` return a permission error)
 
 Always use these defaults when calling `gh` commands, unless the user specifies otherwise.

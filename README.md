@@ -11,7 +11,28 @@ Ele é uma aplicação responsável pelo domínio de Usuários do Projeto Voy, l
 endpoints
 para realizar o CRUD de Usuário.
 
-## 🚀 Executando a aplicação 👾
+## � Diretrizes de Desenvolvimento
+
+Este projeto segue rigorosas práticas de engenharia de software:
+
+- **🏛️ Clean Architecture**: Arquitetura em camadas (Domain, Application, Infrastructure)
+- **✨ Clean Code**: Princípios de código limpo por Uncle Bob
+- **🔄 TDD**: Test-Driven Development por Kent Beck
+- **💎 Atomic Commits**: Commits atômicos por Martin Fowler
+
+**📖 Documentação completa**: [.github/DEVELOPMENT_GUIDELINES.md](.github/DEVELOPMENT_GUIDELINES.md)
+
+**🤖 Instruções GitHub Copilot**: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+
+### Quick Start para Desenvolvedores
+
+Antes de começar a desenvolver, leia:
+1. [Estrutura da Clean Architecture](.github/docs/ARCHITECTURE.md)
+2. [Princípios Clean Code](.github/docs/CODE_CONVENTIONS.md)
+3. [Guia TDD](.github/docs/TDD.md)
+4. [Padrão de Commits](.github/docs/COMMITS.md)
+
+## �🚀 Executando a aplicação 👾
 
 ### 📍 Local
 
