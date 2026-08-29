@@ -1,36 +1,35 @@
 package br.voy.domain.service;
 
-import br.voy.application.controller.response.PlaceResponse;
-import br.voy.application.controller.response.RecommendedPlacesResponse;
-import br.voy.application.util.CurrentUserHelper;
+import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
+import br.voy.domain.ports.CurrentUserPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.repository.UserSavedPlaceRepository;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.domain.utils.BoundingBox;
+import br.voy.domain.utils.GeoCalculator;
 import br.voy.domain.utils.PaginationTokenEncoder;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-@Component
+@Service
 public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase {
 
     @Autowired private PlaceRepository placeRepository;
 
     @Autowired private UserSavedPlaceRepository userSavedPlaceRepository;
 
-    @Autowired private CurrentUserHelper currentUserHelper;
+    @Autowired private CurrentUserPort currentUserPort;
 
     @Value("${voy.services.places.initialDefaultBoundingBoxRadiusKM}")
     private double INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
@@ -54,74 +53,53 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
     private String KM;
 
     @Override
-    public List<PlaceResponse> getRecommendedPlaces(
+    public List<Place> getRecommendedPlaces(
             Double userLatitude, Double userLongitude, Double range) {
-        double radius =
-                (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
+        List<ScoredPlace> scoredPlaces =
+                findActiveRecommendedPlaces(
+                        userLatitude, userLongitude, range, (int) MAX_PLACE_SIZE_LIST);
 
-        if (radius > LIMIT_MAX_BOUNDING_BOX) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, OUT_OF_MAX_RANGE_MESSAGE + LIMIT_MAX_BOUNDING_BOX + KM);
-        }
-
-        List<Place> places = new ArrayList<>();
-        List<Place> candidates;
-
-        // Loop para aumentar o raio caso necessário
-        do {
-            // 1. Calcula a bounding box para o raio atual
-            BoundingBox boundingBox = calculateBoundingBox(userLatitude, userLongitude, radius);
-
-            try {
-                // 2. Busca no repositório os lugares dentro da bounding box
-                Optional<List<Place>> optionalCandidates =
-                        placeRepository.findPlacesWithinBoundingBox(boundingBox);
-                if (optionalCandidates.isPresent() && !optionalCandidates.get().isEmpty()) {
-                    candidates = optionalCandidates.get();
-                    // 3. Filtra os candidatos pelo raio circular
-                    places = filterByHaversine(userLatitude, userLongitude, candidates, radius);
-
-                    // Aumenta o raio se ainda não encontrou os 5 lugares
-                    radius += INCREMENTAL_BOUNDING_BOX_RADIUS_KM;
-                } else {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "não encontrado");
-                }
-            } catch (Exception e) {
-                throw e;
-            }
-            places.removeIf(
-                    place ->
-                            place.getEndRecommendation() == null
-                                    || place.getEndRecommendation().isBefore(LocalDate.now()));
-
-        } while (places.size() < MAX_PLACE_SIZE_LIST
-                && radius <= LIMIT_MAX_BOUNDING_BOX); // Limita o raio máximo (ex.: 50 km)
-
-        return orderPlacesToResponse(places, userLatitude, userLongitude);
+        return scoredPlaces.stream()
+                .sorted(Comparator.comparingDouble(scored -> scored.distanceKm))
+                .limit(MAX_PLACE_SIZE_LIST)
+                .sorted(rankingThenDistance())
+                .map(scored -> scored.place)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public RecommendedPlacesResponse getRecommendedPlaces(
+    public NearbyPlaces getRecommendedPlaces(
             Double userLatitude,
             Double userLongitude,
             Double range,
             Integer pageSize,
             String nextPageToken) {
-        // Default pageSize to MAX_PLACE_SIZE_LIST if not provided
         int effectivePageSize =
                 (pageSize != null && pageSize > 0) ? pageSize : (int) MAX_PLACE_SIZE_LIST;
+        int offset = decodeOffset(nextPageToken);
 
-        // Decode offset from nextPageToken using PaginationTokenEncoder
-        int offset = 0;
-        try {
-            PaginationTokenEncoder.PaginationState paginationState =
-                    PaginationTokenEncoder.decode(nextPageToken);
-            offset = paginationState.getOffset();
-        } catch (Exception e) {
-            // If token is invalid, start from offset 0
-            offset = 0;
-        }
+        List<ScoredPlace> scoredPlaces =
+                findActiveRecommendedPlaces(
+                        userLatitude, userLongitude, range, offset + effectivePageSize + 1);
 
+        List<Place> orderedPlaces =
+                scoredPlaces.stream()
+                        .sorted(rankingThenDistance())
+                        .map(scored -> scored.place)
+                        .collect(Collectors.toList());
+
+        int totalPlaces = orderedPlaces.size();
+        int endIndex = Math.min(offset + effectivePageSize, totalPlaces);
+        List<Place> paginatedPlaces = orderedPlaces.subList(offset, endIndex);
+
+        markSavedPlaces(paginatedPlaces);
+
+        String nextToken = endIndex < totalPlaces ? PaginationTokenEncoder.encode(endIndex) : null;
+        return new NearbyPlaces(paginatedPlaces, nextToken);
+    }
+
+    private List<ScoredPlace> findActiveRecommendedPlaces(
+            Double userLatitude, Double userLongitude, Double range, int minimumPlaces) {
         double radius =
                 (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
 
@@ -130,174 +108,96 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                     HttpStatus.BAD_REQUEST, OUT_OF_MAX_RANGE_MESSAGE + LIMIT_MAX_BOUNDING_BOX + KM);
         }
 
-        List<Place> allPlaces = new ArrayList<>();
-        List<Place> candidates;
+        List<ScoredPlace> places = new ArrayList<>();
+        LocalDate today = LocalDate.now();
 
-        // Loop para aumentar o raio caso necessário
         do {
-            // 1. Calcula a bounding box para o raio atual
-            BoundingBox boundingBox = calculateBoundingBox(userLatitude, userLongitude, radius);
+            BoundingBox boundingBox =
+                    GeoCalculator.boundingBox(userLatitude, userLongitude, radius, EARTH_RADIUS_KM);
+            Optional<List<Place>> optionalCandidates =
+                    placeRepository.findPlacesWithinBoundingBox(boundingBox);
 
-            try {
-                // 2. Busca no repositório os lugares dentro da bounding box
-                Optional<List<Place>> optionalCandidates =
-                        placeRepository.findPlacesWithinBoundingBox(boundingBox);
-                if (optionalCandidates.isPresent() && !optionalCandidates.get().isEmpty()) {
-                    candidates = optionalCandidates.get();
-                    // 3. Filtra os candidatos pelo raio circular
-                    allPlaces = filterByHaversine(userLatitude, userLongitude, candidates, radius);
-
-                    // Aumenta o raio se ainda não encontrou os 5 lugares
-                    radius += INCREMENTAL_BOUNDING_BOX_RADIUS_KM;
-                } else {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "não encontrado");
-                }
-            } catch (Exception e) {
-                throw e;
+            if (optionalCandidates.isEmpty() || optionalCandidates.get().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "não encontrado");
             }
-            allPlaces.removeIf(
-                    place ->
-                            place.getEndRecommendation() == null
-                                    || place.getEndRecommendation().isBefore(LocalDate.now()));
 
-        } while (allPlaces.size() < (offset + effectivePageSize + 1)
-                && radius <= LIMIT_MAX_BOUNDING_BOX);
+            double currentRadius = radius;
+            places =
+                    optionalCandidates.get().stream()
+                            .filter(place -> isActiveRecommendation(place, today))
+                            .map(
+                                    place ->
+                                            scorePlace(
+                                                    userLatitude,
+                                                    userLongitude,
+                                                    place,
+                                                    currentRadius))
+                            .filter(scored -> scored != null)
+                            .collect(Collectors.toList());
 
-        // Order all places by distance and ranking
-        List<Place> orderedPlaces =
-                allPlaces.stream()
-                        // Ordena primeiro pela distância (mais próximos primeiro)
-                        .sorted(
-                                Comparator.comparingDouble(
-                                        place ->
-                                                calculateHaversine(
-                                                        userLatitude, userLongitude, place)))
-                        // Mantém apenas os 5 mais próximos
-                        .sorted(
-                                Comparator.comparing(
-                                                Place::getRanking,
-                                                Comparator.nullsLast(Comparator.naturalOrder()))
-                                        .thenComparingDouble(
-                                                place ->
-                                                        calculateHaversine(
-                                                                userLatitude,
-                                                                userLongitude,
-                                                                place)))
-                        .collect(Collectors.toList());
+            radius += INCREMENTAL_BOUNDING_BOX_RADIUS_KM;
+        } while (places.size() < minimumPlaces && radius <= LIMIT_MAX_BOUNDING_BOX);
 
-        // Apply pagination
-        int totalPlaces = orderedPlaces.size();
-        int endIndex = Math.min(offset + effectivePageSize, totalPlaces);
+        return places;
+    }
 
-        List<Place> paginatedPlaces = orderedPlaces.subList(offset, endIndex);
+    private ScoredPlace scorePlace(
+            double userLatitude, double userLongitude, Place place, double radius) {
+        double distanceKm =
+                GeoCalculator.haversineKm(
+                        userLatitude,
+                        userLongitude,
+                        place.getLatitude(),
+                        place.getLongitude(),
+                        EARTH_RADIUS_KM);
+        if (distanceKm > radius) {
+            return null;
+        }
+        place.setDistanceFromUserLocation(GeoCalculator.formatDistanceKm(distanceKm));
+        return new ScoredPlace(place, distanceKm, place.getRanking());
+    }
 
-        // Generate next page token if there are more results using PaginationTokenEncoder
-        String nextToken = null;
-        if (endIndex < totalPlaces) {
-            nextToken = PaginationTokenEncoder.encode(endIndex);
+    private boolean isActiveRecommendation(Place place, LocalDate today) {
+        return place.getEndRecommendation() != null
+                && !place.getEndRecommendation().isBefore(today);
+    }
+
+    private void markSavedPlaces(List<Place> places) {
+        Long currentUserId = currentUserPort.getCurrentUserId();
+        if (currentUserId == null || places.isEmpty()) {
+            return;
         }
 
-        // Convert to PlaceResponse
-        Long currentUserId = currentUserHelper.getCurrentUserId();
-        List<PlaceResponse> placeResponses =
-                paginatedPlaces.stream()
-                        .map(
-                                place -> {
-                                    boolean isSaved =
-                                            currentUserId != null
-                                                    && userSavedPlaceRepository.isPlaceSavedByUser(
-                                                            currentUserId, place.getId());
-                                    return PlaceResponse.fromDomain(place, isSaved);
-                                })
-                        .collect(Collectors.toList());
-
-        return new RecommendedPlacesResponse(placeResponses, nextToken);
+        Set<Long> savedPlaceIds = userSavedPlaceRepository.findSavedPlaceIdsByUser(currentUserId);
+        for (Place place : places) {
+            place.setIsSaved(savedPlaceIds.contains(place.getId()));
+        }
     }
 
-    private List<PlaceResponse> orderPlacesToResponse(
-            List<Place> places, Double userLatitude, Double userLongitude) {
-        return places.stream()
-                // Ordena primeiro pela distância (mais próximos primeiro)
-                .sorted(
-                        Comparator.comparingDouble(
-                                place -> calculateHaversine(userLatitude, userLongitude, place)))
-                // Mantém apenas os 5 mais próximos
-                .limit(MAX_PLACE_SIZE_LIST)
-                // Reordena agora pelo ranking, usando a distância como critério de desempate
-                .sorted(
-                        Comparator.comparing(
-                                        Place::getRanking,
-                                        Comparator.nullsLast(Comparator.naturalOrder()))
-                                .thenComparingDouble(
-                                        place ->
-                                                calculateHaversine(
-                                                        userLatitude, userLongitude, place)))
-                // Converte para PlaceResponse
-                .map(PlaceResponse::fromDomain)
-                .collect(Collectors.toList());
+    private int decodeOffset(String nextPageToken) {
+        try {
+            return PaginationTokenEncoder.decode(nextPageToken).getOffset();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
-    private BoundingBox calculateBoundingBox(
-            double userLatitude, double userLongitude, double radius) {
-        // Converter graus para radianos
-        double latRad = Math.toRadians(userLatitude);
-        double lonRad = Math.toRadians(userLongitude);
-
-        // Calcula o delta de latitude
-        double deltaLat = radius / EARTH_RADIUS_KM;
-
-        // Calcula o delta de longitude (ajustado pela latitude)
-        double deltaLon = radius / (EARTH_RADIUS_KM * Math.cos(latRad));
-
-        // Min e Max de latitude e longitude
-        double minLat = Math.toDegrees(latRad - deltaLat);
-        double maxLat = Math.toDegrees(latRad + deltaLat);
-        double minLon = Math.toDegrees(lonRad - deltaLon);
-        double maxLon = Math.toDegrees(lonRad + deltaLon);
-
-        // Retorna a bounding box
-        return new BoundingBox(minLat, maxLat, minLon, maxLon);
+    private Comparator<ScoredPlace> rankingThenDistance() {
+        return Comparator.comparing(
+                        (ScoredPlace scored) -> scored.ranking,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparingDouble(scored -> scored.distanceKm);
     }
 
-    private List<Place> filterByHaversine(
-            double userLatitude, double userLongitude, List<Place> candidates, double radius) {
-        return candidates.stream()
-                .filter(place -> calculateHaversine(userLatitude, userLongitude, place) <= radius)
-                .collect(Collectors.toList());
-    }
+    private static final class ScoredPlace {
+        private final Place place;
+        private final double distanceKm;
+        private final Integer ranking;
 
-    private double calculateHaversine(
-            double userLatitude, double userLongitude, Place candidadePlace) {
-        double candidatePlaceLatitude = candidadePlace.getLatitude();
-        double candidatePlaceLongitude = candidadePlace.getLongitude();
-
-        // Converter graus para radianos
-        double userLatitudeRadians = Math.toRadians(userLatitude);
-        double userLongitudeRadians = Math.toRadians(userLongitude);
-        double candidatePlaceLatitudeRadians = Math.toRadians(candidatePlaceLatitude);
-        double candidatePlaceLongitudeRadians = Math.toRadians(candidatePlaceLongitude);
-
-        // Diferenças de latitude e longitude
-        double deltaLatitudeCandidatePlaceAndUserLocation =
-                candidatePlaceLatitudeRadians - userLatitudeRadians;
-        double deltaLongitudeCandidatePlaceAndUserLocation =
-                candidatePlaceLongitudeRadians - userLongitudeRadians;
-
-        // Fórmula de Haversine
-        double a =
-                Math.pow(Math.sin(deltaLatitudeCandidatePlaceAndUserLocation / 2), 2)
-                        + Math.cos(userLatitudeRadians)
-                                * Math.cos(candidatePlaceLatitudeRadians)
-                                * Math.pow(
-                                        Math.sin(deltaLongitudeCandidatePlaceAndUserLocation / 2),
-                                        2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        // Distância em km
-        double distance = EARTH_RADIUS_KM * c;
-        BigDecimal distanceRounded = BigDecimal.valueOf(distance).setScale(3, RoundingMode.HALF_UP);
-
-        candidadePlace.setDistanceFromUserLocation(distanceRounded + " km");
-        return distance;
+        private ScoredPlace(Place place, double distanceKm, Integer ranking) {
+            this.place = place;
+            this.distanceKm = distanceKm;
+            this.ranking = ranking;
+        }
     }
 }

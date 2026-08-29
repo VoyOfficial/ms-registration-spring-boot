@@ -3,6 +3,7 @@ package br.voy.domain.repository;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.UserSavedPlace;
 import java.util.List;
+import java.util.Set;
 
 public interface UserSavedPlaceRepository {
 
@@ -14,6 +15,14 @@ public interface UserSavedPlaceRepository {
      * @return true if the user has saved this place, false otherwise
      */
     boolean isPlaceSavedByUser(Long userId, Long placeId);
+
+    /**
+     * Get the identifiers of all places saved by a user in a single query
+     *
+     * @param userId the user ID
+     * @return set of saved place IDs
+     */
+    Set<Long> findSavedPlaceIdsByUser(Long userId);
 
     /**
      * Get all places saved by a user

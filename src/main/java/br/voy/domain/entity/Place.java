@@ -31,7 +31,7 @@ public class Place {
     private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private Boolean isSaved = false;
+    @Setter private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar
     // https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String principalPhotoUrl;
