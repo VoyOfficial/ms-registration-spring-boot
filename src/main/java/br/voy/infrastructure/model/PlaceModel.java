@@ -48,9 +48,6 @@ public class PlaceModel extends AbstractModel {
     @Column(name = "userratingstotal")
     private Integer userRatingsTotal;
 
-    @Column(name = "issaved")
-    private Boolean isSaved;
-
     @Column(name = "principal_photo")
     private String principalPhoto;
 
@@ -99,7 +96,6 @@ public class PlaceModel extends AbstractModel {
         this.state = placeDomain.getState();
         this.rating = placeDomain.getRating();
         this.userRatingsTotal = placeDomain.getUserRatingsTotal();
-        this.isSaved = placeDomain.getIsSaved();
         this.principalPhoto = placeDomain.getPrincipalPhoto();
         this.principalPhotoUrl = placeDomain.getPrincipalPhotoUrl();
         this.status = placeDomain.isStatus();
@@ -132,7 +128,7 @@ public class PlaceModel extends AbstractModel {
                         .state(state)
                         .rating(rating)
                         .userRatingsTotal(userRatingsTotal)
-                        .isSaved(isSaved != null ? isSaved : false)
+                        .isSaved(false)
                         .principalPhoto(principalPhoto)
                         .principalPhotoUrl(principalPhotoUrl)
                         .status(status != null ? status : false)
@@ -162,7 +158,7 @@ public class PlaceModel extends AbstractModel {
                 .state(state)
                 .rating(rating)
                 .userRatingsTotal(userRatingsTotal)
-                .isSaved(isSaved != null ? isSaved : false)
+                .isSaved(false)
                 .principalPhoto(principalPhoto)
                 .principalPhotoUrl(principalPhotoUrl)
                 .status(status != null ? status : false)

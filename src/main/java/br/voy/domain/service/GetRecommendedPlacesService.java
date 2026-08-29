@@ -2,6 +2,9 @@ package br.voy.domain.service;
 
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
+import br.voy.domain.exception.PlacePageSizeExceededException;
+import br.voy.domain.exception.PlaceSearchRangeExceededException;
+import br.voy.domain.exception.RecommendedPlacesNotFoundException;
 import br.voy.domain.ports.CurrentUserPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.repository.UserSavedPlaceRepository;
@@ -11,6 +14,7 @@ import br.voy.domain.utils.GeoCalculator;
 import br.voy.domain.utils.PaginationTokenEncoder;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -18,9 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase {
@@ -46,11 +48,8 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
     @Value("${voy.services.places.earthRadiusKM}")
     private double EARTH_RADIUS_KM;
 
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.message}")
-    private String OUT_OF_MAX_RANGE_MESSAGE;
-
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.km}")
-    private String KM;
+    @Value("${voy.services.places.maxPageSize:50}")
+    private int MAX_PAGE_SIZE;
 
     @Override
     public List<Place> getRecommendedPlaces(
@@ -74,6 +73,10 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
             Double range,
             Integer pageSize,
             String nextPageToken) {
+        if (pageSize != null && pageSize > MAX_PAGE_SIZE) {
+            throw new PlacePageSizeExceededException(MAX_PAGE_SIZE);
+        }
+
         int effectivePageSize =
                 (pageSize != null && pageSize > 0) ? pageSize : (int) MAX_PLACE_SIZE_LIST;
         int offset = decodeOffset(nextPageToken);
@@ -89,6 +92,13 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                         .collect(Collectors.toList());
 
         int totalPlaces = orderedPlaces.size();
+        if (offset < 0) {
+            offset = 0;
+        }
+        if (offset > totalPlaces) {
+            return new NearbyPlaces(Collections.emptyList(), null);
+        }
+
         int endIndex = Math.min(offset + effectivePageSize, totalPlaces);
         List<Place> paginatedPlaces = orderedPlaces.subList(offset, endIndex);
 
@@ -104,8 +114,7 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                 (range != null && range >= 0) ? range : INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM;
 
         if (radius > LIMIT_MAX_BOUNDING_BOX) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, OUT_OF_MAX_RANGE_MESSAGE + LIMIT_MAX_BOUNDING_BOX + KM);
+            throw new PlaceSearchRangeExceededException(LIMIT_MAX_BOUNDING_BOX);
         }
 
         List<ScoredPlace> places = new ArrayList<>();
@@ -118,7 +127,7 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
                     placeRepository.findPlacesWithinBoundingBox(boundingBox);
 
             if (optionalCandidates.isEmpty() || optionalCandidates.get().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "não encontrado");
+                throw new RecommendedPlacesNotFoundException();
             }
 
             double currentRadius = radius;
@@ -177,7 +186,7 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
     private int decodeOffset(String nextPageToken) {
         try {
             return PaginationTokenEncoder.decode(nextPageToken).getOffset();
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return 0;
         }
     }

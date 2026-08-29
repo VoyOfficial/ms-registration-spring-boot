@@ -1,17 +1,17 @@
 package br.voy.domain.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import br.voy.domain.entity.Place;
-import br.voy.domain.repository.PlaceRepository;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,96 +19,50 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PlaceAsyncSaveServiceTest {
 
-    @Mock PlaceRepository placeRepository;
+    @Mock private PlacePersistService persistService;
 
-    @InjectMocks PlaceAsyncSaveService placeAsyncSaveService;
+    @InjectMocks private PlaceAsyncSaveService asyncSaveService;
 
     @Test
-    @DisplayName("Should save new place when not existing in repository")
-    void shouldSaveNewPlaceWhenNotExistingInRepository() {
-        Place place = buildPlace("google-id-1", "Place One", "11 99999-0001", 4.5f, 1.5f);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-1")).thenReturn(Optional.empty());
+    @DisplayName("Should persist each place")
+    void shouldPersistEachPlace() {
+        Place place1 = createTestPlace("Place 1");
+        Place place2 = createTestPlace("Place 2");
 
-        placeAsyncSaveService.savePlacesAsync(List.of(place));
+        asyncSaveService.savePlacesAsync(List.of(place1, place2));
 
-        verify(placeRepository, times(1)).savePlace(any(Place.class));
+        verify(persistService).saveIfAbsent(place1);
+        verify(persistService).saveIfAbsent(place2);
     }
 
     @Test
-    @DisplayName("Should set default contact when contact is null")
-    void shouldSetDefaultContactWhenContactIsNull() {
-        Place place = buildPlace("google-id-2", "Place Two", null, 4.0f, 2.0f);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-2")).thenReturn(Optional.empty());
+    @DisplayName("Should continue when one persist fails")
+    void shouldContinueWhenOnePersistFails() {
+        Place place1 = createTestPlace("Place 1");
+        Place place2 = createTestPlace("Place 2");
+        doThrow(new RuntimeException("Database error")).when(persistService).saveIfAbsent(place1);
 
-        ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
-        placeAsyncSaveService.savePlacesAsync(List.of(place));
+        asyncSaveService.savePlacesAsync(List.of(place1, place2));
 
-        verify(placeRepository).savePlace(captor.capture());
-        assertEquals("", captor.getValue().getContact());
+        verify(persistService, times(2)).saveIfAbsent(any(Place.class));
     }
 
     @Test
-    @DisplayName("Should set default distanceOfLocal when distanceOfLocal is null")
-    void shouldSetDefaultDistanceWhenDistanceIsNull() {
-        Place place = buildPlace("google-id-3", "Place Three", null, 3.5f, null);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-3")).thenReturn(Optional.empty());
+    @DisplayName("Should skip persist when list is empty")
+    void shouldSkipWhenEmpty() {
+        asyncSaveService.savePlacesAsync(List.of());
 
-        ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
-        placeAsyncSaveService.savePlacesAsync(List.of(place));
-
-        verify(placeRepository).savePlace(captor.capture());
-        assertEquals(0.0f, captor.getValue().getDistanceOfLocal());
+        verify(persistService, never()).saveIfAbsent(any(Place.class));
     }
 
-    @Test
-    @DisplayName("Should set default rating when rating is null")
-    void shouldSetDefaultRatingWhenRatingIsNull() {
-        Place place = buildPlace("google-id-4", "Place Four", null, null, null);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-4")).thenReturn(Optional.empty());
-
-        ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
-        placeAsyncSaveService.savePlacesAsync(List.of(place));
-
-        verify(placeRepository).savePlace(captor.capture());
-        assertEquals(0.0f, captor.getValue().getRating());
-    }
-
-    @Test
-    @DisplayName("Should skip place when already exists in repository")
-    void shouldSkipPlaceWhenAlreadyExists() {
-        Place existing = buildPlace("google-id-5", "Existing Place", "11 99999-0005", 4.0f, 1.0f);
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-5"))
-                .thenReturn(Optional.of(existing));
-
-        placeAsyncSaveService.savePlacesAsync(List.of(existing));
-
-        verify(placeRepository, never()).savePlace(any(Place.class));
-    }
-
-    @Test
-    @DisplayName(
-            "Should continue saving remaining places when one place throws unexpected exception")
-    void shouldContinueSavingWhenOnePlaceThrowsException() {
-        Place place1 = buildPlace("google-id-6", "Place Six", "11 99999-0006", 4.0f, 1.0f);
-        Place place2 = buildPlace("google-id-7", "Place Seven", "11 99999-0007", 4.0f, 1.0f);
-
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-6")).thenReturn(Optional.empty());
-        when(placeRepository.findPlaceByGooglePlaceId("google-id-7"))
-                .thenThrow(new RuntimeException("DB error"));
-
-        placeAsyncSaveService.savePlacesAsync(List.of(place1, place2));
-
-        verify(placeRepository, times(1)).savePlace(any(Place.class));
-    }
-
-    private Place buildPlace(
-            String googleId, String name, String contact, Float rating, Float distance) {
+    private Place createTestPlace(String name) {
         return Place.builder()
-                .googlePlaceId(googleId)
                 .name(name)
-                .contact(contact)
-                .rating(rating)
-                .distanceOfLocal(distance)
+                .googlePlaceId("google123")
+                .latitude(-23.5505)
+                .longitude(-46.6333)
+                .createdAt(LocalDate.now())
+                .photos(List.of())
                 .build();
     }
 }

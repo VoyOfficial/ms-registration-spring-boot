@@ -42,14 +42,16 @@ public class RelationalUserSavedPlaceRepository implements UserSavedPlaceReposit
 
     @Override
     public List<Place> findSavedPlacesByUser(Long userId) {
-        List<UserSavedPlaceModel> savedPlaces = jpaRepository.findAllByUserId(userId);
+        if (userId == null) {
+            return Collections.emptyList();
+        }
 
-        return savedPlaces.stream()
-                .map(UserSavedPlaceModel::getPlaceId)
-                .map(placeRepository::findPlaceById)
-                .filter(optionalPlace -> optionalPlace.isPresent())
-                .map(optionalPlace -> optionalPlace.get())
-                .collect(Collectors.toList());
+        List<Long> placeIds =
+                jpaRepository.findAllByUserId(userId).stream()
+                        .map(UserSavedPlaceModel::getPlaceId)
+                        .collect(Collectors.toList());
+
+        return placeRepository.findPlacesByIds(placeIds);
     }
 
     @Override

@@ -62,24 +62,26 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
-    public PlacePhoto savePlacePhoto(PlaceModel place, PlacePhoto placePhoto) {
-        logger.info("RELATIONAL PLACE REPOSITORY - SAVE PLACE PHOTO - Place: {}", place.getName());
+    public PlacePhoto savePlacePhoto(Long placeId, PlacePhoto placePhoto) {
+        logger.info("RELATIONAL PLACE REPOSITORY - SAVE PLACE PHOTO - Place ID: {}", placeId);
 
         var placePhotoModel = new PlacePhotoModel(placePhoto);
-
+        placePhotoModel.setPlace(PlaceModel.builder().id(placeId).build());
         placePhotoModel = placePhotoJpaRepository.save(placePhotoModel);
 
         return placePhotoModel.toDomain();
     }
 
     @Override
-    public List<PlacePhoto> saveAllPlacePhoto(PlaceModel place, List<PlacePhoto> placePhotos) {
-        logger.info(
-                "RELATIONAL PLACE REPOSITORY - SAVE ALL PLACE PHOTOS - Place: {}", place.getName());
+    public List<PlacePhoto> saveAllPlacePhoto(Long placeId, List<PlacePhoto> placePhotos) {
+        logger.info("RELATIONAL PLACE REPOSITORY - SAVE ALL PLACE PHOTOS - Place ID: {}", placeId);
 
+        PlaceModel placeRef = PlaceModel.builder().id(placeId).build();
         List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
         for (PlacePhoto placePhoto : placePhotos) {
-            placePhotoModelList.add(new PlacePhotoModel(placePhoto));
+            PlacePhotoModel placePhotoModel = new PlacePhotoModel(placePhoto);
+            placePhotoModel.setPlace(placeRef);
+            placePhotoModelList.add(placePhotoModel);
         }
 
         placePhotoModelList = placePhotoJpaRepository.saveAll(placePhotoModelList);
@@ -113,6 +115,19 @@ public class RelationalPlaceRepository implements PlaceRepository {
                 "RELATIONAL PLACE REPOSITORY - FIND BY ID - PLACE NOT FOUND - ID : {}", placeId);
 
         return Optional.empty();
+    }
+
+    @Override
+    public List<Place> findPlacesByIds(List<Long> placeIds) {
+        if (placeIds == null || placeIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Place> places = new ArrayList<>();
+        for (PlaceModel placeModel : placeJpaRepository.findAllById(placeIds)) {
+            places.add(placeModel.toDomain());
+        }
+        return places;
     }
 
     @Override

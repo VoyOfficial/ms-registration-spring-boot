@@ -18,6 +18,9 @@ import static org.mockito.Mockito.when;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
+import br.voy.domain.exception.PlacePageSizeExceededException;
+import br.voy.domain.exception.PlaceSearchRangeExceededException;
+import br.voy.domain.exception.RecommendedPlacesNotFoundException;
 import br.voy.domain.ports.CurrentUserPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.repository.UserSavedPlaceRepository;
@@ -36,10 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 public class GetRecommendedPlacesServiceTest {
@@ -52,15 +52,6 @@ public class GetRecommendedPlacesServiceTest {
 
     @InjectMocks private GetRecommendedPlacesService placeService;
 
-    @Value("${voy.services.places.limitMaxBoundingBox}")
-    private double LIMIT_MAX_BOUNDING_BOX;
-
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.message}")
-    private String OUT_OF_MAX_RANGE_MESSAGE;
-
-    @Value("${error.places.recommendation.status400.outOfRangeRequest.km}")
-    private String KM;
-
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
@@ -69,9 +60,7 @@ public class GetRecommendedPlacesServiceTest {
         ReflectionTestUtils.setField(placeService, "MAX_PLACE_SIZE_LIST", 5);
         ReflectionTestUtils.setField(placeService, "LIMIT_MAX_BOUNDING_BOX", 50);
         ReflectionTestUtils.setField(placeService, "EARTH_RADIUS_KM", 6371.0);
-        ReflectionTestUtils.setField(
-                placeService, "OUT_OF_MAX_RANGE_MESSAGE", "raio de busca máxima é de ");
-        ReflectionTestUtils.setField(placeService, "KM", " km");
+        ReflectionTestUtils.setField(placeService, "MAX_PAGE_SIZE", 50);
     }
 
     @Test
@@ -193,13 +182,13 @@ public class GetRecommendedPlacesServiceTest {
             "O método GetRecommendedPlaces deve lançar uma exceção quando o raio de busca providenciado for maior que o limite")
     void testGetRecommendedPlacesThrowsExceptionWhenRadiusExceedsLimit() {
 
-        ResponseStatusException exception =
+        PlaceSearchRangeExceededException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        PlaceSearchRangeExceededException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, 130.0));
 
-        assertTrue(exception.getStatus() == HttpStatus.BAD_REQUEST);
-        assertEquals("raio de busca máxima é de 50.0 km", exception.getReason());
+        assertEquals(PlaceSearchRangeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50.0, exception.getLimitKm());
     }
 
     @Test
@@ -210,13 +199,12 @@ public class GetRecommendedPlacesServiceTest {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.empty());
 
-        ResponseStatusException exception =
+        RecommendedPlacesNotFoundException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        RecommendedPlacesNotFoundException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.NOT_FOUND);
-        assertEquals("não encontrado", exception.getReason());
+        assertEquals(RecommendedPlacesNotFoundException.MESSAGE_KEY, exception.getMessage());
     }
 
     @Test
@@ -227,13 +215,12 @@ public class GetRecommendedPlacesServiceTest {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.of(new ArrayList<>()));
 
-        ResponseStatusException exception =
+        RecommendedPlacesNotFoundException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        RecommendedPlacesNotFoundException.class,
                         () -> placeService.getRecommendedPlaces(-29.35995, -50.84805, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.NOT_FOUND);
-        assertEquals("não encontrado", exception.getReason());
+        assertEquals(RecommendedPlacesNotFoundException.MESSAGE_KEY, exception.getMessage());
     }
 
     @Test
@@ -372,15 +359,46 @@ public class GetRecommendedPlacesServiceTest {
     @DisplayName(
             "O método GetRecommendedPlaces com paginação deve lançar exceção quando raio exceder limite")
     void testGetRecommendedPlacesWithPaginationThrowsExceptionWhenRadiusExceedsLimit() {
-        ResponseStatusException exception =
+        PlaceSearchRangeExceededException exception =
                 assertThrows(
-                        ResponseStatusException.class,
+                        PlaceSearchRangeExceededException.class,
                         () ->
                                 placeService.getRecommendedPlaces(
                                         -29.35995, -50.84805, 130.0, 5, null));
 
-        assertTrue(exception.getStatus() == HttpStatus.BAD_REQUEST);
-        assertEquals("raio de busca máxima é de 50.0 km", exception.getReason());
+        assertEquals(PlaceSearchRangeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50.0, exception.getLimitKm());
+    }
+
+    @Test
+    @DisplayName(
+            "O método GetRecommendedPlaces com paginação deve retornar lista vazia quando o offset for maior que o total")
+    void testGetRecommendedPlacesWithPaginationReturnsEmptyWhenOffsetExceedsTotal() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(generatePlaceList()));
+
+        String nextPageToken = PaginationTokenEncoder.encode(10_000);
+        var response =
+                placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 3, nextPageToken);
+
+        assertNotNull(response);
+        assertTrue(response.getPlaces().isEmpty());
+        assertNull(response.getNextTokenPage());
+    }
+
+    @Test
+    @DisplayName(
+            "O método GetRecommendedPlaces com paginação deve lançar exceção quando pageSize exceder o máximo")
+    void testGetRecommendedPlacesWithPaginationThrowsWhenPageSizeExceedsMax() {
+        PlacePageSizeExceededException exception =
+                assertThrows(
+                        PlacePageSizeExceededException.class,
+                        () ->
+                                placeService.getRecommendedPlaces(
+                                        -29.35995, -50.84805, null, 51, null));
+
+        assertEquals(PlacePageSizeExceededException.MESSAGE_KEY, exception.getMessage());
+        assertEquals(50, exception.getMaxPageSize());
     }
 
     @Test
