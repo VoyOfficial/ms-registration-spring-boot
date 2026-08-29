@@ -1,7 +1,7 @@
 ---
 type: decision
 date: 2026-08-29
-status: in-progress
+status: closed
 tags: [decision, git]
 ---
 
@@ -11,7 +11,7 @@ PR #38 (`cursor/refactor-place-query-services-e144`) was opened against `develop
 
 Stack:
 
-1. Merge #38 into `create-get-place-from-db`
+1. Merge #38 into `create-get-place-from-db` — done (merge commit on that branch)
 2. Open a PR from `create-get-place-from-db` to `develop`
 
 Do not merge #38 straight to `develop` without that rebase/retarget.

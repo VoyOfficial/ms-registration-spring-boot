@@ -60,6 +60,6 @@ Review do branch `cursor/refactor-place-query-services-e144` (base GitHub era `d
 
 ## Proximos passos
 
-- [ ] Retarget / merge PR #38 em `create-get-place-from-db`
+- [x] Merge PR #38 em `create-get-place-from-db`
 - [ ] Abrir PR de `create-get-place-from-db` para `develop`
 - [ ] Follow-up `isSaved` com autenticacao (issue #89 do app)
