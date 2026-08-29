@@ -60,8 +60,8 @@ public class PlaceResponse {
         this.userRatingsTotal = place.getUserRatingsTotal();
         this.isSaved = isSaved;
         this.photoReference = place.getPrincipalPhoto();
-        this.photo = place.getPrincipalPhotoUrl();
-        this.photos = place.getPhotos();
+        this.photo = stripApiKey(place.getPrincipalPhotoUrl());
+        this.photos = sanitizePhotos(place.getPhotos());
         this.latitude = place.getLatitude();
         this.longitude = place.getLongitude();
         this.distanceFromUserLocation = place.getDistanceFromUserLocation();
@@ -87,8 +87,8 @@ public class PlaceResponse {
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .isSaved(isSaved)
                 .photoReference(place.getPrincipalPhoto())
-                .photo(place.getPrincipalPhotoUrl())
-                .photos(place.getPhotos())
+                .photo(stripApiKey(place.getPrincipalPhotoUrl()))
+                .photos(sanitizePhotos(place.getPhotos()))
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .distanceFromUserLocation(place.getDistanceFromUserLocation())
@@ -129,5 +129,35 @@ public class PlaceResponse {
                 .map(PlacePhoto::getImageBase64)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static List<PlacePhoto> sanitizePhotos(List<PlacePhoto> photos) {
+        if (photos == null) {
+            return null;
+        }
+        return photos.stream()
+                .map(
+                        photo ->
+                                PlacePhoto.builder()
+                                        .id(photo.getId())
+                                        .placeId(photo.getPlaceId())
+                                        .photoReference(photo.getPhotoReference())
+                                        .photoUrl(stripApiKey(photo.getPhotoUrl()))
+                                        .imageBase64(photo.getImageBase64())
+                                        .height(photo.getHeight())
+                                        .width(photo.getWidth())
+                                        .htmlAttributions(photo.getHtmlAttributions())
+                                        .build())
+                .toList();
+    }
+
+    static String stripApiKey(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        if (url.toLowerCase().contains("key=")) {
+            return null;
+        }
+        return url;
     }
 }

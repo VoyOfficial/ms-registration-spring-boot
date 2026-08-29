@@ -90,12 +90,6 @@ public class PaginationTokenEncoder {
                     return new PaginationState(offset, placeIds, googleToken);
                 }
                 throw new IllegalArgumentException("Invalid pagination token: checksum mismatch");
-            } else if (parts.length == 4) {
-                int offset = Integer.parseInt(parts[0]);
-                return new PaginationState(offset, new HashSet<>(), null);
-            } else if (parts.length == 1) {
-                int offset = Integer.parseInt(parts[0]);
-                return new PaginationState(offset, new HashSet<>(), null);
             }
 
             throw new IllegalArgumentException("Invalid pagination token: unrecognized format");

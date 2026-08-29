@@ -48,6 +48,7 @@ public class PlacePersistService {
                                             ? place.getPrincipalPhoto()
                                             : "")
                             .principalPhotoUrl(place.getPrincipalPhotoUrl())
+                            .googleTypes(place.getGoogleTypes())
                             .status(place.isStatus())
                             .ranking(place.getRanking())
                             .startRecommendation(place.getStartRecommendation())

@@ -849,7 +849,8 @@ class PlaceControllerTest {
                 65.2f, // distanceOfLocal
                 65.2, // latitude
                 65.2, // longitude
-                ""); // distanceFromUserLocation
+                "", // distanceFromUserLocation
+                null); // googleTypes
     }
 
     private br.voy.domain.entity.PlaceDetails createPlaceDetails(String placeId) {

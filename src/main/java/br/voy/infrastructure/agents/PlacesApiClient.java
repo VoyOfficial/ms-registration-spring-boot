@@ -462,7 +462,7 @@ public class PlacesApiClient {
 
         return PlacePhoto.builder()
                 .photoReference(photoReference)
-                .photoUrl(photoUrl)
+                .photoUrl(null)
                 .imageBase64(imageBase64)
                 .height(photo.height)
                 .width(photo.width)

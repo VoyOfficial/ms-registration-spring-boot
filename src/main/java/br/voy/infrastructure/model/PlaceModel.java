@@ -54,6 +54,9 @@ public class PlaceModel extends AbstractModel {
     @Column(name = "principal_photo_url")
     private String principalPhotoUrl;
 
+    @Column(name = "google_types")
+    private String googleTypes;
+
     private Boolean status;
     private Integer ranking;
 
@@ -98,6 +101,7 @@ public class PlaceModel extends AbstractModel {
         this.userRatingsTotal = placeDomain.getUserRatingsTotal();
         this.principalPhoto = placeDomain.getPrincipalPhoto();
         this.principalPhotoUrl = placeDomain.getPrincipalPhotoUrl();
+        this.googleTypes = placeDomain.getGoogleTypes();
         this.status = placeDomain.isStatus();
         this.ranking = placeDomain.getRanking();
         this.startRecommendation = placeDomain.getStartRecommendation();
@@ -131,6 +135,7 @@ public class PlaceModel extends AbstractModel {
                         .isSaved(false)
                         .principalPhoto(principalPhoto)
                         .principalPhotoUrl(principalPhotoUrl)
+                        .googleTypes(googleTypes)
                         .status(status != null ? status : false)
                         .ranking(ranking)
                         .startRecommendation(startRecommendation)
@@ -161,6 +166,7 @@ public class PlaceModel extends AbstractModel {
                 .isSaved(false)
                 .principalPhoto(principalPhoto)
                 .principalPhotoUrl(principalPhotoUrl)
+                .googleTypes(googleTypes)
                 .status(status != null ? status : false)
                 .ranking(ranking)
                 .startRecommendation(startRecommendation)

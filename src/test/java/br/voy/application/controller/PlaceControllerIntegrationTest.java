@@ -371,6 +371,7 @@ class PlaceControllerIntegrationTest {
                 65.2f,
                 NEARBY_LATITUDE,
                 NEARBY_LONGITUDE,
-                "");
+                "",
+                null);
     }
 }

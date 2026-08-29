@@ -85,6 +85,7 @@ voy:
       initialDefaultBoundingBoxRadiusKM: ${INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM:10.0}
       incrementalBoundingBoxRadiusKM: ${INCREMENTAL_BOUNDING_BOX_RADIUS_KM:5.0}
       maxPlaceSizeList: ${MAX_PLACE_SIZE_LIST:5}
+      nearbyPageSize: ${NEARBY_PLACE_PAGE_SIZE:20}
       limitMaxBoundingBox: ${LIMIT_MAX_BOUNDING_BOX:50}
       maxPageSize: ${MAX_PLACE_PAGE_SIZE:50}
       earthRadiusKM: ${EARTH_RADIUS_KM:6371.0}
