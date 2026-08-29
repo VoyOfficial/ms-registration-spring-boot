@@ -1,0 +1,17 @@
+{
+  "name": "ms-registration-spring-boot",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "spring-boot-app",
+      "command": "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 && java -jar target/ms-registration-spring-boot-0.0.1.jar --spring.profiles.active=local",
+      "description": "Runs the ms-registration Spring Boot API against the local PostgreSQL database. API is served on http://localhost:8080/api/registration and Spring Boot Actuator on http://localhost:2022/actuator/portal-admin."
+    }
+  ],
+  "ports": [
+    { "name": "api", "port": 8080 },
+    { "name": "actuator", "port": 2022 }
+  ]
+}
