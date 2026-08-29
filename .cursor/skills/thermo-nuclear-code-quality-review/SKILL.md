@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Use this skill for an unusually strict review focused on implementation quality, maintainability, abstraction quality, and codebase health.
 
+**In the Voy workflow:** this skill is **Pass 2** of `/code-reviewer`. Always run **Pass 1 (correctness & safety)** first via `.cursor/agents/code-reviewer.md` — do not skip to thermo-nuclear structure before bugs and security are cleared.
+
 Above all, this skill should push the reviewer to be **ambitious** about code structure. Do not merely identify local cleanup opportunities. Actively search for "code judo" moves: restructurings that preserve behavior while making the implementation dramatically simpler, smaller, more direct, and more elegant.
 
 ## Core Prompt
