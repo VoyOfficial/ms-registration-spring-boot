@@ -76,7 +76,7 @@ docs/obsidian/Sessions/ISSUE-<n>-[topic-slug].md
 - [ ] Work Item criado com YAML frontmatter
 - [ ] Session criada com YAML frontmatter
 - [ ] Links bidirecionais funcionando
-- [ ] CURRENT_WORK.md atualizado
+- [ ] `docs/obsidian/CURRENT_WORK.md` atualizado e commitado
 
 **Detalhes:** Ver `.cursor/rules/obsidian-integration.mdc`
 
@@ -95,7 +95,7 @@ find docs/obsidian/Sessions/ -name "ISSUE-<n>-*.md"
 # 3. Atualizar states
 # - Issue: aplicar label "ready-for-review"
 # - Sessions: status: closed
-# - CURRENT_WORK.md: Active → Recently Completed
+# - docs/obsidian/CURRENT_WORK.md: Active → Recently Completed
 ```
 
 **Criterios:**
