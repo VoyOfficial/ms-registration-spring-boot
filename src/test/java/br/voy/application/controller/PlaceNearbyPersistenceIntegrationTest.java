@@ -101,7 +101,12 @@ class PlaceNearbyPersistenceIntegrationTest {
                 .isEqualTo("Restaurant Alpha");
         assertThat(placeJpaRepository.findByGooglePlaceId("persist-test-id-002").get().getName())
                 .isEqualTo("Restaurant Beta");
-        assertThat(placeJpaRepository.findAll()).hasSize(2);
+        assertThat(
+                        placeJpaRepository.findAll().stream()
+                                .map(PlaceModel::getGooglePlaceId)
+                                .filter(id -> id.startsWith("persist-test-id-"))
+                                .count())
+                .isEqualTo(2);
     }
 
     @Test
@@ -149,43 +154,7 @@ class PlaceNearbyPersistenceIntegrationTest {
     @Test
     @DisplayName("When places exist in database, should return them without calling Google API")
     void shouldReturnPlacesFromDatabaseWithoutCallingGoogleApi() {
-        placeJpaRepository.saveAll(
-                List.of(
-                        PlaceModel.builder()
-                                .googlePlaceId("db-src-001")
-                                .name("Place One")
-                                .city("Test City")
-                                .latitude(-29.382)
-                                .longitude(-50.872)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-src-002")
-                                .name("Place Two")
-                                .city("Test City")
-                                .latitude(-29.383)
-                                .longitude(-50.873)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-src-003")
-                                .name("Place Three")
-                                .city("Test City")
-                                .latitude(-29.384)
-                                .longitude(-50.874)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-src-004")
-                                .name("Place Four")
-                                .city("Test City")
-                                .latitude(-29.385)
-                                .longitude(-50.875)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-src-005")
-                                .name("Place Five")
-                                .city("Test City")
-                                .latitude(-29.386)
-                                .longitude(-50.876)
-                                .build()));
+        placeJpaRepository.saveAll(seedNearbyPlaces("db-src", 20));
 
         var response = restTemplate.getForEntity(buildUrl(), NearbyPlacesResponse.class);
 
@@ -198,43 +167,7 @@ class PlaceNearbyPersistenceIntegrationTest {
     @Test
     @DisplayName("When nextToken exhausts database places, should fall back to Google API")
     void shouldFallBackToGoogleApiWhenDatabasePlacesAreExhaustedByNextToken() {
-        placeJpaRepository.saveAll(
-                List.of(
-                        PlaceModel.builder()
-                                .googlePlaceId("db-page-001")
-                                .name("Place One")
-                                .city("Test City")
-                                .latitude(-29.382)
-                                .longitude(-50.872)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-page-002")
-                                .name("Place Two")
-                                .city("Test City")
-                                .latitude(-29.383)
-                                .longitude(-50.873)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-page-003")
-                                .name("Place Three")
-                                .city("Test City")
-                                .latitude(-29.384)
-                                .longitude(-50.874)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-page-004")
-                                .name("Place Four")
-                                .city("Test City")
-                                .latitude(-29.385)
-                                .longitude(-50.875)
-                                .build(),
-                        PlaceModel.builder()
-                                .googlePlaceId("db-page-005")
-                                .name("Place Five")
-                                .city("Test City")
-                                .latitude(-29.386)
-                                .longitude(-50.876)
-                                .build()));
+        placeJpaRepository.saveAll(seedNearbyPlaces("db-page", 20));
 
         var googlePlace =
                 Place.builder()
@@ -260,6 +193,22 @@ class PlaceNearbyPersistenceIntegrationTest {
         assertThat(secondResponse.getStatusCode().value()).isEqualTo(200);
 
         verify(googlePlacesPort).getNearbyPlaces(any(), any(), any(), any());
+    }
+
+    private List<PlaceModel> seedNearbyPlaces(String idPrefix, int count) {
+        List<PlaceModel> places = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            places.add(
+                    PlaceModel.builder()
+                            .googlePlaceId(idPrefix + "-" + String.format("%03d", i))
+                            .name("Place " + i)
+                            .address("Test Address")
+                            .city("Test City")
+                            .latitude(-29.382 - (i * 0.001))
+                            .longitude(-50.872 - (i * 0.001))
+                            .build());
+        }
+        return places;
     }
 
     private String buildUrl() {

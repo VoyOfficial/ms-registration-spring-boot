@@ -17,8 +17,8 @@ Referência detalhada: `.cursor/rules/harness-engineering.mdc`
 ## 2) Session Startup (sempre no primeiro prompt)
 
 1. Rodar `git branch --show-current` e identificar a Issue relacionada (ex.: `feature/12-nome-da-feature`).
-2. Ler `CURRENT_WORK.md`.
-3. Consultar `docs/obsidian/Sessions/ISSUE-<n>-*.md`.
+2. Ler `docs/obsidian/CURRENT_WORK.md`.
+3. Consultar `docs/obsidian/Sessions/ISSUE-<n>-*.md` (ou `YYYY-MM-DD-*.md`).
 4. Se houver Issue pai, consultar sessão relacionada.
 5. Reportar em 1-2 linhas: task ativa + próximo passo.
 
@@ -82,7 +82,7 @@ Regras:
 3. Commits atômicos (1-3 arquivos quando possível, ordenados por dependência: `domain` → `infrastructure` → `application` → testes).
 4. Não usar corpo de commit; apenas `-m` em uma linha.
 5. NUNCA usar `--no-verify` ou pular hooks. Se o build/lint falhar, corrigir o código.
-6. **NUNCA commitar**: arquivos de documentação de gestão local (`CURRENT_WORK.md`, `CONTEXT.md`). `docs/obsidian/` pode ser versionado se o time optar por isso.
+6. **Commitar** `docs/obsidian/` (Sessions, Work Items, Decisions, Modules, `CURRENT_WORK.md`). **NUNCA commitar**: estado local do editor (`docs/obsidian/.obsidian/`), `CONTEXT.md` na raiz, nem um `CURRENT_WORK.md` na raiz (o snapshot canônico é `docs/obsidian/CURRENT_WORK.md`).
 
 Exemplos válidos:
 
@@ -99,8 +99,8 @@ Exemplos inválidos:
 
 Ao fim de trabalho significativo:
 
-1. Atualizar/criar sessão em `docs/obsidian/Sessions/`.
-2. Atualizar `CURRENT_WORK.md` (active/completed/blocked).
+1. Atualizar/criar sessão em `docs/obsidian/Sessions/` e **commitar** no mesmo fluxo da task (não deixar só local).
+2. Atualizar `docs/obsidian/CURRENT_WORK.md` (Active / Blocked / Recently Completed) e commitar.
 3. Incluir próximos passos objetivos.
 
 **Consolidação de Sessões** (evitar granularidade excessiva):

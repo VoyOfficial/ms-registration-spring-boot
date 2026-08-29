@@ -28,35 +28,25 @@ public class PaginationTokenEncoder {
 
     /** Encodes pagination state including offset and shown place IDs */
     public static String encode(int offset, Set<String> shownPlaceIds, String googleNextPageToken) {
-        try {
-            long timestamp = System.currentTimeMillis();
-            String salt = generateSalt();
+        long timestamp = System.currentTimeMillis();
+        String salt = generateSalt();
 
-            // Join place IDs with delimiter
-            String placeIdsStr =
-                    shownPlaceIds != null && !shownPlaceIds.isEmpty()
-                            ? String.join(",", shownPlaceIds)
-                            : "";
+        String placeIdsStr =
+                shownPlaceIds != null && !shownPlaceIds.isEmpty()
+                        ? String.join(",", shownPlaceIds)
+                        : "";
 
-            // Include Google token if present
-            String googleToken = googleNextPageToken != null ? googleNextPageToken : "";
+        String googleToken = googleNextPageToken != null ? googleNextPageToken : "";
 
-            // Format: offset:timestamp:salt:placeIds:googleToken
-            String payload =
-                    offset + ":" + timestamp + ":" + salt + ":" + placeIdsStr + ":" + googleToken;
+        String payload =
+                offset + ":" + timestamp + ":" + salt + ":" + placeIdsStr + ":" + googleToken;
 
-            String checksum = generateChecksum(payload);
-            String token = payload + ":" + checksum;
+        String checksum = generateChecksum(payload);
+        String token = payload + ":" + checksum;
 
-            return Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(token.getBytes(StandardCharsets.UTF_8));
-
-        } catch (Exception e) {
-            return Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(String.valueOf(offset).getBytes(StandardCharsets.UTF_8));
-        }
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(token.getBytes(StandardCharsets.UTF_8));
     }
 
     // Legacy method for backward compatibility
@@ -100,12 +90,6 @@ public class PaginationTokenEncoder {
                     return new PaginationState(offset, placeIds, googleToken);
                 }
                 throw new IllegalArgumentException("Invalid pagination token: checksum mismatch");
-            } else if (parts.length == 4) {
-                int offset = Integer.parseInt(parts[0]);
-                return new PaginationState(offset, new HashSet<>(), null);
-            } else if (parts.length == 1) {
-                int offset = Integer.parseInt(parts[0]);
-                return new PaginationState(offset, new HashSet<>(), null);
             }
 
             throw new IllegalArgumentException("Invalid pagination token: unrecognized format");
@@ -136,7 +120,7 @@ public class PaginationTokenEncoder {
             return Base64.getUrlEncoder().withoutPadding().encodeToString(shortChecksum);
 
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            return String.valueOf(payload.hashCode());
+            throw new IllegalStateException("Failed to generate pagination token checksum", e);
         }
     }
 

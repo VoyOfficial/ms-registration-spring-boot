@@ -1,0 +1,77 @@
+-- Seed data from GitHub issue #31 (adapted to current registration.place schema).
+-- Use for local PostgreSQL testing: psql -d voy -f src/test/resources/db/seed/recommended-places-issue-31.sql
+--
+-- Column mapping from the original issue query:
+--   place_id -> google_place_id, phone -> contact, category_id -> ranking,
+--   start_date -> start_recommendation, end_date -> end_recommendation, is_active -> status
+
+DELETE FROM registration.user_saved_places;
+DELETE FROM registration.place_photos;
+DELETE FROM registration.place;
+
+INSERT INTO registration.place (
+    id, name, google_place_id, about, contact, address, city, state,
+    rating, userratingstotal, principal_photo, latitude, longitude,
+    ranking, start_recommendation, end_recommendation, created_date,
+    status, distanceoflocal
+) VALUES
+    (1, 'Hard Rock Cafe', 'ChIJPQmNhEMyGZURxuHk44vIaIw', '', '(54) 3286-4040',
+     'R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil', 'Gramado', 'RS',
+     4.5, 1000, '', -29.3810171, -50.8711053,
+     2, DATE '2023-11-17', DATE '2023-12-17', DATE '2023-11-17',
+     TRUE, 0),
+    (2, 'Fonte do Amor Eterno', 'ChIJsdUuyRc1GZURg7Hy1kfaAeU', '', '(54) 3286-1055',
+     'Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.37855, -50.8744,
+     1, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (3, 'Pórtico Gramado Estilo Bávaro', 'ChIJkT12uPczGZURcExGzF48AoI', '', '(54) 3036-4050',
+     'Av. das Hortênsias - Portico, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.38969, -50.88495,
+     2, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (4, 'Mini Mundo', 'ChIJoW5_xxs2GZURGyI9uVrtAeY', '', '(54) 3286-4055',
+     'R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062', 'Gramado', 'RS',
+     4.5, 1000, '', -29.38304, -50.87568,
+     3, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (5, 'Garden Park Gramado', 'ChIJWzOwRXM1GZURgCqEqfAbAiE', '', '(54) 3286-4051',
+     'Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899', 'Gramado', 'RS',
+     4.5, 1000, '', -29.37264, -50.85285,
+     4, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (6, 'Lago Negro', 'ChIJpQLdRlMzGZURHGysIJMbi3I', '', '(54) 3286-4052',
+     'R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.39351, -50.87833,
+     5, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (7, 'Expogramado', 'ChIJIYpuLR8xGZURIDT2A5S6Vog', '', '(54) 3286-4053',
+     'Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.36883, -50.88178,
+     1, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (8, 'Belvedere Vale do Quilombo', 'ChIJ-ZdZYBc1GZURaaRRs7WmIAg', '', '(54) 3286-4054',
+     'Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.37812, -50.86689,
+     2, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (9, 'NBA Park Gramado | Parque Temático', 'ChIJc9xQaBk1GZURAzZGz7paAeQ', '', '(54) 3286-4056',
+     'Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880', 'Gramado', 'RS',
+     4.5, 1000, '', -29.35966, -50.85485,
+     3, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (10, 'Jardim do Amor', 'ChIJYZJhix41GZURPZQ1hcAfIIo', '', '(54) 3286-4057',
+     'Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.38436, -50.8815,
+     4, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (11, 'Chocolate Gramadense - Fábrica', 'ChIJCXYmbCY1GZURMMaJctqNAgQ', '', '(54) 3286-4058',
+     'R. Pref. Waldemar Frederico Weber, 365 - Floresta, Gramado - RS, 95670-000', 'Gramado', 'RS',
+     4.5, 1000, '', -29.37138, -50.88661,
+     5, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0),
+    (12, 'Space Adventure Canela', 'ChIJSpaceAdvCanelaTest01', '', '(54) 3286-1055',
+     'Av. Ernani Kroeff Fleck, 960 - Vila Suica, Canela - RS, 95684-180', 'Canela', 'RS',
+     4.5, 1000, '', -29.35963, -50.83543,
+     1, DATE '2025-02-18', DATE '2026-12-31', DATE '2025-02-18',
+     TRUE, 0);

@@ -31,7 +31,7 @@ public class Place {
     private BusinessHours businessHours;
     private Float rating;
     private Integer userRatingsTotal;
-    private Boolean isSaved = false;
+    @Setter private Boolean isSaved = false;
     private String principalPhoto; // TODO Acessar
     // https://developers.google.com/maps/documentation/places/web-service/photos?hl=pt-br
     private String principalPhotoUrl;
@@ -55,6 +55,7 @@ public class Place {
     private double latitude;
     private double longitude;
     @Setter private String distanceFromUserLocation;
+    private String googleTypes;
 
     private static String extractPhotoReference(PlacesSearchResult placeSearchResult) {
         if (Objects.nonNull(placeSearchResult.photos)) {
@@ -87,43 +88,20 @@ public class Place {
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
                 .address(placeSearchResult.vicinity)
                 .principalPhoto(photoReference)
+                .googleTypes(joinGoogleTypes(placeSearchResult))
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();
     }
 
     public static Place toNearbyPlace(PlacesSearchResult placeSearchResult, String apiKey) {
+        return toNearbyPlace(placeSearchResult);
+    }
 
-        var photoReference = extractPhotoReference(placeSearchResult);
-        String photoUrl = null;
-
-        if (!photoReference.isEmpty()) {
-            photoUrl =
-                    String.format(
-                            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=%s&key=%s",
-                            photoReference, apiKey);
+    private static String joinGoogleTypes(PlacesSearchResult placeSearchResult) {
+        if (placeSearchResult.types == null || placeSearchResult.types.length == 0) {
+            return null;
         }
-
-        double latitude = 0.0;
-        double longitude = 0.0;
-
-        if (Objects.nonNull(placeSearchResult.geometry)
-                && Objects.nonNull(placeSearchResult.geometry.location)) {
-            latitude = placeSearchResult.geometry.location.lat;
-            longitude = placeSearchResult.geometry.location.lng;
-        }
-
-        return Place.builder()
-                .googlePlaceId(placeSearchResult.placeId)
-                .name(placeSearchResult.name)
-                .about("") // todo refatorar
-                .rating(placeSearchResult.rating)
-                .userRatingsTotal(placeSearchResult.userRatingsTotal)
-                .address(placeSearchResult.vicinity)
-                .principalPhoto(photoReference)
-                .principalPhotoUrl(photoUrl)
-                .latitude(latitude)
-                .longitude(longitude)
-                .build();
+        return String.join(",", placeSearchResult.types);
     }
 }

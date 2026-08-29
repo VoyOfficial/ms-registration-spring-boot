@@ -179,7 +179,8 @@ git commit -m "test(product/getproductservice): cover success and not-found scen
 - ✅ English, imperative mood
 - ✅ 1-3 files per commit (atomic)
 - ✅ Order: domain → infrastructure (+ migration) → application → tests
-- ❌ NEVER commit `CURRENT_WORK.md`, `CONTEXT.md`
+- ✅ ALWAYS commit `docs/obsidian/` session notes, work items, and `docs/obsidian/CURRENT_WORK.md`
+- ❌ NEVER commit `docs/obsidian/.obsidian/`, root `/CURRENT_WORK.md`, or `/CONTEXT.md`
 - ❌ NEVER use `--no-verify`
 
 ### Phase 5️⃣: Validation Pyramid (BLOCKING GATE)
@@ -271,7 +272,7 @@ mvn clean verify
 # Work Item: [[ISSUE-<n>-topic-slug]]
 # Session: [[ISSUE-<n>]]
 
-# 4. Update CURRENT_WORK.md
+# 4. Update docs/obsidian/CURRENT_WORK.md
 # Add to Active Work section
 ```
 
@@ -283,7 +284,7 @@ Collect complete context (NOT just last session):
 
 1. Read ALL sessions for this Issue from `docs/obsidian/Sessions/`
 2. Read commit history: `git log origin/main..HEAD --oneline`
-3. Read `CURRENT_WORK.md`
+3. Read `docs/obsidian/CURRENT_WORK.md`
 4. Read Issue description + comments
 5. Synthesize complete story of what was done and why
 
@@ -310,7 +311,7 @@ Collect complete context (NOT just last session):
 Final documentation update:
 
 1. Create/update session in `docs/obsidian/Sessions/ISSUE-<n>-[description].md`
-2. Update `CURRENT_WORK.md`:
+2. Update `docs/obsidian/CURRENT_WORK.md`:
    - Move from Active → Recently Completed
 3. Document:
    - Implementation summary

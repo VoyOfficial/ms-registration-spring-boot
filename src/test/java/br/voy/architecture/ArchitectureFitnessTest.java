@@ -3,8 +3,6 @@ package br.voy.architecture;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -16,40 +14,6 @@ import org.junit.jupiter.api.Test;
 class ArchitectureFitnessTest {
 
     private static JavaClasses classes;
-
-    private static final DescribedPredicate<JavaClass> DOMAIN_TO_INFRA_DEBT =
-            new DescribedPredicate<JavaClass>(
-                    "known tech debt — PlaceRepository uses PlaceModel parameter") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return c.getSimpleName().equals("PlaceRepository");
-                }
-            };
-
-    private static final DescribedPredicate<JavaClass> NOT_DOMAIN_TO_INFRA_DEBT =
-            new DescribedPredicate<JavaClass>("not known tech debt (PlaceRepository)") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return !c.getSimpleName().equals("PlaceRepository");
-                }
-            };
-
-    private static final DescribedPredicate<JavaClass> DOMAIN_TO_APP_DEBT =
-            new DescribedPredicate<JavaClass>(
-                    "known tech debt — GetRecommendedPlaces* uses application DTOs") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return c.getSimpleName().startsWith("GetRecommendedPlaces");
-                }
-            };
-
-    private static final DescribedPredicate<JavaClass> NOT_DOMAIN_TO_APP_DEBT =
-            new DescribedPredicate<JavaClass>("not known tech debt (GetRecommendedPlaces*)") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return !c.getSimpleName().startsWith("GetRecommendedPlaces");
-                }
-            };
 
     @BeforeAll
     static void importClasses() {
@@ -65,7 +29,6 @@ class ArchitectureFitnessTest {
         noClasses()
                 .that()
                 .resideInAPackage("br.voy.domain..")
-                .and(NOT_DOMAIN_TO_INFRA_DEBT)
                 .should()
                 .dependOnClassesThat()
                 .resideInAPackage("br.voy.infrastructure..")
@@ -78,7 +41,6 @@ class ArchitectureFitnessTest {
         noClasses()
                 .that()
                 .resideInAPackage("br.voy.domain..")
-                .and(NOT_DOMAIN_TO_APP_DEBT)
                 .should()
                 .dependOnClassesThat()
                 .resideInAPackage("br.voy.application..")
@@ -106,6 +68,20 @@ class ArchitectureFitnessTest {
                 .should()
                 .dependOnClassesThat()
                 .resideInAPackage("javax.persistence..")
+                .check(classes);
+    }
+
+    @Test
+    @DisplayName("Domain must not depend on Spring Web")
+    void domainMustNotDependOnSpringWeb() {
+        noClasses()
+                .that()
+                .resideInAPackage("br.voy.domain..")
+                .and()
+                .doNotHaveSimpleName("ApiDocumentationValidator")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("org.springframework.web..")
                 .check(classes);
     }
 

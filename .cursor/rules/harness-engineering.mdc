@@ -22,7 +22,7 @@ Execute estes passos no inicio de cada sessao:
 
 1. Descobrir branch atual com `git branch --show-current`.
 2. Identificar a Issue relacionada pelo nome da branch quando existir (ex.: `feature/12-nome-da-feature`).
-3. Ler `CURRENT_WORK.md` para contexto de ativo/bloqueado/concluido.
+3. Ler `docs/obsidian/CURRENT_WORK.md` para contexto de ativo/bloqueado/concluido.
 4. Buscar sessoes anteriores por Issue em `docs/obsidian/Sessions/`.
 5. Se houver Issue pai, carregar sessao relacionada.
 6. Se nao houver contexto em Obsidian, seguir como nova sessao sem usar `docs/memory/session/`.
@@ -93,9 +93,9 @@ Antes de considerar a task concluida, executar validacao completa via DoD Harnes
 
 Ao final da sessao:
 
-1. Atualizar ou criar sessao em `docs/obsidian/Sessions/`.
+1. Atualizar ou criar sessao em `docs/obsidian/Sessions/` e commitar.
 2. Registrar: contexto, decisoes, arquivos tocados, proximos passos e status.
-3. Atualizar `CURRENT_WORK.md` (Active, Blocked ou Recently Completed).
+3. Atualizar e commitar `docs/obsidian/CURRENT_WORK.md` (Active, Blocked ou Recently Completed).
 
 Ao finalizar a task (normalmente abertura de PR):
 

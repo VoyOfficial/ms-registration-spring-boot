@@ -106,7 +106,7 @@ O agente GitHub executa TODOS os passos automaticamente:
 - [ ] Ler Issue no GitHub (`gh issue view <n>`)
 - [ ] Descobrir TODAS as sessões da task
 - [ ] Ler histórico de commits completo
-- [ ] Ler CURRENT_WORK.md
+- [ ] Ler `docs/obsidian/CURRENT_WORK.md`
 
 ### 2. Validação de Código
 

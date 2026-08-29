@@ -4,6 +4,9 @@ import br.voy.application.controller.response.DefaultResponse;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.InvalidUserException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.PlacePageSizeExceededException;
+import br.voy.domain.exception.PlaceSearchRangeExceededException;
+import br.voy.domain.exception.RecommendedPlacesNotFoundException;
 import br.voy.domain.exception.StandardError;
 import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
@@ -465,6 +468,42 @@ public class ExceptionHandlerAdvice {
                         .build();
 
         return ResponseEntity.status(httpStatus).body(standardError);
+    }
+
+    @ExceptionHandler(RecommendedPlacesNotFoundException.class)
+    public final ResponseEntity<DefaultResponse<String>> handleRecommendedPlacesNotFoundException(
+            RecommendedPlacesNotFoundException ex) {
+        var message =
+                messageSource.getMessage(
+                        RecommendedPlacesNotFoundException.MESSAGE_KEY,
+                        null,
+                        LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new DefaultResponse<>(message, null));
+    }
+
+    @ExceptionHandler(PlaceSearchRangeExceededException.class)
+    public final ResponseEntity<DefaultResponse<String>> handlePlaceSearchRangeExceededException(
+            PlaceSearchRangeExceededException ex) {
+        var message =
+                messageSource.getMessage(
+                        PlaceSearchRangeExceededException.MESSAGE_KEY,
+                        new Object[] {String.valueOf(ex.getLimitKm())},
+                        LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new DefaultResponse<>(message, null));
+    }
+
+    @ExceptionHandler(PlacePageSizeExceededException.class)
+    public final ResponseEntity<DefaultResponse<String>> handlePlacePageSizeExceededException(
+            PlacePageSizeExceededException ex) {
+        var message =
+                messageSource.getMessage(
+                        PlacePageSizeExceededException.MESSAGE_KEY,
+                        new Object[] {ex.getMaxPageSize()},
+                        LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new DefaultResponse<>(message, null));
     }
 
     @ExceptionHandler(ResponseStatusException.class)

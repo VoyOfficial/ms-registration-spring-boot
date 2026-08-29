@@ -23,14 +23,14 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${voy.services.places.maxPlaceSizeList}")
+    @Value("${voy.services.places.nearbyPageSize:20}")
     private int pageSize;
 
     @Autowired GooglePlacesPort googlePlacesPort;
 
     @Autowired PlaceRepository placeRepository;
 
-    @Autowired PlaceAsyncSaveService placeAsyncSaveService;
+    @Autowired PlacePersistService placePersistService;
 
     @Override
     public NearbyPlaces getNearbyPlaces(
@@ -43,175 +43,175 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
                 placeType,
                 nextPageToken);
 
-        // Decode pagination state
-        PaginationTokenEncoder.PaginationState paginationState;
-        try {
-            paginationState =
-                    nextPageToken != null && !nextPageToken.isEmpty()
-                            ? PaginationTokenEncoder.decode(nextPageToken)
-                            : new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), null);
-        } catch (IllegalArgumentException e) {
-            logger.warn(
-                    "GET NEARBY PLACES SERVICE - Invalid token, treating as first page: {}",
-                    e.getMessage());
-            paginationState =
-                    new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), nextPageToken);
-        }
-
+        PaginationTokenEncoder.PaginationState paginationState = decodePagination(nextPageToken);
         int offset = paginationState.getOffset();
         Set<String> shownPlaceIds = new HashSet<>(paginationState.getShownPlaceIds());
         String googleToken = paginationState.getGoogleNextPageToken();
 
-        logger.info(
-                "GET NEARBY PLACES SERVICE - Pagination State - Offset: {}, Shown IDs: {}, Google Token: {}",
-                offset,
-                shownPlaceIds.size(),
-                googleToken != null ? "present" : "null");
-
-        // Fetch all database places (we'll paginate from this list)
         List<Place> allDbPlaces =
                 placeRepository.findNearbyPlacesByCoordinates(
                         coordinates.getLatitude(), coordinates.getLongitude(), radius);
 
-        logger.info("GET NEARBY PLACES SERVICE - Found {} places in database", allDbPlaces.size());
+        List<Place> typedDbPlaces =
+                allDbPlaces.stream()
+                        .filter(place -> matchesPlaceType(place, placeType))
+                        .collect(Collectors.toList());
 
-        // Result list to return
         List<Place> resultPlaces = new ArrayList<>();
-        Set<String> newShownPlaceIds = new HashSet<>(shownPlaceIds);
+        int consumedFromDb = 0;
 
-        // Try to fill from database first
-        if (!allDbPlaces.isEmpty() && offset < allDbPlaces.size()) {
-            logger.info(
-                    "GET NEARBY PLACES SERVICE - Fetching from database starting at offset {}",
-                    offset);
-
-            List<Place> dbPagePlaces =
-                    allDbPlaces.stream()
-                            .skip(offset)
-                            .filter(place -> !shownPlaceIds.contains(place.getGooglePlaceId()))
-                            .limit(pageSize)
-                            .map(this::normalizePlace)
-                            .collect(Collectors.toList());
-
-            resultPlaces.addAll(dbPagePlaces);
-            dbPagePlaces.forEach(place -> newShownPlaceIds.add(place.getGooglePlaceId()));
-
-            logger.info(
-                    "GET NEARBY PLACES SERVICE - Got {} places from database (after deduplication)",
-                    dbPagePlaces.size());
-
-            // Check if we have a full page from database
-            if (resultPlaces.size() >= pageSize) {
-                int nextOffset = offset + dbPagePlaces.size();
-
-                // Generate next token for database pagination
-                String nextToken =
-                        PaginationTokenEncoder.encode(nextOffset, newShownPlaceIds, null);
-
-                logger.info(
-                        "GET NEARBY PLACES SERVICE - Returning full page from database. Next offset: {}",
-                        nextOffset);
-                return new NearbyPlaces(resultPlaces.subList(0, pageSize), nextToken);
+        for (int i = offset; i < typedDbPlaces.size() && resultPlaces.size() < pageSize; i++) {
+            Place place = typedDbPlaces.get(i);
+            consumedFromDb++;
+            if (shownPlaceIds.contains(place.getGooglePlaceId())) {
+                continue;
             }
+            resultPlaces.add(normalizePlace(place));
+            shownPlaceIds.add(place.getGooglePlaceId());
+        }
 
-            // If database has more results, continue from there in next request
-            if (offset + dbPagePlaces.size() < allDbPlaces.size()) {
-                int nextOffset = offset + dbPagePlaces.size();
-                String nextToken =
-                        PaginationTokenEncoder.encode(nextOffset, newShownPlaceIds, null);
-
-                logger.info(
-                        "GET NEARBY PLACES SERVICE - Returning {} places from database (partial page). Next offset: {}",
-                        resultPlaces.size(),
-                        nextOffset);
-                return new NearbyPlaces(resultPlaces, nextToken);
+        int nextOffset = offset + consumedFromDb;
+        boolean moreUnseenInDb = false;
+        for (int i = nextOffset; i < typedDbPlaces.size(); i++) {
+            if (!shownPlaceIds.contains(typedDbPlaces.get(i).getGooglePlaceId())) {
+                moreUnseenInDb = true;
+                break;
             }
         }
 
-        // Database is exhausted or insufficient, fetch from Google API to complete the page
-        int placesNeeded = pageSize - resultPlaces.size();
-
-        if (placesNeeded > 0) {
-            logger.info(
-                    "GET NEARBY PLACES SERVICE - Database exhausted or insufficient. Need {} more places. Fetching from Google API",
-                    placesNeeded);
-
-            // Get all database place IDs to filter duplicates
-            Set<String> allDbPlaceIds =
-                    allDbPlaces.stream().map(Place::getGooglePlaceId).collect(Collectors.toSet());
-
-            // Merge with already shown IDs
-            Set<String> allExistingIds = new HashSet<>(allDbPlaceIds);
-            allExistingIds.addAll(shownPlaceIds);
-
-            // Fetch from Google API
-            NearbyPlaces googleResponse =
+        NearbyPlaces googleResponse = null;
+        if (resultPlaces.size() < pageSize) {
+            googleResponse =
                     googlePlacesPort.getNearbyPlaces(coordinates, radius, placeType, googleToken);
 
-            // Save places asynchronously
             if (!googleResponse.getPlaces().isEmpty()) {
-                placeAsyncSaveService.savePlacesAsync(googleResponse.getPlaces());
+                persistGooglePlaces(googleResponse.getPlaces(), placeType);
             }
 
-            // Filter and add Google places
-            List<Place> filteredGooglePlaces =
-                    googleResponse.getPlaces().stream()
-                            .filter(place -> !allExistingIds.contains(place.getGooglePlaceId()))
-                            .limit(placesNeeded)
-                            .collect(Collectors.toList());
-
-            resultPlaces.addAll(filteredGooglePlaces);
-            filteredGooglePlaces.forEach(place -> newShownPlaceIds.add(place.getGooglePlaceId()));
-
-            logger.info(
-                    "GET NEARBY PLACES SERVICE - Added {} places from Google API (filtered {} duplicates)",
-                    filteredGooglePlaces.size(),
-                    googleResponse.getPlaces().size() - filteredGooglePlaces.size());
-
-            // Generate next token with Google pagination token
-            String nextToken = null;
-            if (googleResponse.getNextTokenPage() != null
-                    && !googleResponse.getNextTokenPage().isEmpty()) {
-                // Continue with Google API pagination, database is exhausted
-                nextToken =
-                        PaginationTokenEncoder.encode(
-                                allDbPlaces.size(),
-                                newShownPlaceIds,
-                                googleResponse.getNextTokenPage());
-                logger.info(
-                        "GET NEARBY PLACES SERVICE - Google has more results. Next token includes Google pagination token");
-            } else if (resultPlaces.isEmpty()) {
-                logger.info(
-                        "GET NEARBY PLACES SERVICE - No more results available from either source");
-            } else {
-                logger.info("GET NEARBY PLACES SERVICE - All results exhausted");
+            for (Place place : googleResponse.getPlaces()) {
+                if (resultPlaces.size() >= pageSize) {
+                    break;
+                }
+                if (shownPlaceIds.contains(place.getGooglePlaceId())) {
+                    continue;
+                }
+                resultPlaces.add(place);
+                shownPlaceIds.add(place.getGooglePlaceId());
             }
 
-            logger.info(
-                    "GET NEARBY PLACES SERVICE - GET NEARBY PLACES FINISH - Returning {} places total ({} from DB + {} from Google)",
-                    resultPlaces.size(),
-                    resultPlaces.size() - filteredGooglePlaces.size(),
-                    filteredGooglePlaces.size());
-
-            return new NearbyPlaces(resultPlaces, nextToken);
+            googleToken = googleResponse.getNextTokenPage();
         }
 
-        // Should never reach here, but just in case
-        logger.warn("GET NEARBY PLACES SERVICE - Unexpected flow, returning empty result");
-        return new NearbyPlaces(resultPlaces, null);
+        boolean moreUnseenGoogle =
+                googleResponse != null
+                        && googleResponse.getPlaces().stream()
+                                .anyMatch(
+                                        place -> !shownPlaceIds.contains(place.getGooglePlaceId()));
+
+        boolean hasGoogleNext = googleToken != null && !googleToken.isEmpty();
+        boolean fullPage = resultPlaces.size() >= pageSize;
+        String nextToken = null;
+        if (fullPage || moreUnseenInDb || moreUnseenGoogle || hasGoogleNext) {
+            nextToken =
+                    PaginationTokenEncoder.encode(
+                            nextOffset, shownPlaceIds, hasGoogleNext ? googleToken : null);
+        }
+
+        return new NearbyPlaces(resultPlaces, nextToken);
+    }
+
+    private void persistGooglePlaces(List<Place> places, String placeType) {
+        for (Place place : places) {
+            try {
+                placePersistService.saveIfAbsent(ensurePlaceType(place, placeType));
+            } catch (Exception e) {
+                logger.error(
+                        "GET NEARBY PLACES SERVICE - Failed to persist place {}: {}",
+                        place.getName(),
+                        e.getMessage(),
+                        e);
+            }
+        }
+    }
+
+    private Place ensurePlaceType(Place place, String placeType) {
+        if (placeType == null || placeType.isBlank() || matchesPlaceType(place, placeType)) {
+            return place;
+        }
+        String existing = place.getGoogleTypes();
+        String merged =
+                existing == null || existing.isBlank() ? placeType : existing + "," + placeType;
+        return Place.builder()
+                .id(place.getId())
+                .googlePlaceId(place.getGooglePlaceId())
+                .name(place.getName())
+                .about(place.getAbout())
+                .contact(place.getContact())
+                .address(place.getAddress())
+                .city(place.getCity())
+                .state(place.getState())
+                .rating(place.getRating())
+                .userRatingsTotal(place.getUserRatingsTotal())
+                .principalPhoto(place.getPrincipalPhoto())
+                .principalPhotoUrl(place.getPrincipalPhotoUrl())
+                .status(place.isStatus())
+                .ranking(place.getRanking())
+                .startRecommendation(place.getStartRecommendation())
+                .endRecommendation(place.getEndRecommendation())
+                .createdAt(place.getCreatedAt())
+                .lastCancel(place.getLastCancel())
+                .distanceOfLocal(place.getDistanceOfLocal())
+                .latitude(place.getLatitude())
+                .longitude(place.getLongitude())
+                .photos(place.getPhotos())
+                .googleTypes(merged)
+                .build();
+    }
+
+    private boolean matchesPlaceType(Place place, String placeType) {
+        if (placeType == null || placeType.isBlank()) {
+            return true;
+        }
+        String types = place.getGoogleTypes();
+        if (types == null || types.isBlank()) {
+            return false;
+        }
+        String needle = placeType.trim();
+        for (String type : types.split(",")) {
+            if (type.trim().equalsIgnoreCase(needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private PaginationTokenEncoder.PaginationState decodePagination(String nextPageToken) {
+        try {
+            return nextPageToken != null && !nextPageToken.isEmpty()
+                    ? PaginationTokenEncoder.decode(nextPageToken)
+                    : new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), null);
+        } catch (IllegalArgumentException e) {
+            logger.warn(
+                    "GET NEARBY PLACES SERVICE - Invalid token, treating as first page: {}",
+                    e.getMessage());
+            return new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), nextPageToken);
+        }
     }
 
     private Place normalizePlace(Place place) {
         return Place.builder()
+                .id(place.getId())
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
                 .rating(place.getRating())
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .address(place.getAddress())
+                .city(place.getCity())
                 .principalPhoto(place.getPrincipalPhoto())
                 .principalPhotoUrl(place.getPrincipalPhotoUrl())
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
+                .googleTypes(place.getGoogleTypes())
                 .photos(place.getPhotos() != null ? place.getPhotos() : List.of())
                 .build();
     }

@@ -15,8 +15,10 @@ Obsidian = **visualizador** do memory system. Transforma markdown em **graph int
 
 - ✅ `docs/obsidian/Sessions/` = fonte oficial
 - ✅ Usar WikiLinks: `[[page]]` (sem `.md`, sem path)
+- ✅ Versionar o vault no git (exceto `.obsidian/`)
 - ❌ `/memories/` NÃO aparece no Obsidian
 - ❌ Não usar `/save` ou `/resume`
+- ❌ Não tratar sessões como arquivos locais ignorados
 
 ## 📝 YAML Frontmatter (OBRIGATÓRIO)
 
@@ -125,7 +127,7 @@ Quando a task for finalizada (normalmente na abertura do PR ou antes do merge):
 1. Atualizar Work Item local para `status: closed`
 2. Atualizar todas as sessions da Issue para `status: closed`
 3. Garantir que cada session tenha `parent_session` explicito
-4. Atualizar `CURRENT_WORK.md` movendo a task para `Recently Completed`
+4. Atualizar `docs/obsidian/CURRENT_WORK.md` movendo a task para `Recently Completed`
 
 Definicao de pronto para documentacao:
 
@@ -155,7 +157,7 @@ Definicao de pronto para documentacao:
 
 ### Session Startup
 
-1. Ler `CURRENT_WORK.md`
+1. Ler `docs/obsidian/CURRENT_WORK.md`
 2. Consultar `docs/obsidian/Sessions/ISSUE-<n>-*.md`
 3. Carregar contexto via links
 
@@ -169,8 +171,9 @@ Definicao de pronto para documentacao:
 
 1. Criar session em `docs/obsidian/Sessions/`
 2. Linkar work items, sessions, decisões, módulos
-3. Atualizar `CURRENT_WORK.md`
-4. Validar checklist de qualidade
+3. Atualizar `docs/obsidian/CURRENT_WORK.md`
+4. Commitar os markdowns do vault no mesmo fluxo da task
+5. Validar checklist de qualidade
 
 ## 🔄 LEMBRETE FINAL
 
