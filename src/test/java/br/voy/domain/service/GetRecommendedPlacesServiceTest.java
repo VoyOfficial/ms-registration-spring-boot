@@ -501,6 +501,64 @@ public class GetRecommendedPlacesServiceTest {
         verify(placeRepository, atLeast(2)).findPlacesWithinBoundingBox(any(BoundingBox.class));
     }
 
+    @Test
+    @DisplayName("Should expand radius when the first bounding box is empty")
+    void shouldExpandRadiusWhenFirstBoundingBoxIsEmpty() {
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(List.of()))
+                .thenReturn(Optional.of(generatePlaceList()));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null);
+
+        assertFalse(response.isEmpty());
+        verify(placeRepository, atLeast(2)).findPlacesWithinBoundingBox(any(BoundingBox.class));
+    }
+
+    @Test
+    @DisplayName("Should exclude recommendations that are disabled or not started yet")
+    void shouldExcludeDisabledAndFutureRecommendations() {
+        Place disabled = generatePlaceList().get(0);
+        disabled.setStatus(false);
+
+        Place future =
+                createPlace(
+                        99L,
+                        "future-google-id",
+                        "Future Place",
+                        "about",
+                        "(54) 0000-0000",
+                        null,
+                        4.5f,
+                        10,
+                        "photoString",
+                        new ArrayList<>(),
+                        "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
+                        "Gramado",
+                        true,
+                        1,
+                        LocalDate.now().plusDays(10),
+                        LocalDate.now().plusMonths(1),
+                        LocalDate.now(),
+                        null,
+                        null,
+                        -29.37855,
+                        -50.8744,
+                        null);
+
+        List<Place> mixed = new ArrayList<>();
+        mixed.add(disabled);
+        mixed.add(future);
+        mixed.addAll(generatePlaceList());
+
+        when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
+                .thenReturn(Optional.of(mixed));
+
+        var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null);
+
+        assertTrue(response.stream().noneMatch(place -> "Future Place".equals(place.getName())));
+        assertTrue(response.stream().allMatch(Place::isStatus));
+    }
+
     private Place generateFarPlace() {
         return Place.builder()
                 .id(123L)
@@ -651,7 +709,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -676,7 +734,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -701,7 +759,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias - Portico, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -726,7 +784,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -751,7 +809,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -776,7 +834,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         5,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -801,7 +859,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -826,7 +884,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -851,7 +909,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -876,7 +934,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         startDateRecommendation,
                         endDateRecommendation,
@@ -907,7 +965,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Wilma Dinnebier - Bairro Belverede, Gramado - RS, 95670-192, Brazil",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2023, 11, 17),
                         LocalDate.of(2023, 12, 17),
@@ -932,7 +990,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 2659 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -957,7 +1015,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias - Portico, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -982,7 +1040,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Horácio Cardoso, 291 - Planalto, Gramado - RS, 95675-062",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1007,7 +1065,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Estr. Profa. Elvira Apolo Benetti, 1699 - Jardim Bela Vista, Gramado - RS, 95679-899",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1032,7 +1090,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "R. Vinte e Cinco de Julho, 439 - Casa Grande, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         5,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1057,7 +1115,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. Borges de Medeiros, 4111 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         1,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1082,7 +1140,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         2,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1107,7 +1165,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 4795 - Carniel, Gramado - RS, 95670-880",
                         "Gramado",
-                        false,
+                        true,
                         3,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),
@@ -1132,7 +1190,7 @@ public class GetRecommendedPlacesServiceTest {
                         new ArrayList<>(),
                         "Av. das Hortênsias, 765 - Centro, Gramado - RS, 95670-000",
                         "Gramado",
-                        false,
+                        true,
                         4,
                         LocalDate.of(2025, 2, 18),
                         LocalDate.of(2025, 3, 18),

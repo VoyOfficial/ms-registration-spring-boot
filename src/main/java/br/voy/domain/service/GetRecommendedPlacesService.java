@@ -126,26 +126,28 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
             Optional<List<Place>> optionalCandidates =
                     placeRepository.findPlacesWithinBoundingBox(boundingBox);
 
-            if (optionalCandidates.isEmpty() || optionalCandidates.get().isEmpty()) {
-                throw new RecommendedPlacesNotFoundException();
+            if (optionalCandidates.isPresent() && !optionalCandidates.get().isEmpty()) {
+                double currentRadius = radius;
+                places =
+                        optionalCandidates.get().stream()
+                                .filter(place -> isActiveRecommendation(place, today))
+                                .map(
+                                        place ->
+                                                scorePlace(
+                                                        userLatitude,
+                                                        userLongitude,
+                                                        place,
+                                                        currentRadius))
+                                .filter(scored -> scored != null)
+                                .collect(Collectors.toList());
             }
-
-            double currentRadius = radius;
-            places =
-                    optionalCandidates.get().stream()
-                            .filter(place -> isActiveRecommendation(place, today))
-                            .map(
-                                    place ->
-                                            scorePlace(
-                                                    userLatitude,
-                                                    userLongitude,
-                                                    place,
-                                                    currentRadius))
-                            .filter(scored -> scored != null)
-                            .collect(Collectors.toList());
 
             radius += INCREMENTAL_BOUNDING_BOX_RADIUS_KM;
         } while (places.size() < minimumPlaces && radius <= LIMIT_MAX_BOUNDING_BOX);
+
+        if (places.isEmpty()) {
+            throw new RecommendedPlacesNotFoundException();
+        }
 
         return places;
     }
@@ -167,8 +169,14 @@ public class GetRecommendedPlacesService implements GetRecommendedPlacesUseCase 
     }
 
     private boolean isActiveRecommendation(Place place, LocalDate today) {
-        return place.getEndRecommendation() != null
-                && !place.getEndRecommendation().isBefore(today);
+        if (!place.isStatus() || place.getEndRecommendation() == null) {
+            return false;
+        }
+        if (place.getEndRecommendation().isBefore(today)) {
+            return false;
+        }
+        return place.getStartRecommendation() == null
+                || !place.getStartRecommendation().isAfter(today);
     }
 
     private void markSavedPlaces(List<Place> places) {
