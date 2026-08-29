@@ -67,6 +67,9 @@ public class PlacesApiClient {
             logger.info("PLACES API CLIENT - Shutting down photo download executor");
             photoDownloadExecutor.shutdown();
         }
+        if (context != null) {
+            context.shutdown();
+        }
     }
 
     public String getApiKey() {
