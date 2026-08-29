@@ -93,6 +93,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Place> findPlaceById(Long placeId) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY ID - Place ID: {}", placeId);
@@ -115,6 +116,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<PlacePhoto> findPlacePhotoById(Long photoId) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
@@ -136,6 +138,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<List<PlacePhoto>> findAllPlacePhotoById(Long placeId) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND PLACE PHOTO BY ID");
@@ -162,6 +165,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<List<Place>> findPlaceByCity(String city) {
 
         logger.info("RELATIONAL PLACE REPOSITORY - FIND BY CITY - Place: {}", city);
@@ -183,6 +187,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Place> findPlaceByGooglePlaceId(String googlePlaceId) {
 
         logger.info(
@@ -222,7 +227,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
         List<Place> placesDomain = new ArrayList<>();
 
         for (PlaceModel placeModel : placeModelList) {
-            placesDomain.add(placeModel.toDomain());
+            placesDomain.add(placeModel.toListDomain());
         }
 
         return Optional.of(placesDomain);
@@ -245,7 +250,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
         List<Place> placesDomain = new ArrayList<>();
 
         for (PlaceModel placeModel : placeModelList) {
-            placesDomain.add(placeModel.toDomain());
+            placesDomain.add(placeModel.toListDomain());
         }
 
         logger.info("RELATIONAL PLACE REPOSITORY - FOUND {} NEARBY PLACES", placesDomain.size());
