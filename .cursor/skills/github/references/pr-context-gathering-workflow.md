@@ -71,7 +71,7 @@ Usar `read_file` em cada sessão descoberta. Extrair:
 git log --oneline --no-merges origin/main..HEAD
 ```
 
-### 7. Ler CURRENT_WORK.md
+### 7. Ler `docs/obsidian/CURRENT_WORK.md`
 
 Highlights da tarefa e validação cruzada.
 
@@ -85,7 +85,7 @@ Antes de criar o PR:
 - [ ] Work item local (Obsidian) lido
 - [ ] TODAS as sessões descobertas e lidas
 - [ ] Histórico de commits consultado
-- [ ] CURRENT_WORK.md consultado
+- [ ] `docs/obsidian/CURRENT_WORK.md` consultado
 - [ ] PR sintetiza TODO o trabalho (não só última sessão)
 - [ ] Contadores (testes, arquivos, migrations) consolidados de todas as sessões
 
