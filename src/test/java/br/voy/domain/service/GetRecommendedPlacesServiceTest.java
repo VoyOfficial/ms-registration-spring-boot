@@ -9,16 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.voy.application.util.CurrentUserHelper;
 import br.voy.domain.entity.BusinessHours;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
+import br.voy.domain.ports.CurrentUserPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.repository.UserSavedPlaceRepository;
 import br.voy.domain.utils.BoundingBox;
@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,7 @@ public class GetRecommendedPlacesServiceTest {
 
     @Mock private UserSavedPlaceRepository userSavedPlaceRepository;
 
-    @Mock private CurrentUserHelper currentUserHelper;
+    @Mock private CurrentUserPort currentUserPort;
 
     @InjectMocks private GetRecommendedPlacesService placeService;
 
@@ -416,8 +417,9 @@ public class GetRecommendedPlacesServiceTest {
     void shouldMarkPlaceAsSavedWhenUserHasSavedIt() {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.of(generatePlaceList()));
-        when(currentUserHelper.getCurrentUserId()).thenReturn(42L);
-        when(userSavedPlaceRepository.isPlaceSavedByUser(eq(42L), anyLong())).thenReturn(true);
+        when(currentUserPort.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.findSavedPlaceIdsByUser(42L))
+                .thenReturn(Set.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
 
         var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
 
@@ -428,6 +430,7 @@ public class GetRecommendedPlacesServiceTest {
                         place ->
                                 assertTrue(
                                         place.getIsSaved(), "esperado que o lugar esteja salvo"));
+        verify(userSavedPlaceRepository, times(1)).findSavedPlaceIdsByUser(42L);
     }
 
     @Test
@@ -435,8 +438,8 @@ public class GetRecommendedPlacesServiceTest {
     void shouldMarkPlaceAsNotSavedWhenUserHasNotSavedIt() {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.of(generatePlaceList()));
-        when(currentUserHelper.getCurrentUserId()).thenReturn(42L);
-        when(userSavedPlaceRepository.isPlaceSavedByUser(eq(42L), anyLong())).thenReturn(false);
+        when(currentUserPort.getCurrentUserId()).thenReturn(42L);
+        when(userSavedPlaceRepository.findSavedPlaceIdsByUser(42L)).thenReturn(Set.of());
 
         var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
 
@@ -455,13 +458,13 @@ public class GetRecommendedPlacesServiceTest {
     void shouldSkipSavedCheckWhenNoAuthenticatedUser() {
         when(placeRepository.findPlacesWithinBoundingBox(any(BoundingBox.class)))
                 .thenReturn(Optional.of(generatePlaceList()));
-        when(currentUserHelper.getCurrentUserId()).thenReturn(null);
+        when(currentUserPort.getCurrentUserId()).thenReturn(null);
 
         var response = placeService.getRecommendedPlaces(-29.35995, -50.84805, null, 5, null);
 
         assertNotNull(response.getPlaces());
         assertFalse(response.getPlaces().isEmpty());
-        verify(userSavedPlaceRepository, never()).isPlaceSavedByUser(anyLong(), anyLong());
+        verify(userSavedPlaceRepository, never()).findSavedPlaceIdsByUser(anyLong());
     }
 
     @Test

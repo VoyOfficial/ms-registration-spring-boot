@@ -101,7 +101,12 @@ class PlaceNearbyPersistenceIntegrationTest {
                 .isEqualTo("Restaurant Alpha");
         assertThat(placeJpaRepository.findByGooglePlaceId("persist-test-id-002").get().getName())
                 .isEqualTo("Restaurant Beta");
-        assertThat(placeJpaRepository.findAll()).hasSize(2);
+        assertThat(
+                        placeJpaRepository.findAll().stream()
+                                .map(PlaceModel::getGooglePlaceId)
+                                .filter(id -> id.startsWith("persist-test-id-"))
+                                .count())
+                .isEqualTo(2);
     }
 
     @Test
@@ -154,6 +159,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-src-001")
                                 .name("Place One")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.382)
                                 .longitude(-50.872)
@@ -161,6 +167,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-src-002")
                                 .name("Place Two")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.383)
                                 .longitude(-50.873)
@@ -168,6 +175,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-src-003")
                                 .name("Place Three")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.384)
                                 .longitude(-50.874)
@@ -175,6 +183,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-src-004")
                                 .name("Place Four")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.385)
                                 .longitude(-50.875)
@@ -182,6 +191,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-src-005")
                                 .name("Place Five")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.386)
                                 .longitude(-50.876)
@@ -203,6 +213,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-page-001")
                                 .name("Place One")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.382)
                                 .longitude(-50.872)
@@ -210,6 +221,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-page-002")
                                 .name("Place Two")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.383)
                                 .longitude(-50.873)
@@ -217,6 +229,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-page-003")
                                 .name("Place Three")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.384)
                                 .longitude(-50.874)
@@ -224,6 +237,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-page-004")
                                 .name("Place Four")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.385)
                                 .longitude(-50.875)
@@ -231,6 +245,7 @@ class PlaceNearbyPersistenceIntegrationTest {
                         PlaceModel.builder()
                                 .googlePlaceId("db-page-005")
                                 .name("Place Five")
+                                .address("Test Address")
                                 .city("Test City")
                                 .latitude(-29.386)
                                 .longitude(-50.876)

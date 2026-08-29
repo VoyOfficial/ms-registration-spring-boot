@@ -7,8 +7,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
-import br.voy.application.controller.response.PlaceResponse;
-import br.voy.application.controller.response.RecommendedPlacesResponse;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
@@ -214,7 +212,7 @@ class PlaceControllerIntegrationTest {
     void shouldReturn404WhenNoRecommendedPlacesFoundForCoordinates() {
 
         // scenario
-        var emptyResponse = new RecommendedPlacesResponse(new ArrayList<>(), null);
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
 
         doReturn(emptyResponse)
                 .when(placeRecommendationUseCase)
@@ -308,15 +306,9 @@ class PlaceControllerIntegrationTest {
         return places;
     }
 
-    private RecommendedPlacesResponse createRecommendedPlacesResponse(
-            int size, boolean hasNextPage) {
-        List<PlaceResponse> placeResponses = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            var place = createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i);
-            placeResponses.add(PlaceResponse.fromDomain(place));
-        }
+    private NearbyPlaces createRecommendedPlacesResponse(int size, boolean hasNextPage) {
         String nextToken = hasNextPage ? "next-page-token-123" : null;
-        return new RecommendedPlacesResponse(placeResponses, nextToken);
+        return new NearbyPlaces(createPlaceList(size), nextToken);
     }
 
     private static Place createPlace(String id, Integer index) {

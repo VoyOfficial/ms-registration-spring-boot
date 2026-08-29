@@ -692,9 +692,7 @@ class PlaceControllerTest {
         var latitude = -29.35995;
         var longitude = -50.84805;
 
-        var emptyResponse =
-                new br.voy.application.controller.response.RecommendedPlacesResponse(
-                        new ArrayList<>(), null);
+        var emptyResponse = new NearbyPlaces(new ArrayList<>(), null);
 
         doReturn(emptyResponse)
                 .when(placeRecommendationUseCase)
@@ -738,20 +736,15 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.places").isNotEmpty());
     }
 
-    private static br.voy.application.controller.response.RecommendedPlacesResponse
-            createRecommendedPlacesResponse(int size, boolean hasNextPage) {
-        List<br.voy.application.controller.response.PlaceResponse> placeResponses =
-                new ArrayList<>();
+    private static NearbyPlaces createRecommendedPlacesResponse(int size, boolean hasNextPage) {
+        List<Place> places = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
-            var place = createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i);
-            placeResponses.add(
-                    br.voy.application.controller.response.PlaceResponse.fromDomain(place));
+            places.add(createPlace("ChIJq6qq6oZJGZURlUgeg2eJ3b" + i, i));
         }
 
         String nextToken = hasNextPage ? "next-page-token-123" : null;
-        return new br.voy.application.controller.response.RecommendedPlacesResponse(
-                placeResponses, nextToken);
+        return new NearbyPlaces(places, nextToken);
     }
 
     private static NearbyPlaces createNearbyPlacesWith20Places() {

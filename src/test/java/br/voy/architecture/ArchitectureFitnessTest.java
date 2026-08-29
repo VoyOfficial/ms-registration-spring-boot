@@ -34,23 +34,6 @@ class ArchitectureFitnessTest {
                 }
             };
 
-    private static final DescribedPredicate<JavaClass> DOMAIN_TO_APP_DEBT =
-            new DescribedPredicate<JavaClass>(
-                    "known tech debt — GetRecommendedPlaces* uses application DTOs") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return c.getSimpleName().startsWith("GetRecommendedPlaces");
-                }
-            };
-
-    private static final DescribedPredicate<JavaClass> NOT_DOMAIN_TO_APP_DEBT =
-            new DescribedPredicate<JavaClass>("not known tech debt (GetRecommendedPlaces*)") {
-                @Override
-                public boolean test(JavaClass c) {
-                    return !c.getSimpleName().startsWith("GetRecommendedPlaces");
-                }
-            };
-
     @BeforeAll
     static void importClasses() {
         classes =
@@ -78,7 +61,6 @@ class ArchitectureFitnessTest {
         noClasses()
                 .that()
                 .resideInAPackage("br.voy.domain..")
-                .and(NOT_DOMAIN_TO_APP_DEBT)
                 .should()
                 .dependOnClassesThat()
                 .resideInAPackage("br.voy.application..")
