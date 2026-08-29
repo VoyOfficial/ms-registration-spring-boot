@@ -61,5 +61,6 @@ Review do branch `cursor/refactor-place-query-services-e144` (base GitHub era `d
 ## Proximos passos
 
 - [x] Merge PR #38 em `create-get-place-from-db`
-- [ ] Abrir PR de `create-get-place-from-db` para `develop`
+- [x] Abrir PR de `create-get-place-from-db` para `develop` (#39)
+- [ ] Review/merge do PR #39 em `develop`
 - [ ] Follow-up `isSaved` com autenticacao (issue #89 do app)

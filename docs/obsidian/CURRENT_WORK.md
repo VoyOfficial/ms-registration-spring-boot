@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- [[PR-38]] — open PR from `create-get-place-from-db` to `develop`. Session: [[2026-08-29-place-query-review-fixes]]
+- [[PR-38]] — PR #39 `create-get-place-from-db` → `develop` (https://github.com/VoyOfficial/ms-registration-spring-boot/pull/39). Session: [[2026-08-29-place-query-review-fixes]]
 
 ## Blocked
 
