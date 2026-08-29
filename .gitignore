@@ -39,12 +39,12 @@ graphify-out/cache/
 ### Cursor MCP secrets ###
 .cursor/mcp.env
 
-### Obsidian vault (local editor state) ###
+### Obsidian vault editor state (notes under docs/obsidian/ ARE committed) ###
 docs/obsidian/.obsidian/
 
 ### Graphify (auto-regenerated local knowledge graph) ###
 .graphify/
 
-### Local session/management docs (never committed - see AGENTS.md section 6) ###
-CURRENT_WORK.md
-CONTEXT.md
+### Local scratch only (canonical work snapshot is docs/obsidian/CURRENT_WORK.md) ###
+/CURRENT_WORK.md
+/CONTEXT.md
