@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- none
+- [[PR-38]] — retarget/merge `cursor/refactor-place-query-services-e144` into `create-get-place-from-db`, then open PR to `develop`. Session: [[2026-08-29-place-query-review-fixes]]
 
 ## Blocked
 
@@ -12,4 +12,4 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
-- [[PR-38]] — refactor nearby (get place from DB) and recommendation services for list-request performance. Session: [[2026-08-29-refactor-place-query-services]]. PR: https://github.com/VoyOfficial/ms-registration-spring-boot/pull/38
+- Review blockers and [[ISSUE-89]] answers on PR #38. Session: [[2026-08-29-place-query-review-fixes]]

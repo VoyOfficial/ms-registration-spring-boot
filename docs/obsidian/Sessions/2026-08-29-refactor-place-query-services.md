@@ -44,5 +44,5 @@ Speed up get-place-from-DB (nearby) and recommended-places request paths while k
 
 ## Proximos passos
 
-- [ ] Review and merge https://github.com/VoyOfficial/ms-registration-spring-boot/pull/38
-- [ ] Optional: mutation testing on `domain.service` if reviewers want Gate extras
+- Continuacao: [[2026-08-29-place-query-review-fixes]]
+- [ ] Merge em `create-get-place-from-db`, depois PR para `develop`
