@@ -404,18 +404,24 @@ public class PlaceController {
                 pageSize,
                 nextPageToken);
 
-        var recommendedPlacesResponse =
+        var recommendedPlaces =
                 placeRecommendationUseCase.getRecommendedPlaces(
                         latitude, longitude, range, pageSize, nextPageToken);
 
-        if (recommendedPlacesResponse.getPlaces().isEmpty()) {
+        if (recommendedPlaces.getPlaces().isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, RECOMMENDATION_PLACE_NOT_FOUND_MESSAGE);
         }
 
+        var placeResponses =
+                recommendedPlaces.getPlaces().stream()
+                        .map(
+                                place ->
+                                        PlaceResponse.fromDomain(
+                                                place, Boolean.TRUE.equals(place.getIsSaved())))
+                        .collect(Collectors.toList());
+
         return ResponseEntity.ok(
-                new NearbyPlacesResponse(
-                        recommendedPlacesResponse.getPlaces(),
-                        recommendedPlacesResponse.getNextTokenPage()));
+                new NearbyPlacesResponse(placeResponses, recommendedPlaces.getNextTokenPage()));
     }
 }

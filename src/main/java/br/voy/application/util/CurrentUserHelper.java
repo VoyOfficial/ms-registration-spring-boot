@@ -1,5 +1,6 @@
 package br.voy.application.util;
 
+import br.voy.domain.ports.CurrentUserPort;
 import org.springframework.stereotype.Component;
 
 /**
@@ -7,7 +8,7 @@ import org.springframework.stereotype.Component;
  * authentication is added
  */
 @Component
-public class CurrentUserHelper {
+public class CurrentUserHelper implements CurrentUserPort {
 
     /**
      * Get the current authenticated user ID
