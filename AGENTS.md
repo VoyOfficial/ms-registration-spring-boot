@@ -24,6 +24,15 @@ Referência detalhada: `.cursor/rules/harness-engineering.mdc`
 
 Fonte da verdade de sessão: `docs/obsidian/Sessions/`
 
+## 2.1) GitHub Project (tarefas e cards)
+
+- **Board da org:** [Project #1](https://github.com/orgs/VoyOfficial/projects/1) (`VoyOfficial`, Projects v2)
+- **Issues** = especificação da tarefa (critérios, discussão, links)
+- **Project** = fila do time, status e visão de cards/colunas (backlog, em progresso, review, done)
+- **Antes de iniciar trabalho:** consultar o board (Status, prioridade) e a Issue relacionada
+- **Ao criar/atualizar Issue ou PR:** sincronizar no board (detalhes em `.cursor/skills/github/SKILL.md`)
+- **Comandos úteis:** `gh project view 1 --owner VoyOfficial`, `gh project field-list 1 --owner VoyOfficial --format json`
+
 ## 3) Feedforward antes de codar
 
 1. Carregar contexto da sessão atual.
