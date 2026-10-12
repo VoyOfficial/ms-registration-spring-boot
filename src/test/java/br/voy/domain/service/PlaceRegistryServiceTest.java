@@ -9,8 +9,11 @@ import static org.mockito.Mockito.*;
 
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.SponsorshipEligibility;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
+import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.repository.PlaceRepository;
 import java.time.LocalDate;
@@ -56,7 +59,7 @@ public class PlaceRegistryServiceTest {
         when(repository.savePlace(any(Place.class))).thenReturn(placeDomain);
 
         // action
-        Long recommendedPlaceId = placeRegistryService.registry(placeDomain);
+        Long recommendedPlaceId = placeRegistryService.registry(placeDomain, eligibleSponsorship());
 
         // validation
         assertEquals(expectedRecommendedPlaceId, recommendedPlaceId);
@@ -94,7 +97,7 @@ public class PlaceRegistryServiceTest {
         var raisedException =
                 assertThrows(
                         PlaceAlreadyExistsException.class,
-                        () -> placeRegistryService.registry(placeDomain));
+                        () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
 
         // validation
         assertEquals(PlaceAlreadyExistsException.class, raisedException.getClass());
@@ -127,7 +130,7 @@ public class PlaceRegistryServiceTest {
         var raisedException =
                 assertThrows(
                         CityDifferentPlaceRecommendationException.class,
-                        () -> placeRegistryService.registry(placeDomain));
+                        () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
 
         // validation
         assertEquals(CityDifferentPlaceRecommendationException.class, raisedException.getClass());
@@ -167,7 +170,7 @@ public class PlaceRegistryServiceTest {
         ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
         when(repository.savePlace(captor.capture())).thenReturn(savedPlace);
 
-        placeRegistryService.registry(placeDomain);
+        placeRegistryService.registry(placeDomain, eligibleSponsorship());
 
         assertTrue(captor.getValue().isStatus(), "esperado que status seja true");
     }
@@ -194,7 +197,7 @@ public class PlaceRegistryServiceTest {
         ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
         when(repository.savePlace(captor.capture())).thenReturn(savedPlace);
 
-        placeRegistryService.registry(placeDomain);
+        placeRegistryService.registry(placeDomain, eligibleSponsorship());
 
         Place captured = captor.getValue();
         assertEquals(
@@ -232,9 +235,78 @@ public class PlaceRegistryServiceTest {
                 .thenReturn(Optional.empty());
         when(repository.savePlace(any(Place.class))).thenReturn(savedPlace);
 
-        Long id = placeRegistryService.registry(placeDomain);
+        Long id = placeRegistryService.registry(placeDomain, eligibleSponsorship());
 
         assertEquals(1L, id);
         verify(repository, times(1)).savePlace(any(Place.class));
+    }
+
+    @Test
+    @DisplayName("Should reject registry when establishment is not approved")
+    void shouldRejectRegistryWhenEstablishmentIsNotApproved() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+        SponsorshipEligibility eligibility =
+                SponsorshipEligibility.builder().approved(false).subscriptionActive(true).build();
+
+        var raisedException =
+                assertThrows(
+                        SponsorshipNotEligibleException.class,
+                        () -> placeRegistryService.registry(placeDomain, eligibility));
+
+        assertEquals(
+                "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should reject registry when subscription is inactive")
+    void shouldRejectRegistryWhenSubscriptionIsInactive() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+        SponsorshipEligibility eligibility =
+                SponsorshipEligibility.builder().approved(true).subscriptionActive(false).build();
+
+        var raisedException =
+                assertThrows(
+                        SponsorshipNotEligibleException.class,
+                        () -> placeRegistryService.registry(placeDomain, eligibility));
+
+        assertEquals(
+                "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should reject registry when sponsorship eligibility is null")
+    void shouldRejectRegistryWhenSponsorshipEligibilityIsNull() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        assertThrows(
+                SponsorshipNotEligibleException.class,
+                () -> placeRegistryService.registry(placeDomain, null));
+
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should propagate Google Places failure during registry")
+    void shouldPropagateGooglePlacesFailureDuringRegistry() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
+                .thenThrow(new PlacesApiClientException("error.places.api.default.message"));
+
+        assertThrows(
+                PlacesApiClientException.class,
+                () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
+
+        verify(repository, never()).savePlace(any(Place.class));
+    }
+
+    private static SponsorshipEligibility eligibleSponsorship() {
+        return SponsorshipEligibility.builder().approved(true).subscriptionActive(true).build();
     }
 }

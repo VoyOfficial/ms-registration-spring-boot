@@ -137,6 +137,11 @@ place:
         google:
           default:
             message: "The Place contains a city different of city registered in google place."
+  sponsorship:
+    not:
+      eligible:
+        default:
+          message: "The establishment is not approved or does not have an active subscription."
 
 # Places API
 error:

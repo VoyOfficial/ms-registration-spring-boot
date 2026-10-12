@@ -20,6 +20,7 @@ import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
@@ -494,12 +495,16 @@ class PlaceControllerTest {
                         .city("Gramado")
                         .startRecommendation(LocalDateTime.now())
                         .ranking(2)
+                        .approved(true)
+                        .subscriptionActive(true)
                         .build();
 
         var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
         var expectedLocationHeader = "http://localhost/v1/places/" + placeId;
 
-        doReturn(placeId).when(placeRegistryService).registry(placeRequest.toDomain());
+        doReturn(placeId)
+                .when(placeRegistryService)
+                .registry(placeRequest.toDomain(), placeRequest.toSponsorshipEligibility());
 
         // action - validation
         var mvcResult =
@@ -534,6 +539,12 @@ class PlaceControllerTest {
                 .andExpect(
                         MockMvcResultMatchers.jsonPath("$.errors.ranking")
                                 .value("must not be null"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.errors.approved")
+                                .value("must not be null"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.errors.subscriptionActive")
+                                .value("must not be null"))
                 .andReturn();
     }
 
@@ -556,6 +567,12 @@ class PlaceControllerTest {
                 .andExpect(
                         MockMvcResultMatchers.jsonPath("$.errors.ranking")
                                 .value("must not be null"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.errors.approved")
+                                .value("must not be null"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.errors.subscriptionActive")
+                                .value("must not be null"))
                 .andReturn();
     }
 
@@ -572,13 +589,15 @@ class PlaceControllerTest {
                         .city("Test City")
                         .startRecommendation(LocalDateTime.now())
                         .ranking(2)
+                        .approved(true)
+                        .subscriptionActive(true)
                         .build();
 
         var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
 
         var expectedException = new CityDifferentPlaceRecommendationException();
 
-        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
+        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class), any());
 
         // action - validation
         mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
@@ -592,6 +611,36 @@ class PlaceControllerTest {
                         MockMvcResultMatchers.jsonPath("$.message")
                                 .value(
                                         "The Place contains a city different of city registered in google place."))
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("Should reject sponsored place registry when subscription is inactive")
+    void shouldRejectSponsoredPlaceRegistryWhenSubscriptionIsInactive() throws Exception {
+        PlaceRequest placeRequest =
+                PlaceRequest.builder()
+                        .name("Hard Rock Cafe Gramado")
+                        .city("Gramado")
+                        .ranking(2)
+                        .approved(true)
+                        .subscriptionActive(false)
+                        .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        doThrow(new SponsorshipNotEligibleException())
+                .when(placeRegistryService)
+                .registry(any(Place.class), any());
+
+        mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(403))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.error").value("Sponsorship Not Eligible"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.message")
+                                .value(
+                                        "The establishment is not approved or does not have an active subscription."))
                 .andReturn();
     }
 
