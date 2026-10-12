@@ -11,6 +11,7 @@ import br.voy.application.controller.response.PlaceResponse;
 import br.voy.domain.entity.Coordinates;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.RecommendedPlacesNotFoundException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.StandardError;
 import br.voy.domain.usecase.GetNearbyPlacesUseCase;
 import br.voy.domain.usecase.GetPlaceDetailsUseCase;
@@ -207,7 +208,7 @@ public class PlaceController {
             value = {
                 @ApiResponse(
                         responseCode = "201",
-                        description = "Registry place",
+                        description = "Sponsored place registered",
                         content = @Content,
                         headers =
                                 @Header(
@@ -215,17 +216,22 @@ public class PlaceController {
                                         description = "Url to access the created resource")),
                 @ApiResponse(
                         responseCode = "400",
-                        description = "Bad Request",
+                        description = "Bad Request - invalid payload or city mismatch",
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description =
+                                "Forbidden - establishment not approved or subscription inactive",
                         content =
                                 @Content(
                                         schema =
                                                 @Schema(
                                                         implementation =
-                                                                PlaceAlreadyExistsException
+                                                                SponsorshipNotEligibleException
                                                                         .class))),
                 @ApiResponse(
                         responseCode = "422",
-                        description = "Unprocessable Entity",
+                        description = "Unprocessable Entity - place already exists",
                         content =
                                 @Content(
                                         schema =
@@ -240,15 +246,22 @@ public class PlaceController {
             })
     @ResponseStatus(CREATED)
     @PostMapping
-    @Operation(summary = "Registry recommendations place")
+    @Operation(
+            summary = "Register sponsored place",
+            description =
+                    "Registers a sponsored establishment after validating approval and active"
+                            + " subscription, enriching data via Google Places, and rejecting"
+                            + " duplicates by googlePlaceId.")
     public ResponseEntity<Long> createPlaceRecommendation(
-            @Parameter(description = "Request para salvar o local") @RequestBody @Valid
+            @Parameter(description = "Request to register the sponsored place") @RequestBody @Valid
                     PlaceRequest request,
             UriComponentsBuilder uriBuilder) {
 
         logger.info("PLACE CONTROLLER - REGISTRY - Place: {}", request.getName());
 
-        var placeId = placeRegistryUseCase.registry(request.toDomain());
+        var placeId =
+                placeRegistryUseCase.registry(
+                        request.toDomain(), request.toSponsorshipEligibility());
 
         var uri = uriBuilder.path("/v1/places/{place}").buildAndExpand(placeId).toUri();
 

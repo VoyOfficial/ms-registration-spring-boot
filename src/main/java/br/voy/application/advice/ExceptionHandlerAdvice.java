@@ -7,6 +7,7 @@ import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.PlacePageSizeExceededException;
 import br.voy.domain.exception.PlaceSearchRangeExceededException;
 import br.voy.domain.exception.RecommendedPlacesNotFoundException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.StandardError;
 import br.voy.domain.exception.UserNotFoundException;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
@@ -462,6 +463,33 @@ public class ExceptionHandlerAdvice {
                         .timestamp(Instant.now())
                         .status(httpStatus.value())
                         .error("City informed is different of city registered in Google Place")
+                        .message(message)
+                        .path(request.getRequestURI())
+                        .errors(errors)
+                        .build();
+
+        return ResponseEntity.status(httpStatus).body(standardError);
+    }
+
+    @ExceptionHandler(SponsorshipNotEligibleException.class)
+    public ResponseEntity<?> handleSponsorshipNotEligibleException(
+            SponsorshipNotEligibleException exception, HttpServletRequest request) {
+
+        logger.warn("Exception Handler - Sponsorship Not Eligible");
+
+        Map<String, String> errors = new HashMap<>();
+
+        var httpStatus = HttpStatus.FORBIDDEN;
+
+        var message =
+                messageSource.getMessage(
+                        exception.getMessage(), null, LocaleContextHolder.getLocale());
+
+        var standardError =
+                StandardError.builder()
+                        .timestamp(Instant.now())
+                        .status(httpStatus.value())
+                        .error("Sponsorship Not Eligible")
                         .message(message)
                         .path(request.getRequestURI())
                         .errors(errors)
