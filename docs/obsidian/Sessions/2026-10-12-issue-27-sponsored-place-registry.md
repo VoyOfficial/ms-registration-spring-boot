@@ -3,7 +3,7 @@ type: session
 date: 2026-10-12
 workitems: [ISSUE-27]
 tags: [session, place, sponsorship]
-status: in-progress
+status: done
 parent_workitem: [[ISSUE-27]]
 ---
 
@@ -30,6 +30,8 @@ Completar o endpoint de cadastro de estabelecimentos patrocinados (issue #27): e
 
 ## Proximos passos
 
-- [ ] `mvn clean verify`
-- [ ] Abrir PR ligando `Closes #27`
+- [x] `mvn clean verify` (pre-push OK; live Places IT skipped sem billing na key)
+- [x] PR #42 ligando `Closes #27`
+- [ ] Review/merge do PR
 - [ ] Follow-up: port de assinatura real (sem flags no request)
+- [ ] Sync Status no Project board (token atual sem acesso ao Projects v2 da org)
