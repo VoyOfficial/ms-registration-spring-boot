@@ -145,6 +145,10 @@ class PlaceRegistryIntegrationTest {
                         buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("error")).isEqualTo("Sponsorship Not Eligible");
+        assertThat(response.getBody().get("message").toString())
+                .contains("not approved or does not have an active subscription");
         assertThat(placeJpaRepository.findAll()).isEmpty();
     }
 
