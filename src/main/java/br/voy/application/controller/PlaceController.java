@@ -9,9 +9,7 @@ import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
 import br.voy.application.controller.response.PlaceResponse;
 import br.voy.domain.entity.Coordinates;
-import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.RecommendedPlacesNotFoundException;
-import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.StandardError;
 import br.voy.domain.usecase.GetNearbyPlacesUseCase;
 import br.voy.domain.usecase.GetPlaceDetailsUseCase;
@@ -222,23 +220,11 @@ public class PlaceController {
                         responseCode = "403",
                         description =
                                 "Forbidden - establishment not approved or subscription inactive",
-                        content =
-                                @Content(
-                                        schema =
-                                                @Schema(
-                                                        implementation =
-                                                                SponsorshipNotEligibleException
-                                                                        .class))),
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
                 @ApiResponse(
                         responseCode = "422",
                         description = "Unprocessable Entity - place already exists",
-                        content =
-                                @Content(
-                                        schema =
-                                                @Schema(
-                                                        implementation =
-                                                                PlaceAlreadyExistsException
-                                                                        .class))),
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
                 @ApiResponse(
                         responseCode = "500",
                         description = "Internal Server Error",
@@ -250,8 +236,8 @@ public class PlaceController {
             summary = "Register sponsored place",
             description =
                     "Registers a sponsored establishment after validating approval and active"
-                            + " subscription, enriching data via Google Places, and rejecting"
-                            + " duplicates by googlePlaceId.")
+                            + " subscription via SponsorshipEligibilityPort, enriching data via"
+                            + " Google Places, and rejecting duplicates by googlePlaceId.")
     public ResponseEntity<Long> createPlaceRecommendation(
             @Parameter(description = "Request to register the sponsored place") @RequestBody @Valid
                     PlaceRequest request,
@@ -259,9 +245,7 @@ public class PlaceController {
 
         logger.info("PLACE CONTROLLER - REGISTRY - Place: {}", request.getName());
 
-        var placeId =
-                placeRegistryUseCase.registry(
-                        request.toDomain(), request.toSponsorshipEligibility());
+        var placeId = placeRegistryUseCase.registry(request.toDomain());
 
         var uri = uriBuilder.path("/v1/places/{place}").buildAndExpand(placeId).toUri();
 

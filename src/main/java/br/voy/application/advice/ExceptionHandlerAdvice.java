@@ -422,25 +422,11 @@ public class ExceptionHandlerAdvice {
 
         logger.warn("Exception Handler - Place Already Exists Exception");
 
-        Map<String, String> errors = new HashMap<>();
-
-        var httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
-
-        var message =
-                messageSource.getMessage(
-                        exception.getMessage(), null, LocaleContextHolder.getLocale());
-
-        var standardError =
-                StandardError.builder()
-                        .timestamp(Instant.now())
-                        .status(httpStatus.value())
-                        .error("Place Already Exists")
-                        .message(message)
-                        .path(request.getRequestURI())
-                        .errors(errors)
-                        .build();
-
-        return ResponseEntity.status(httpStatus).body(standardError);
+        return buildI18nStandardError(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Place Already Exists",
+                exception.getMessage(),
+                request);
     }
 
     @ExceptionHandler(CityDifferentPlaceRecommendationException.class)
@@ -450,25 +436,11 @@ public class ExceptionHandlerAdvice {
         logger.warn(
                 "Exception Handler - City of Recommended Place is Different between Google Place");
 
-        Map<String, String> errors = new HashMap<>();
-
-        var httpStatus = HttpStatus.BAD_REQUEST;
-
-        var message =
-                messageSource.getMessage(
-                        exception.getMessage(), null, LocaleContextHolder.getLocale());
-
-        var standardError =
-                StandardError.builder()
-                        .timestamp(Instant.now())
-                        .status(httpStatus.value())
-                        .error("City informed is different of city registered in Google Place")
-                        .message(message)
-                        .path(request.getRequestURI())
-                        .errors(errors)
-                        .build();
-
-        return ResponseEntity.status(httpStatus).body(standardError);
+        return buildI18nStandardError(
+                HttpStatus.BAD_REQUEST,
+                "City informed is different of city registered in Google Place",
+                exception.getMessage(),
+                request);
     }
 
     @ExceptionHandler(SponsorshipNotEligibleException.class)
@@ -477,22 +449,23 @@ public class ExceptionHandlerAdvice {
 
         logger.warn("Exception Handler - Sponsorship Not Eligible");
 
-        Map<String, String> errors = new HashMap<>();
+        return buildI18nStandardError(
+                HttpStatus.FORBIDDEN, "Sponsorship Not Eligible", exception.getMessage(), request);
+    }
 
-        var httpStatus = HttpStatus.FORBIDDEN;
+    private ResponseEntity<?> buildI18nStandardError(
+            HttpStatus httpStatus, String error, String messageKey, HttpServletRequest request) {
 
-        var message =
-                messageSource.getMessage(
-                        exception.getMessage(), null, LocaleContextHolder.getLocale());
+        var message = messageSource.getMessage(messageKey, null, LocaleContextHolder.getLocale());
 
         var standardError =
                 StandardError.builder()
                         .timestamp(Instant.now())
                         .status(httpStatus.value())
-                        .error("Sponsorship Not Eligible")
+                        .error(error)
                         .message(message)
                         .path(request.getRequestURI())
-                        .errors(errors)
+                        .errors(new HashMap<>())
                         .build();
 
         return ResponseEntity.status(httpStatus).body(standardError);
