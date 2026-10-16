@@ -27,11 +27,13 @@ Completar o endpoint de cadastro de estabelecimentos patrocinados (issue #27): e
 - [x] `PlaceRequest`: `approved`, `subscriptionActive`; `startRecommendation` null-safe
 - [x] OpenAPI do `POST /v1/places` atualizado
 - [x] Unit/controller tests (sucesso, duplicata, cidade, inelegivel, falha Google, payload invalido)
+- [x] Integration: `PlaceRegistryIntegrationTest` (padrao PR-38 / `PlaceNearbyPersistenceIntegrationTest`: TestRestTemplate + DB real + `GooglePlacesPort` mock; service real)
 
 ## Proximos passos
 
 - [x] `mvn clean verify` (pre-push OK; live Places IT skipped sem billing na key)
 - [x] PR #42 ligando `Closes #27`
+- [x] Integration test do `POST /v1/places` (6 cenarios)
 - [ ] Review/merge do PR
 - [ ] Follow-up: port de assinatura real (sem flags no request)
 - [ ] Sync Status no Project board (token atual sem acesso ao Projects v2 da org)
