@@ -7,6 +7,7 @@ import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.ports.SponsorshipEligibilityPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.PlaceRegistryUseCase;
 import java.time.LocalDate;
@@ -26,12 +27,16 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
     @Autowired private GooglePlacesPort googlePlacesPort;
 
+    @Autowired private SponsorshipEligibilityPort sponsorshipEligibilityPort;
+
     @Override
-    public Long registry(Place placeDomain, SponsorshipEligibility eligibility) {
+    public Long registry(Place placeDomain) {
 
         logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", placeDomain.getName());
 
-        verifySponsorshipEligibility(eligibility);
+        verifySponsorshipEligibility(
+                sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()));
 
         var recommendedPlace = processingDataPlace(placeDomain);
 
