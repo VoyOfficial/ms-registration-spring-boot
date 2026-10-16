@@ -35,7 +35,8 @@ Completar o endpoint de cadastro de estabelecimentos patrocinados (issue #27): e
 - [x] PR #42 ligando `Closes #27`
 - [x] Integration test do `POST /v1/places` (6 cenarios)
 - [x] Gate 3 `/code-reviewer` → ❌ Changes Required (eligibility client-attested = High; OpenAPI schema; IT status assert; extract error factory / eligibility port)
-- [ ] Fix Pass 1 High + Medium; re-run `/code-reviewer`
+- [x] Fix Pass 1 High + Medium: `SponsorshipEligibilityPort` + fail-closed adapter; OpenAPI `StandardError`; IT asserts 500; shared `buildI18nStandardError`
+- [ ] Re-run `/code-reviewer` after fixes
 - [ ] Review/merge do PR
-- [ ] Follow-up: port de assinatura real (sem flags no request)
+- [ ] Follow-up: subscription-backed `SponsorshipEligibilityPort` adapter (replace fail-closed)
 - [ ] Sync Status no Project board (token atual sem acesso ao Projects v2 da org)

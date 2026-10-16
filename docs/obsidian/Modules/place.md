@@ -11,7 +11,7 @@ Nearby: database first (filter by `google_types`), Google fallback, HMAC paginat
 
 `isSaved` is per-user (`user_saved_places`), not a column used by JPA on `place`. List distance is computed at read time.
 
-Sponsored registry (`POST /v1/places`): requires `approved` + `subscriptionActive`, enriches via Google Places (`getPlaceFromText`), rejects duplicates by `googlePlaceId`, persists recommendation window (`status=true`, start/end).
+Sponsored registry (`POST /v1/places`): resolves eligibility via `SponsorshipEligibilityPort` (default fail-closed), enriches via Google Places (`getPlaceFromText`), rejects duplicates by `googlePlaceId`, persists recommendation window (`status=true`, start/end).
 
 ## Related
 
