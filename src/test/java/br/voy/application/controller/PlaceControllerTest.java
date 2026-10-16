@@ -495,16 +495,12 @@ class PlaceControllerTest {
                         .city("Gramado")
                         .startRecommendation(LocalDateTime.now())
                         .ranking(2)
-                        .approved(true)
-                        .subscriptionActive(true)
                         .build();
 
         var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
         var expectedLocationHeader = "http://localhost/v1/places/" + placeId;
 
-        doReturn(placeId)
-                .when(placeRegistryService)
-                .registry(placeRequest.toDomain(), placeRequest.toSponsorshipEligibility());
+        doReturn(placeId).when(placeRegistryService).registry(placeRequest.toDomain());
 
         // action - validation
         var mvcResult =
@@ -539,40 +535,6 @@ class PlaceControllerTest {
                 .andExpect(
                         MockMvcResultMatchers.jsonPath("$.errors.ranking")
                                 .value("must not be null"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.approved")
-                                .value("must not be null"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.subscriptionActive")
-                                .value("must not be null"))
-                .andReturn();
-    }
-
-    @Test
-    @DisplayName("Don't should to Registry Recommendation Place")
-    void dontShouldToRegistryRecommendationPlace() throws Exception {
-
-        // scenario
-        PlaceRequest placeRequest = PlaceRequest.builder().build();
-        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
-
-        // action - validation
-        mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.ranking")
-                                .value("must not be null"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.approved")
-                                .value("must not be null"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.subscriptionActive")
-                                .value("must not be null"))
                 .andReturn();
     }
 
@@ -589,15 +551,13 @@ class PlaceControllerTest {
                         .city("Test City")
                         .startRecommendation(LocalDateTime.now())
                         .ranking(2)
-                        .approved(true)
-                        .subscriptionActive(true)
                         .build();
 
         var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
 
         var expectedException = new CityDifferentPlaceRecommendationException();
 
-        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class), any());
+        doThrow(expectedException).when(placeRegistryService).registry(any(Place.class));
 
         // action - validation
         mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
@@ -615,22 +575,20 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Should reject sponsored place registry when subscription is inactive")
-    void shouldRejectSponsoredPlaceRegistryWhenSubscriptionIsInactive() throws Exception {
+    @DisplayName("Should return 403 when PlaceRegistryService rejects sponsorship eligibility")
+    void shouldReturn403WhenPlaceRegistryServiceRejectsSponsorshipEligibility() throws Exception {
         PlaceRequest placeRequest =
                 PlaceRequest.builder()
                         .name("Hard Rock Cafe Gramado")
                         .city("Gramado")
                         .ranking(2)
-                        .approved(true)
-                        .subscriptionActive(false)
                         .build();
 
         var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
 
         doThrow(new SponsorshipNotEligibleException())
                 .when(placeRegistryService)
-                .registry(any(Place.class), any());
+                .registry(placeRequest.toDomain());
 
         mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())

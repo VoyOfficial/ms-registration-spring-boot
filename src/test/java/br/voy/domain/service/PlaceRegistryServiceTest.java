@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import br.voy.domain.entity.Place;
@@ -15,6 +16,7 @@ import br.voy.domain.exception.PlaceAlreadyExistsException;
 import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.ports.SponsorshipEligibilityPort;
 import br.voy.domain.repository.PlaceRepository;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -32,6 +34,8 @@ public class PlaceRegistryServiceTest {
     @Mock private PlaceRepository repository;
 
     @Mock private GooglePlacesPort googlePlacesPort;
+
+    @Mock private SponsorshipEligibilityPort sponsorshipEligibilityPort;
 
     @InjectMocks private PlaceRegistryService placeRegistryService;
 
@@ -51,6 +55,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
         when(repository.findPlaceByGooglePlaceId(recommendedPlaceDetails.getGooglePlaceId()))
@@ -59,7 +64,7 @@ public class PlaceRegistryServiceTest {
         when(repository.savePlace(any(Place.class))).thenReturn(placeDomain);
 
         // action
-        Long recommendedPlaceId = placeRegistryService.registry(placeDomain, eligibleSponsorship());
+        Long recommendedPlaceId = placeRegistryService.registry(placeDomain);
 
         // validation
         assertEquals(expectedRecommendedPlaceId, recommendedPlaceId);
@@ -88,6 +93,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
         when(repository.findPlaceByGooglePlaceId(recommendedPlaceDetails.getGooglePlaceId()))
@@ -97,7 +103,7 @@ public class PlaceRegistryServiceTest {
         var raisedException =
                 assertThrows(
                         PlaceAlreadyExistsException.class,
-                        () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
+                        () -> placeRegistryService.registry(placeDomain));
 
         // validation
         assertEquals(PlaceAlreadyExistsException.class, raisedException.getClass());
@@ -123,6 +129,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
 
@@ -130,7 +137,7 @@ public class PlaceRegistryServiceTest {
         var raisedException =
                 assertThrows(
                         CityDifferentPlaceRecommendationException.class,
-                        () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
+                        () -> placeRegistryService.registry(placeDomain));
 
         // validation
         assertEquals(CityDifferentPlaceRecommendationException.class, raisedException.getClass());
@@ -162,6 +169,7 @@ public class PlaceRegistryServiceTest {
         PlaceDetails placeDetails = createRecommendedPlaceDetails();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetails);
         when(repository.findPlaceByGooglePlaceId(placeDetails.getGooglePlaceId()))
@@ -170,7 +178,7 @@ public class PlaceRegistryServiceTest {
         ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
         when(repository.savePlace(captor.capture())).thenReturn(savedPlace);
 
-        placeRegistryService.registry(placeDomain, eligibleSponsorship());
+        placeRegistryService.registry(placeDomain);
 
         assertTrue(captor.getValue().isStatus(), "esperado que status seja true");
     }
@@ -189,6 +197,7 @@ public class PlaceRegistryServiceTest {
         PlaceDetails placeDetails = createRecommendedPlaceDetails();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetails);
         when(repository.findPlaceByGooglePlaceId(placeDetails.getGooglePlaceId()))
@@ -197,7 +206,7 @@ public class PlaceRegistryServiceTest {
         ArgumentCaptor<Place> captor = ArgumentCaptor.forClass(Place.class);
         when(repository.savePlace(captor.capture())).thenReturn(savedPlace);
 
-        placeRegistryService.registry(placeDomain, eligibleSponsorship());
+        placeRegistryService.registry(placeDomain);
 
         Place captured = captor.getValue();
         assertEquals(
@@ -228,6 +237,7 @@ public class PlaceRegistryServiceTest {
                         .build();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetailsWithFallbackAddress);
         when(repository.findPlaceByGooglePlaceId(
@@ -235,7 +245,7 @@ public class PlaceRegistryServiceTest {
                 .thenReturn(Optional.empty());
         when(repository.savePlace(any(Place.class))).thenReturn(savedPlace);
 
-        Long id = placeRegistryService.registry(placeDomain, eligibleSponsorship());
+        Long id = placeRegistryService.registry(placeDomain);
 
         assertEquals(1L, id);
         verify(repository, times(1)).savePlace(any(Place.class));
@@ -246,13 +256,19 @@ public class PlaceRegistryServiceTest {
     void shouldRejectRegistryWhenEstablishmentIsNotApproved() {
         Place placeDomain =
                 Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
-        SponsorshipEligibility eligibility =
-                SponsorshipEligibility.builder().approved(false).subscriptionActive(true).build();
+
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(false)
+                                .subscriptionActive(true)
+                                .build());
 
         var raisedException =
                 assertThrows(
                         SponsorshipNotEligibleException.class,
-                        () -> placeRegistryService.registry(placeDomain, eligibility));
+                        () -> placeRegistryService.registry(placeDomain));
 
         assertEquals(
                 "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
@@ -264,13 +280,19 @@ public class PlaceRegistryServiceTest {
     void shouldRejectRegistryWhenSubscriptionIsInactive() {
         Place placeDomain =
                 Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
-        SponsorshipEligibility eligibility =
-                SponsorshipEligibility.builder().approved(true).subscriptionActive(false).build();
+
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(false)
+                                .build());
 
         var raisedException =
                 assertThrows(
                         SponsorshipNotEligibleException.class,
-                        () -> placeRegistryService.registry(placeDomain, eligibility));
+                        () -> placeRegistryService.registry(placeDomain));
 
         assertEquals(
                 "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
@@ -283,9 +305,13 @@ public class PlaceRegistryServiceTest {
         Place placeDomain =
                 Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
 
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(null);
+
         assertThrows(
                 SponsorshipNotEligibleException.class,
-                () -> placeRegistryService.registry(placeDomain, null));
+                () -> placeRegistryService.registry(placeDomain));
 
         verifyNoInteractions(googlePlacesPort, repository);
     }
@@ -296,17 +322,23 @@ public class PlaceRegistryServiceTest {
         Place placeDomain =
                 Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenThrow(new PlacesApiClientException("error.places.api.default.message"));
 
         assertThrows(
-                PlacesApiClientException.class,
-                () -> placeRegistryService.registry(placeDomain, eligibleSponsorship()));
+                PlacesApiClientException.class, () -> placeRegistryService.registry(placeDomain));
 
         verify(repository, never()).savePlace(any(Place.class));
     }
 
-    private static SponsorshipEligibility eligibleSponsorship() {
-        return SponsorshipEligibility.builder().approved(true).subscriptionActive(true).build();
+    private void stubEligible(Place placeDomain) {
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        eq(placeDomain.getName()), eq(placeDomain.getCity())))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(true)
+                                .build());
     }
 }

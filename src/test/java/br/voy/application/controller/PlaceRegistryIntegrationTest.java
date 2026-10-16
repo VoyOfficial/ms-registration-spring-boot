@@ -7,8 +7,10 @@ import static org.mockito.Mockito.when;
 
 import br.voy.application.controller.request.PlaceRequest;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.SponsorshipEligibility;
 import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.ports.SponsorshipEligibilityPort;
 import br.voy.domain.service.GetNearbyPlacesService;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
@@ -45,6 +47,8 @@ class PlaceRegistryIntegrationTest {
 
     @MockBean private GooglePlacesPort googlePlacesPort;
 
+    @MockBean private SponsorshipEligibilityPort sponsorshipEligibilityPort;
+
     @MockBean private PlacesApiClient placesApiClient;
 
     @MockBean private GetNearbyPlacesService getNearbyPlacesService;
@@ -61,12 +65,13 @@ class PlaceRegistryIntegrationTest {
     @Test
     @DisplayName("Should register sponsored place and persist it in the database")
     void shouldRegisterSponsoredPlaceAndPersistItInTheDatabase() {
+        stubEligible();
         when(googlePlacesPort.getPlaceFromText(eq(PLACE_NAME), eq(PLACE_CITY)))
                 .thenReturn(googlePlaceDetails());
 
         ResponseEntity<Void> response =
                 restTemplate.postForEntity(
-                        buildUrl(), eligibleRequest(PLACE_NAME, PLACE_CITY), Void.class);
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getHeaders().getLocation()).isNotNull();
@@ -85,17 +90,18 @@ class PlaceRegistryIntegrationTest {
     @Test
     @DisplayName("Should return 422 when sponsored place already exists by googlePlaceId")
     void shouldReturn422WhenSponsoredPlaceAlreadyExistsByGooglePlaceId() {
+        stubEligible();
         when(googlePlacesPort.getPlaceFromText(eq(PLACE_NAME), eq(PLACE_CITY)))
                 .thenReturn(googlePlaceDetails());
 
         ResponseEntity<Void> firstResponse =
                 restTemplate.postForEntity(
-                        buildUrl(), eligibleRequest(PLACE_NAME, PLACE_CITY), Void.class);
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Void.class);
         assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         ResponseEntity<Map> secondResponse =
                 restTemplate.postForEntity(
-                        buildUrl(), eligibleRequest(PLACE_NAME, PLACE_CITY), Map.class);
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Map.class);
 
         assertThat(secondResponse.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(secondResponse.getBody()).isNotNull();
@@ -107,17 +113,16 @@ class PlaceRegistryIntegrationTest {
     @Test
     @DisplayName("Should return 403 when establishment subscription is inactive")
     void shouldReturn403WhenEstablishmentSubscriptionIsInactive() {
-        PlaceRequest request =
-                PlaceRequest.builder()
-                        .name(PLACE_NAME)
-                        .city(PLACE_CITY)
-                        .ranking(2)
-                        .approved(true)
-                        .subscriptionActive(false)
-                        .build();
+        when(sponsorshipEligibilityPort.resolveForRegistration(PLACE_NAME, PLACE_CITY))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(false)
+                                .build());
 
         ResponseEntity<Map> response =
-                restTemplate.postForEntity(buildUrl(), jsonEntity(request), Map.class);
+                restTemplate.postForEntity(
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(response.getBody()).isNotNull();
@@ -128,17 +133,16 @@ class PlaceRegistryIntegrationTest {
     @Test
     @DisplayName("Should return 403 when establishment is not approved")
     void shouldReturn403WhenEstablishmentIsNotApproved() {
-        PlaceRequest request =
-                PlaceRequest.builder()
-                        .name(PLACE_NAME)
-                        .city(PLACE_CITY)
-                        .ranking(2)
-                        .approved(false)
-                        .subscriptionActive(true)
-                        .build();
+        when(sponsorshipEligibilityPort.resolveForRegistration(PLACE_NAME, PLACE_CITY))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(false)
+                                .subscriptionActive(true)
+                                .build());
 
         ResponseEntity<Map> response =
-                restTemplate.postForEntity(buildUrl(), jsonEntity(request), Map.class);
+                restTemplate.postForEntity(
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(placeJpaRepository.findAll()).isEmpty();
@@ -159,31 +163,33 @@ class PlaceRegistryIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return error when Google Places integration fails")
-    void shouldReturnErrorWhenGooglePlacesIntegrationFails() {
+    @DisplayName("Should return 500 when Google Places integration fails")
+    void shouldReturn500WhenGooglePlacesIntegrationFails() {
+        stubEligible();
         when(googlePlacesPort.getPlaceFromText(anyString(), anyString()))
                 .thenThrow(new PlacesApiClientException("error.places.api.default.message"));
 
         ResponseEntity<Map> response =
                 restTemplate.postForEntity(
-                        buildUrl(), eligibleRequest(PLACE_NAME, PLACE_CITY), Map.class);
+                        buildUrl(), registryRequest(PLACE_NAME, PLACE_CITY), Map.class);
 
-        assertThat(
-                        response.getStatusCode().is5xxServerError()
-                                || response.getStatusCode().is4xxClientError())
-                .isTrue();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("error")).isEqualTo("Internal Server Error");
         assertThat(placeJpaRepository.findAll()).isEmpty();
     }
 
-    private HttpEntity<PlaceRequest> eligibleRequest(String name, String city) {
-        return jsonEntity(
-                PlaceRequest.builder()
-                        .name(name)
-                        .city(city)
-                        .ranking(2)
-                        .approved(true)
-                        .subscriptionActive(true)
-                        .build());
+    private void stubEligible() {
+        when(sponsorshipEligibilityPort.resolveForRegistration(PLACE_NAME, PLACE_CITY))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(true)
+                                .build());
+    }
+
+    private HttpEntity<PlaceRequest> registryRequest(String name, String city) {
+        return jsonEntity(PlaceRequest.builder().name(name).city(city).ranking(2).build());
     }
 
     private HttpEntity<PlaceRequest> jsonEntity(PlaceRequest request) {
