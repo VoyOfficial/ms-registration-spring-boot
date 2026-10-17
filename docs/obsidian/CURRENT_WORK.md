@@ -4,7 +4,8 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- [[ISSUE-27]] — Sponsored place registry on `cursor/sponsored-place-registry-65c7`. Session: [[2026-10-12-issue-27-sponsored-place-registry]]
+- [[ISSUE-27]] — Sponsored place registry on `cursor/sponsored-place-registry-65c7` (PR #42). Session: [[2026-10-12-issue-27-sponsored-place-registry]]
+- [[ISSUE-43]] — Follow-up: table-backed sponsorship eligibility (MVP). https://github.com/VoyOfficial/ms-registration-spring-boot/issues/43
 
 ## Blocked
 
