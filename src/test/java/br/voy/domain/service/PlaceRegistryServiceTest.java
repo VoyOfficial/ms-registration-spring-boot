@@ -5,13 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.SponsorshipEligibility;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
+import br.voy.domain.exception.googlePlaces.PlacesApiClientException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.ports.SponsorshipEligibilityPort;
 import br.voy.domain.repository.PlaceRepository;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -29,6 +34,8 @@ public class PlaceRegistryServiceTest {
     @Mock private PlaceRepository repository;
 
     @Mock private GooglePlacesPort googlePlacesPort;
+
+    @Mock private SponsorshipEligibilityPort sponsorshipEligibilityPort;
 
     @InjectMocks private PlaceRegistryService placeRegistryService;
 
@@ -48,6 +55,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
         when(repository.findPlaceByGooglePlaceId(recommendedPlaceDetails.getGooglePlaceId()))
@@ -85,6 +93,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
         when(repository.findPlaceByGooglePlaceId(recommendedPlaceDetails.getGooglePlaceId()))
@@ -120,6 +129,7 @@ public class PlaceRegistryServiceTest {
 
         PlaceDetails recommendedPlaceDetails = createRecommendedPlaceDetails();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(recommendedPlaceDetails);
 
@@ -159,6 +169,7 @@ public class PlaceRegistryServiceTest {
         PlaceDetails placeDetails = createRecommendedPlaceDetails();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetails);
         when(repository.findPlaceByGooglePlaceId(placeDetails.getGooglePlaceId()))
@@ -186,6 +197,7 @@ public class PlaceRegistryServiceTest {
         PlaceDetails placeDetails = createRecommendedPlaceDetails();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetails);
         when(repository.findPlaceByGooglePlaceId(placeDetails.getGooglePlaceId()))
@@ -225,6 +237,7 @@ public class PlaceRegistryServiceTest {
                         .build();
         Place savedPlace = Place.builder().id(1L).build();
 
+        stubEligible(placeDomain);
         when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
                 .thenReturn(placeDetailsWithFallbackAddress);
         when(repository.findPlaceByGooglePlaceId(
@@ -236,5 +249,96 @@ public class PlaceRegistryServiceTest {
 
         assertEquals(1L, id);
         verify(repository, times(1)).savePlace(any(Place.class));
+    }
+
+    @Test
+    @DisplayName("Should reject registry when establishment is not approved")
+    void shouldRejectRegistryWhenEstablishmentIsNotApproved() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(false)
+                                .subscriptionActive(true)
+                                .build());
+
+        var raisedException =
+                assertThrows(
+                        SponsorshipNotEligibleException.class,
+                        () -> placeRegistryService.registry(placeDomain));
+
+        assertEquals(
+                "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should reject registry when subscription is inactive")
+    void shouldRejectRegistryWhenSubscriptionIsInactive() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(false)
+                                .build());
+
+        var raisedException =
+                assertThrows(
+                        SponsorshipNotEligibleException.class,
+                        () -> placeRegistryService.registry(placeDomain));
+
+        assertEquals(
+                "place.sponsorship.not.eligible.default.message", raisedException.getMessage());
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should reject registry when sponsorship eligibility is null")
+    void shouldRejectRegistryWhenSponsorshipEligibilityIsNull() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()))
+                .thenReturn(null);
+
+        assertThrows(
+                SponsorshipNotEligibleException.class,
+                () -> placeRegistryService.registry(placeDomain));
+
+        verifyNoInteractions(googlePlacesPort, repository);
+    }
+
+    @Test
+    @DisplayName("Should propagate Google Places failure during registry")
+    void shouldPropagateGooglePlacesFailureDuringRegistry() {
+        Place placeDomain =
+                Place.builder().name("Test Recommended Place").city("Gramado").ranking(2).build();
+
+        stubEligible(placeDomain);
+        when(googlePlacesPort.getPlaceFromText(placeDomain.getName(), placeDomain.getCity()))
+                .thenThrow(new PlacesApiClientException("error.places.api.default.message"));
+
+        assertThrows(
+                PlacesApiClientException.class, () -> placeRegistryService.registry(placeDomain));
+
+        verify(repository, never()).savePlace(any(Place.class));
+    }
+
+    private void stubEligible(Place placeDomain) {
+        when(sponsorshipEligibilityPort.resolveForRegistration(
+                        eq(placeDomain.getName()), eq(placeDomain.getCity())))
+                .thenReturn(
+                        SponsorshipEligibility.builder()
+                                .approved(true)
+                                .subscriptionActive(true)
+                                .build());
     }
 }

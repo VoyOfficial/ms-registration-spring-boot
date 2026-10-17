@@ -37,7 +37,8 @@ public class PlaceRequest extends AbstractRequest {
                 .name(name)
                 .city(city)
                 .ranking(ranking)
-                .startRecommendation(startRecommendation.toLocalDate())
+                .startRecommendation(
+                        startRecommendation != null ? startRecommendation.toLocalDate() : null)
                 .build();
     }
 }

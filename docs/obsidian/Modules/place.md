@@ -1,6 +1,6 @@
 ---
 type: module
-date: 2026-08-29
+date: 2026-10-12
 status: in-progress
 tags: [module, place]
 ---
@@ -11,13 +11,18 @@ Nearby: database first (filter by `google_types`), Google fallback, HMAC paginat
 
 `isSaved` is per-user (`user_saved_places`), not a column used by JPA on `place`. List distance is computed at read time.
 
+Sponsored registry (`POST /v1/places`): resolves eligibility via `SponsorshipEligibilityPort` (default fail-closed), enriches via Google Places (`getPlaceFromText`), rejects duplicates by `googlePlaceId`, persists recommendation window (`status=true`, start/end).
+
 ## Related
 
+- [[ISSUE-27]]
 - [[PR-38]]
 - [[ISSUE-89]]
+- [[2026-10-12-issue-27-sponsored-place-registry]]
 - [[2026-08-29-refactor-place-query-services]]
 - [[2026-08-29-place-query-review-fixes]]
 - [[Decisions/001-recommended-places-stay-in-domain]]
 - [[Decisions/002-issaved-and-distance-not-on-place]]
 - [[Decisions/003-keep-issaved-column-until-all-nodes-upgraded]]
 - [[Decisions/004-merge-into-create-get-place-from-db]]
+- [[Decisions/005-sponsorship-eligibility-on-registry-request]]

@@ -2,9 +2,12 @@ package br.voy.domain.service;
 
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.SponsorshipEligibility;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
 import br.voy.domain.exception.PlaceAlreadyExistsException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.ports.SponsorshipEligibilityPort;
 import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.PlaceRegistryUseCase;
 import java.time.LocalDate;
@@ -24,10 +27,16 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
     @Autowired private GooglePlacesPort googlePlacesPort;
 
+    @Autowired private SponsorshipEligibilityPort sponsorshipEligibilityPort;
+
     @Override
     public Long registry(Place placeDomain) {
 
         logger.info("PLACE REGISTRY SERVICE - REGISTRY - Place: {}", placeDomain.getName());
+
+        verifySponsorshipEligibility(
+                sponsorshipEligibilityPort.resolveForRegistration(
+                        placeDomain.getName(), placeDomain.getCity()));
 
         var recommendedPlace = processingDataPlace(placeDomain);
 
@@ -102,6 +111,16 @@ public class PlaceRegistryService implements PlaceRegistryUseCase {
 
             logger.info("PLACE REGISTRY SERVICE - Place Already Exists In Database");
             throw new PlaceAlreadyExistsException();
+        }
+    }
+
+    private void verifySponsorshipEligibility(SponsorshipEligibility eligibility) {
+        if (eligibility == null || !eligibility.isEligible()) {
+            logger.info(
+                    "PLACE REGISTRY SERVICE - Sponsorship not eligible: approved={}, subscriptionActive={}",
+                    eligibility != null && eligibility.isApproved(),
+                    eligibility != null && eligibility.isSubscriptionActive());
+            throw new SponsorshipNotEligibleException();
         }
     }
 }

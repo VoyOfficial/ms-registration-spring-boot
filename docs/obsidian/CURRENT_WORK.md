@@ -4,7 +4,8 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- [[PR-38]] — PR #39 `create-get-place-from-db` → `develop` (https://github.com/VoyOfficial/ms-registration-spring-boot/pull/39). Session: [[2026-08-29-place-query-review-fixes]]
+- [[ISSUE-27]] — Sponsored place registry on `cursor/sponsored-place-registry-65c7` (PR #42). Session: [[2026-10-12-issue-27-sponsored-place-registry]]
+- [[ISSUE-43]] — Follow-up: table-backed sponsorship eligibility (MVP). https://github.com/VoyOfficial/ms-registration-spring-boot/issues/43
 
 ## Blocked
 
@@ -12,4 +13,4 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
-- Merged `cursor/refactor-place-query-services-e144` into `create-get-place-from-db`
+- Merged PR #39 (`create-get-place-from-db` → `develop`) — nearby from DB, recommendations, review fixes

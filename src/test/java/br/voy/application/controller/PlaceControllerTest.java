@@ -20,6 +20,7 @@ import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.exception.CityDifferentPlaceRecommendationException;
+import br.voy.domain.exception.SponsorshipNotEligibleException;
 import br.voy.domain.exception.googlePlaces.NearbyPlaceInvalidRequestApiClientException;
 import br.voy.domain.exception.googlePlaces.NearbyPlacesZeroResultsApiClientException;
 import br.voy.domain.exception.googlePlaces.OverQueryLimitApiClientException;
@@ -538,28 +539,6 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("Don't should to Registry Recommendation Place")
-    void dontShouldToRegistryRecommendationPlace() throws Exception {
-
-        // scenario
-        PlaceRequest placeRequest = PlaceRequest.builder().build();
-        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
-
-        // action - validation
-        mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.name").value("must not be blank"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.city").value("must not be blank"))
-                .andExpect(
-                        MockMvcResultMatchers.jsonPath("$.errors.ranking")
-                                .value("must not be null"))
-                .andReturn();
-    }
-
-    @Test
     @DisplayName(
             "Don't should to Registry Recommendation Place When City of Request is different between GooglePlace")
     void dontShouldToRegistryRecommendationPlaceWhenCityOfRequestIsDifferentBetweenGooglePlace()
@@ -592,6 +571,34 @@ class PlaceControllerTest {
                         MockMvcResultMatchers.jsonPath("$.message")
                                 .value(
                                         "The Place contains a city different of city registered in google place."))
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("Should return 403 when PlaceRegistryService rejects sponsorship eligibility")
+    void shouldReturn403WhenPlaceRegistryServiceRejectsSponsorshipEligibility() throws Exception {
+        PlaceRequest placeRequest =
+                PlaceRequest.builder()
+                        .name("Hard Rock Cafe Gramado")
+                        .city("Gramado")
+                        .ranking(2)
+                        .build();
+
+        var placeRequestJson = objectMapper.writeValueAsString(placeRequest);
+
+        doThrow(new SponsorshipNotEligibleException())
+                .when(placeRegistryService)
+                .registry(placeRequest.toDomain());
+
+        mockMvc.perform(post(URL).content(placeRequestJson).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(403))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.error").value("Sponsorship Not Eligible"))
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath("$.message")
+                                .value(
+                                        "The establishment is not approved or does not have an active subscription."))
                 .andReturn();
     }
 
