@@ -9,22 +9,24 @@ import lombok.Getter;
 
 @Getter
 @Builder
+@Schema(name = "StandardError", description = "Standard API error payload")
 public class StandardError {
 
-    @Schema(example = "2022-12-18T16:43:18.114Z")
+    @Schema(description = "Error timestamp in UTC", example = "2022-12-18T16:43:18.114Z")
     private Instant timestamp;
 
-    @Schema(example = "400")
+    @Schema(description = "HTTP status code", example = "400")
     private Integer status;
 
-    @Schema(example = "Validation")
+    @Schema(description = "Error category", example = "Validation")
     private String error;
 
-    @Schema(example = "Validation Error")
+    @Schema(description = "Human-readable message", example = "Validation Error")
     private String message;
 
-    @Schema(example = "/api/registration/v1/users")
+    @Schema(description = "Request path", example = "/api/registration/v1/users")
     private String path;
 
+    @Schema(description = "Field-level validation errors when applicable")
     private Map<String, String> errors = new HashMap<>();
 }
