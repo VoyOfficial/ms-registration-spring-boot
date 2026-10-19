@@ -29,7 +29,7 @@ A pirâmide de validação define os **feedback sensors** para o **Behaviour Har
         Sensor: Codigo valido e consistente
 ```
 
-**Nota:** este projeto não tem testes E2E (contra uma instância real da aplicação/banco em ambiente completo) configurados hoje. "Done" = unit + integration verdes. Se um framework de E2E (ex.: Testcontainers full-stack, REST Assured contra ambiente subido) for adotado, criar uma seção dedicada e promover E2E a gate final (como descrito em `tdd-workflow.mdc`).
+**Nota:** este projeto não tem testes E2E (contra uma instância real da aplicação/banco em ambiente completo) configurados hoje. "Done" = unit + integration verdes. Playwright não se aplica (não há UI web neste serviço). Se um framework de E2E (ex.: Testcontainers full-stack, REST Assured contra ambiente subido) for adotado, criar uma seção dedicada e promover E2E a gate final (como descrito em `testing-workflow.mdc`).
 
 ---
 
@@ -250,7 +250,7 @@ Escopo (`targetClasses` no `pom.xml`): apenas `br.voy.domain.*` — onde vive re
 │                                                                          │
 │  1️⃣ DURANTE DESENVOLVIMENTO                                             │
 │     ├─→ Compilacao Java (IDE/mvn compile) ──→ Erro? Fix antes de continuar │
-│     └─→ mvn test (classe alvo)        ──→ Teste falhou? TDD: fix codigo │
+│     └─→ mvn test (classe alvo)        ──→ Teste falhou? Corrigir codigo │
 │                                                                          │
 │  2️⃣ PRÉ-COMMIT (quando hooks forem configurados - ver pre-commit-hooks.mdc) │
 │     └─→ mvn -q -DskipITs test  ──→ Falhou? Commit bloqueado             │

@@ -194,14 +194,36 @@ git diff origin/<target>...origin/<source> --stat
 
 **Validate:** Reasonable file count, test files present, no unexpected files
 
-### 5️⃣ Check Code Reuse
+### 5️⃣ Reuse-First Gate (BLOCKING)
 
-Search for duplicates before approving new components/validators/usecases:
+Search the **current tree**, not only the diff. A new type that copies an existing one is a blocker even when the original file is untouched.
+
+1. List files this branch adds:
 
 ```bash
-git diff origin/<target>...origin/<source> -- 'src/main/java/src/application/validation/**'
-git diff origin/<target>...origin/<source> -- 'src/main/java/src/domain/usecase/**'
+git diff --name-only --diff-filter=A origin/<target>...HEAD -- src/main/java src/test/java
 ```
+
+2. For each new `Service`, `UseCase`, `Validator`, `Repository`, `Controller`, `Helper`, `Utils`, or `Config`, search the tree for an equivalent (name, port, and the business verb):
+
+```bash
+git grep -n -I -e '<TypeName>' -e '<businessVerb>' -- src/main/java src/test/java
+```
+
+`git grep` reads the current checkout. Do not limit it to `git diff`.
+
+3. Placement is bidirectional:
+
+- Do not add a second type when an equivalent already lives in `domain`, `application/validation`, or `infrastructure`.
+- Do not put a type in a shared place (`application/validation`, `infrastructure/config`, or a `*Helper`/`*Utils`) when only one aggregate calls it. Count callers outside the type's own file:
+
+```bash
+git grep -l '<TypeName>' -- src/main/java | grep -v '/<TypeName>.java'
+```
+
+One caller: move it next to that aggregate. Several callers: shared placement is fine.
+
+A miss on either side is a **BLOCKER**, not a suggestion.
 
 ### 6️⃣ Analyze Files
 
@@ -360,6 +382,8 @@ Treat these as **BLOCKING** unless author can justify clearly:
 - 🚫 PR scatters domain checks across `application`/`infrastructure`
 - 🚫 PR adds unnecessary abstraction/wrapper/cast-heavy contract
 - 🚫 PR duplicates existing validator/helper or misplaces logic in wrong layer
+- 🚫 PR adds a Service/UseCase/Validator/Repository/Helper that already exists in the current tree
+- 🚫 PR puts a type in a shared package (`validation`, `config`, `*Helper`/`*Utils`) that only one aggregate calls
 - 🚫 PR breaks the domain→application/infrastructure dependency rule
 - 🚫 PR adds comments explaining code behavior
 
@@ -388,6 +412,10 @@ Treat these as **BLOCKING** unless author can justify clearly:
 - Unnecessary Abstractions: N
 
 **Architecture Compliance:** ✅/⚠️/❌
+**Reuse-First:** ✅/⚠️/❌
+- New types checked against the current tree: N
+- Duplicate of an existing type: N
+- Shared type with a single caller: N
 **Total Issues:** N (Pass 1: X high, Y medium | Pass 2: Z blocking)
 ```
 
@@ -483,6 +511,8 @@ Use `[BLOCKER]` for structural blockers; otherwise `[WARNING]`.
 - [ ] Spaghetti growth (ad-hoc conditionals in wrong places)
 - [ ] Unnecessary abstraction (wrapper with no value)
 - [ ] Duplication when canonical helper exists
+- [ ] New type duplicates one that already exists in the current tree (Reuse-First)
+- [ ] Shared type (`validation`, `config`, helper/utils) used by only one aggregate
 - [ ] Logic in the wrong layer
 
 **Pass 2 — Standard Blockers:**
@@ -524,7 +554,7 @@ git show origin/<source>:<file>                    # Full file
 2. Fetch updates: `git fetch origin`
 3. View commits & validate format (atomic, conventional commit)
 4. Check statistics (file count, test presence)
-5. Check code reuse (no duplicate validators/use cases)
+5. Reuse-First gate (BLOCKING): new files via `--diff-filter=A`, equivalents via `git grep` on the current tree, shared placement only when more than one aggregate calls it
 6. Analyze every file via git diff — **Pass 1:** bugs, security, tests, API contracts
 7. Validate Clean Architecture dependency rule (BLOCKING if violated)
 8. Check Flyway migrations for schema changes

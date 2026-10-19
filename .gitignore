@@ -36,6 +36,10 @@ build/
 ### Graphify ###
 graphify-out/cache/
 
+### jscpd ###
+report/
+.jscpd-report/
+
 ### Cursor MCP secrets ###
 .cursor/mcp.env
 

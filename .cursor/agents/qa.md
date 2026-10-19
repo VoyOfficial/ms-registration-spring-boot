@@ -1,6 +1,6 @@
 ---
 name: qa
-description: QA agent for testing and quality. Use when creating tests, TDD, coverage, debugging, or spec-driven-eval.
+description: QA agent for testing and quality. Use when creating tests, coverage, debugging, or spec-driven-eval.
 model: inherit
 ---
 
@@ -24,7 +24,7 @@ You are the QA agent for testing and quality assurance. Your role is to write te
 
 **Before any work, load these instructions:**
 
-- `.cursor/rules/tdd-workflow.mdc` — TDD cycle
+- `.cursor/rules/testing-workflow.mdc` — testes obrigatorios, sem RED/GREEN/REFACTOR no loop
 - `.cursor/rules/validation-pyramid.mdc` — Test layers
 - `.cursor/rules/architecture.mdc` — Clean Architecture layers (what to mock at each layer)
 - `.cursor/skills/spec-driven-eval/SKILL.md` — Implementation completeness scoring

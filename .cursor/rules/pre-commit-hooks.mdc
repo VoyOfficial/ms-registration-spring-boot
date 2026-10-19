@@ -27,7 +27,7 @@ Git hooks são **Feedback Sensors Computacionais** que rodam antes de cada commi
 └────────────────────────────────────────────────────────────┘
 ```
 
-**Relacionado**: `harness-engineering.mdc`, `validation-pyramid.mdc`, `tdd-workflow.mdc`
+**Relacionado**: `harness-engineering.mdc`, `validation-pyramid.mdc`, `testing-workflow.mdc`
 
 ---
 
@@ -72,7 +72,8 @@ Qualquer falha bloqueia o commit com uma mensagem explicando como corrigir.
 Gate mais pesado, antes de enviar para o remoto:
 
 1. Revalida **todas** as mensagens de commit no range do push (pega commits que entraram via rebase/cherry-pick e não passaram pelo `commit-msg`)
-2. `./mvnw clean verify` - build completo (compilação + testes unit + integration), o mesmo Gate 1 do Definition of Done (`AGENTS.md` seção 4)
+2. `./scripts/duplication-check-range.sh` — jscpd só nos `.java` do range do push (threshold 7%). Não olha o `src/` inteiro. Inspeção manual: o mesmo script, sem argumentos.
+3. `./mvnw clean verify` - build completo (compilação + testes unit + integration), o mesmo Gate 1 do Definition of Done (`.cursor/rules/harness-engineering.mdc`)
 
 ---
 

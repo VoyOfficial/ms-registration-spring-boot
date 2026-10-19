@@ -17,7 +17,7 @@ Este projeto segue rigorosas práticas de engenharia de software:
 
 - **🏛️ Clean Architecture**: Arquitetura em camadas (Domain, Application, Infrastructure)
 - **✨ Clean Code**: Princípios de código limpo por Uncle Bob
-- **🔄 TDD**: Test-Driven Development por Kent Beck
+- **🔄 Testes obrigatórios**: unidade e integração antes de concluir a mudança (sem TDD dentro do loop do agente)
 - **💎 Atomic Commits**: Commits atômicos por Martin Fowler
 
 **📖 Documentação completa**: [.github/DEVELOPMENT_GUIDELINES.md](.github/DEVELOPMENT_GUIDELINES.md)
@@ -29,7 +29,7 @@ Este projeto segue rigorosas práticas de engenharia de software:
 Antes de começar a desenvolver, leia:
 1. [Estrutura da Clean Architecture](.github/docs/ARCHITECTURE.md)
 2. [Princípios Clean Code](.github/docs/CODE_CONVENTIONS.md)
-3. [Guia TDD](.github/docs/TDD.md)
+3. [Workflow de testes](.cursor/rules/testing-workflow.mdc)
 4. [Padrão de Commits](.github/docs/COMMITS.md)
 
 ## �🚀 Executando a aplicação 👾

@@ -48,7 +48,7 @@ metadata:
 - `/qa` (`.cursor/agents/qa.md`): test strategy, execution, bug analysis, spec-driven evaluation. Covers unit (`domain.service`), integration (`@WebMvcTest`, `@DataJpaTest`), and validators.
 - `/github` (`.cursor/agents/github.md`): GitHub Issues, PRs, changelog generation.
 - `/code-reviewer` (`.cursor/agents/code-reviewer.md`, uses the `thermo-nuclear-code-quality-review` skill): extremely strict code review focused on structural quality, Clean Architecture/Ports & Adapters compliance, maintainability, abstraction quality, and preventing spaghetti growth. Blocks file-size explosions, unnecessary complexity, and missed simplification opportunities.
-- `/feature` (`.cursor/agents/feature.md`): full feature lifecycle from an open GitHub Issue to PR, orchestrating the other subagents/skills.
+- `/feature` (`.cursor/agents/feature.md`): full feature lifecycle from an open GitHub Issue to PR, orchestrating the other subagents/skills. Planning default is Spec Lean (`/speckit.lean-plan`, `/speckit.lean-checks`, `/speckit.verify`), not the traditional Spec Kit cycle.
 - Architecture (Clean Architecture/SOLID review) and documentation/changelog work do not have a dedicated subagent file today — do this directly in the main agent using the `architecture`/`solid-principles` rules and the `documentation` rule.
 
 ## Usage examples

@@ -10,6 +10,8 @@ You are the Feature Agent - specialized in executing GitHub Issues from start to
 
 **Usage:** `/feature <issue-number>` (e.g. `/feature 42`)
 
+Feature normal entra por Spec Lean (`.cursor/rules/spec-lean.mdc`): `/speckit.lean-plan` para revisao humana, depois `/speckit.lean-checks` numa janela nova. Spec Kit tradicional (`/speckit.specify` em diante) fica para feature muito grande ou multi-modulo. Quem implementa nao se autoaprova: `/speckit.verify` roda num verificador que nao e o autor.
+
 ## 🎯 Core Responsibilities
 
 Execute the complete feature lifecycle **from start to finish (ALL 7 phases)**:
@@ -113,37 +115,20 @@ Before coding:
    - `harness-engineering.mdc` (mandatory)
    - `architecture.mdc` (mandatory - Clean Architecture / Ports & Adapters)
    - `solid-principles.mdc` (if refactoring)
-   - `tdd-workflow.mdc` (mandatory)
+   - `testing-workflow.mdc` (mandatory)
    - `validation-pyramid.mdc` (mandatory)
 2. ✅ Define which aggregate/domain this belongs to (e.g. `User`)
-3. ✅ Define minimal implementation plan by layer (`domain` → `infrastructure` → `application`)
+3. ✅ Draw the whole solution before editing: layers, new types vs reuse, Flyway, tests
 4. ✅ Map test strategy (unit for `domain.service`, integration for `application.controller`/`infrastructure.repository`)
 5. ✅ Define whether a new Flyway migration is needed
 
-**Step 4.3: TDD Implementation**
+**Step 4.3: Implementation**
 
-Follow RED-GREEN-REFACTOR cycle, layer by layer:
+Follow `.cursor/rules/testing-workflow.mdc`. Tests are mandatory. Do not run a Red-Green-Refactor loop inside the agent.
 
-**RED Phase:**
-
-```bash
-# Create failing test first
-# File: src/test/java/src/[layer]/[package]/[Component]Test.java
-```
-
-**GREEN Phase:**
-
-```java
-// Implement minimal code to pass test
-// Follow Clean Architecture: domain -> infrastructure -> application
-```
-
-**REFACTOR Phase:**
-
-```java
-// Clean up while keeping tests green
-// Extract helpers, improve naming, remove duplication
-```
+1. Implement the feedforward design, layer by layer (`domain` → `infrastructure` → `application`).
+2. Add the tests that lock the behavior (they may land with the code).
+3. Keep the suite green while cleaning names, duplication, and helpers.
 
 **Continuous Validation:**
 
@@ -339,7 +324,7 @@ Final documentation update:
 
 1. `.cursor/rules/harness-engineering.mdc` ⭐ MANDATORY
 2. `.cursor/rules/definition-of-done.mdc` ⭐ DoD HARNESS - MANDATORY
-3. `.cursor/rules/tdd-workflow.mdc` ⭐ MANDATORY
+3. `.cursor/rules/testing-workflow.mdc` ⭐ MANDATORY
 4. `.cursor/rules/validation-pyramid.mdc` ⭐ MANDATORY
 5. `.cursor/rules/memory-system.mdc` ⭐ MANDATORY (for Obsidian docs)
 6. `.cursor/rules/architecture.mdc` ⭐ MANDATORY
@@ -353,7 +338,7 @@ Final documentation update:
 Feature Agent completes successfully ONLY when:
 
 ✅ All 7 phases executed
-✅ Implementation follows Clean Architecture / Ports & Adapters + SOLID + TDD
+✅ Implementation follows Clean Architecture / Ports & Adapters + SOLID + mandatory tests
 ✅ **DoD Harness executed: all active gates passing**
   - Gate 1: Código e Testes (unit + integration + `mvn clean verify`)
   - Gate 2: E2E (N/A hoje)
