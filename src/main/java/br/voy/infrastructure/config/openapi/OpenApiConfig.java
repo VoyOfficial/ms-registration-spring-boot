@@ -17,7 +17,8 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .displayName("Ms Registration")
                 .group("v1")
-                .packagesToScan("by.voy.application.controller")
+                .packagesToScan("br.voy.application.controller")
+                .pathsToMatch("/v1/**")
                 .build();
     }
 
@@ -25,7 +26,9 @@ public class OpenApiConfig {
     public OpenAPI generateApiInfo() {
 
         var title = "MS Registration";
-        var description = "API for to perfom User CRUD operations";
+        var description =
+                "Voy registration API for mobile integration: Users, Places (nearby, details,"
+                        + " recommendations) and sponsored place registry.";
         var version = "0.0.1";
 
         var contact = new Contact().name("VoyOfficial").url("https://github.com/VoyOfficial");

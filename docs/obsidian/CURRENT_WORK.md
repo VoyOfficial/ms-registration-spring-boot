@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- none
+- [[ISSUE-46]] — Completar documentação Swagger/OpenAPI (integração mobile). Also covers voy-app-react-native#80 validator quality. Session: [[2026-10-19-issue-46-openapi-swagger-docs]]
 
 ## Blocked
 

@@ -10,24 +10,29 @@ import lombok.Getter;
 
 @Getter
 @Builder
+@Schema(name = "PlaceRequest", description = "Payload to register a sponsored place")
 public class PlaceRequest extends AbstractRequest {
 
-    @Schema(example = "abc123")
+    @Schema(description = "Optional Google Place id when already known", example = "abc123")
     private String googlePlaceId;
 
-    @Schema(example = "Hard Rock Cafe")
+    @Schema(
+            description = "Establishment name used for eligibility lookup",
+            example = "Hard Rock Cafe")
     @NotBlank
     private String name;
 
-    @Schema(example = "Gramado")
+    @Schema(description = "City used for eligibility lookup", example = "Gramado")
     @NotBlank
     private String city;
 
-    @Schema(example = "5")
+    @Schema(description = "Recommendation ranking", example = "5")
     @NotNull
     private Integer ranking;
 
-    @Schema(example = "2023-11-17T08:30:00Z")
+    @Schema(
+            description = "Optional recommendation start timestamp",
+            example = "2023-11-17T08:30:00")
     private LocalDateTime startRecommendation;
 
     @Override

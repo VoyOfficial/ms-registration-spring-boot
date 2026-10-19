@@ -18,29 +18,32 @@ import org.hibernate.validator.constraints.br.CPF;
 
 @Getter
 @Builder
+@Schema(name = "UserRequest", description = "Payload to register a new user")
 public class UserRequest extends AbstractRequest {
 
-    @Schema(example = "Axel")
+    @Schema(description = "First name", example = "Axel")
     @NotBlank
     @Size(min = 3, max = 30)
     private String name;
 
-    @Schema(example = "Rose")
+    @Schema(description = "Last name", example = "Rose")
     @NotBlank
     @Size(min = 3, max = 50)
     private String surname;
 
-    @Schema(example = "+5511938213160")
+    @Schema(description = "Phone in E.164-like format", example = "+5511938213160")
     @NotBlank
     @Size(min = 11, max = 14)
     private String phone;
 
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
+    @Schema(description = "Date of birth", example = "1990-05-20", type = "string", format = "date")
     private LocalDate dateBirth;
 
     @Schema(
-            type = "string",
+            description = "Civil status accepted by the registry API",
+            example = "SINGLE",
             allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
     @NotBlank
     @ValueOfEnum(
@@ -49,29 +52,30 @@ public class UserRequest extends AbstractRequest {
     private String maritalStatus;
 
     @Schema(
-            type = "string",
+            description = "Biological sex option selected at signup",
+            example = "MALE",
             allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
     @NotEmpty
     @ValueOfEnum(enumClass = SexEnum.class, message = "{user.sex.message.invalid}")
     private String sex;
 
-    @Schema(example = "Lafayette")
+    @Schema(description = "City", example = "Lafayette")
     @NotBlank
     @Size(max = 30)
     private String city;
 
-    @Schema(example = "IN")
+    @Schema(description = "State UF / code", example = "IN")
     @NotBlank
     @Size(max = 2)
     private String state;
 
-    @Schema(example = "09776012850")
+    @Schema(description = "CPF", example = "09776012850")
     @CPF
     @NotBlank
     @CpfAlreadyExist(message = "{user.cpf.field.message.already.exists}")
     private String cpf;
 
-    @Schema(example = "Vocalist")
+    @Schema(description = "Occupation", example = "Vocalist")
     @NotBlank
     @Size(max = 30)
     private String occupation;

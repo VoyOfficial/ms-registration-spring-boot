@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import org.slf4j.Logger;
@@ -42,29 +41,24 @@ public class UserController {
     @Autowired private GetUserUseCase getUserService;
 
     @Operation(summary = "Register a new User")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "201",
-                        description = "User Created",
-                        content = @Content,
-                        headers =
-                                @Header(
-                                        name = "Location",
-                                        description = "Url to access the created resource")),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "Bad Request",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content = @Content(schema = @Schema(implementation = StandardError.class)))
-            })
+    @ApiResponse(
+            responseCode = "201",
+            description = "User Created",
+            content = @Content,
+            headers =
+                    @Header(name = "Location", description = "Url to access the created resource"))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Bad Request",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
     @ResponseStatus(CREATED)
     @PostMapping
     public ResponseEntity<Void> registry(
-            @Parameter(description = "request para criar um usuário", required = true)
+            @Parameter(description = "Payload used to create a user", required = true)
                     @RequestBody
                     @Valid
                     UserRequest request,
@@ -82,25 +76,26 @@ public class UserController {
     }
 
     @Operation(summary = "Get an User by ID")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "User Found",
-                        content = @Content(schema = @Schema(implementation = UserResponse.class))),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "Bad Request",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content = @Content(schema = @Schema(implementation = StandardError.class)))
-            })
+    @ApiResponse(
+            responseCode = "200",
+            description = "User Found",
+            content = @Content(schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Bad Request",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "User not found",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
     @ResponseStatus(OK)
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(
-            @Parameter(description = "id para obter o usuário", required = true)
+            @Parameter(description = "Numeric user identifier", required = true)
                     @Schema(example = "1", type = "Long")
                     @PathVariable
                     Long userId) {

@@ -13,43 +13,49 @@ import lombok.Getter;
 @Builder
 @EqualsAndHashCode
 @AllArgsConstructor
+@Schema(name = "UserResponse", description = "Registered user profile")
 public class UserResponse {
 
-    @Schema(example = "1")
+    @Schema(description = "User id", example = "1")
     private Long id;
 
-    @Schema(example = "Axel")
+    @Schema(description = "First name", example = "Axel")
     private String name;
 
-    @Schema(example = "Rose")
+    @Schema(description = "Last name", example = "Rose")
     private String surname;
 
-    @Schema(example = "+5511938213160")
+    @Schema(description = "Phone in E.164-like format", example = "+5511938213160")
     private String phone;
 
     @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
+    @Schema(description = "Date of birth", example = "1990-05-20", type = "string", format = "date")
     private LocalDate dateBirth;
 
     @Schema(
+            description = "Persisted marital status label",
             type = "string",
-            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
+            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"},
+            example = "SINGLE")
     private String maritalStatus;
 
     @Schema(
+            description = "Persisted sex label",
             type = "string",
-            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
+            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"},
+            example = "MALE")
     private String sex;
 
-    @Schema(example = "Lafayette")
+    @Schema(description = "City", example = "Lafayette")
     private String city;
 
-    @Schema(example = "IN")
+    @Schema(description = "State UF / code", example = "IN")
     private String state;
 
-    @Schema(example = "09776012850")
+    @Schema(description = "CPF", example = "09776012850")
     private String cpf;
 
-    @Schema(example = "Vocalist")
+    @Schema(description = "Occupation", example = "Vocalist")
     private String occupation;
 
     public UserResponse(User domain) {
