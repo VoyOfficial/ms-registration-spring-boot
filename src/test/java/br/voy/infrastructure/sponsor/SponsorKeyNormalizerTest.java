@@ -13,6 +13,9 @@ class SponsorKeyNormalizerTest {
         assertEquals("hard rock cafe", SponsorKeyNormalizer.normalize("  Hard   Rock   Cafe  "));
         assertEquals("gramado", SponsorKeyNormalizer.normalize("Gramado"));
         assertEquals("são paulo", SponsorKeyNormalizer.normalize("SÃO PAULO"));
+        assertEquals("gramado", SponsorKeyNormalizer.normalize("Gramado\u00A0"));
+        assertEquals("são paulo", SponsorKeyNormalizer.normalize("São\u00A0Paulo"));
+        assertEquals("gramado", SponsorKeyNormalizer.normalize("Gramado\u202F"));
     }
 
     @Test
@@ -20,5 +23,6 @@ class SponsorKeyNormalizerTest {
     void shouldTreatBlankSponsorKeysAsEmpty() {
         assertEquals("", SponsorKeyNormalizer.normalize(null));
         assertEquals("", SponsorKeyNormalizer.normalize("   "));
+        assertEquals("", SponsorKeyNormalizer.normalize("\u00A0\u00A0"));
     }
 }

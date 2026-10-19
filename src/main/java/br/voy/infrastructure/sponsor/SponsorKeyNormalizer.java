@@ -7,9 +7,15 @@ public final class SponsorKeyNormalizer {
     private SponsorKeyNormalizer() {}
 
     public static String normalize(String value) {
-        if (value == null || value.isBlank()) {
+        if (value == null) {
             return "";
         }
-        return value.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        String breakingSpaces =
+                value.replace('\u00A0', ' ').replace('\u2007', ' ').replace('\u202F', ' ');
+        String collapsed = breakingSpaces.strip().replaceAll("\\s+", " ");
+        if (collapsed.isEmpty()) {
+            return "";
+        }
+        return collapsed.toLowerCase(Locale.ROOT);
     }
 }
