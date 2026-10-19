@@ -49,5 +49,6 @@ Substituir o adapter fail-closed por uma tabela `registration.sponsor` carregada
 
 ## Proximos passos
 
-- Review do PR
+- [x] Review `/code-reviewer`: alinhar chave Java com o script (espaco sem quebra) e aceitar ranking `2.0`
 - Sync do Project board (o token desta run nao resolveu o Project v2 da org)
+- Marcar o PR #44 como ready e merge em `develop`

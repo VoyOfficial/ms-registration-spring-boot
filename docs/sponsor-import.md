@@ -6,7 +6,7 @@ Ops keeps the eligible establishments in a spreadsheet and loads `registration.s
 
 ## Normalization
 
-The lookup key trims the value, collapses internal whitespace, and lowercases it. Accents are kept, so `São Paulo` does not match `Sao Paulo`. The request city sent to Google Places is still compared exactly with the Google address. Only the sponsor lookup is case-insensitive.
+The lookup key trims the value, collapses internal whitespace, treats non-breaking spaces as normal spaces, and lowercases it. Accents are kept, so `São Paulo` does not match `Sao Paulo`. `ranking` may be a whole number such as `2` or `2.0`. The request city sent to Google Places is still compared exactly with the Google address. Only the sponsor lookup is case-insensitive.
 
 ## CSV
 
