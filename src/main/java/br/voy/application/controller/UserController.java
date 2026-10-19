@@ -1,30 +1,24 @@
 package br.voy.application.controller;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-
 import br.voy.application.controller.openapi.CreatedNoContentApiResponses;
+import br.voy.application.controller.openapi.GetUserApiResponses;
 import br.voy.application.controller.request.UserRequest;
 import br.voy.application.controller.response.UserResponse;
-import br.voy.domain.exception.StandardError;
 import br.voy.domain.usecase.GetUserUseCase;
 import br.voy.domain.usecase.UserRegistryUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -36,14 +30,18 @@ public class UserController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired private UserRegistryUseCase userRegistryService;
+    private final UserRegistryUseCase userRegistryService;
+    private final GetUserUseCase getUserService;
 
-    @Autowired private GetUserUseCase getUserService;
+    public UserController(UserRegistryUseCase userRegistryService, GetUserUseCase getUserService) {
+        this.userRegistryService = userRegistryService;
+        this.getUserService = getUserService;
+    }
 
     @Operation(summary = "Register a new User")
     @CreatedNoContentApiResponses
-    @ResponseStatus(CREATED)
-    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Void> registry(
             @Parameter(description = "Payload used to create a user", required = true)
                     @RequestBody
@@ -63,24 +61,9 @@ public class UserController {
     }
 
     @Operation(summary = "Get an User by ID")
-    @ApiResponse(
-            responseCode = "200",
-            description = "User Found",
-            content = @Content(schema = @Schema(implementation = UserResponse.class)))
-    @ApiResponse(
-            responseCode = "400",
-            description = "Invalid user id",
-            content = @Content(schema = @Schema(implementation = StandardError.class)))
-    @ApiResponse(
-            responseCode = "404",
-            description = "User not found",
-            content = @Content(schema = @Schema(implementation = StandardError.class)))
-    @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server failure",
-            content = @Content(schema = @Schema(implementation = StandardError.class)))
-    @ResponseStatus(OK)
-    @GetMapping("/{userId}")
+    @GetUserApiResponses
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(path = "/{userId}", method = RequestMethod.GET)
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "Numeric user identifier", required = true)
                     @Schema(example = "1", type = "Long")
