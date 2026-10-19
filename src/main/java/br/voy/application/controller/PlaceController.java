@@ -266,44 +266,21 @@ public class PlaceController {
                 """)))
     @ApiResponse(
             responseCode = "404",
-            description = "Recommended places not found",
+            description = "error.places.recommendation.not.found",
             content =
                     @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DefaultResponse.class),
-                            examples =
-                                    @ExampleObject(
-                                            value =
-                                                    """
-                    {
-                        "message": "não encontrado"
-                    }
-                """)))
+                            schema = @Schema(implementation = DefaultResponse.class)))
     @ApiResponse(
             responseCode = "400",
-            description = "Bad Request - invalid coordinates or range",
+            description =
+                    "DefaultResponse when required latitude/longitude are missing, coordinates have"
+                            + " an invalid format, error.places.recommendation.out.of.range, or"
+                            + " error.places.recommendation.page.size.exceeded",
             content =
                     @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DefaultResponse.class),
-                            examples = {
-                                @ExampleObject(
-                                        name = "Invalid format",
-                                        value =
-                                                """
-                        {
-                            "message": "latitude e/ou longitude no formato errado"
-                        }
-                    """),
-                                @ExampleObject(
-                                        name = "Range out of permitted limit",
-                                        value =
-                                                """
-                        {
-                            "message": "raio de busca máxima é de 50.0 km"
-                        }
-                            """)
-                            }))
+                            schema = @Schema(implementation = DefaultResponse.class)))
     @ApiResponse(
             responseCode = "500",
             description = "Unexpected failure while listing recommendations",

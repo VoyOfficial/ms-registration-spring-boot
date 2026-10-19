@@ -74,6 +74,28 @@ class OpenApiDocsSmokeTest {
                 .contains("DefaultResponse");
         assertThat(schemaRef(recommendationsGet.path("responses").path("500")))
                 .contains("DefaultResponse");
+        assertThat(recommendationsGet.path("responses").path("404").path("description").asText())
+                .contains("encontrado");
+        assertThat(recommendationsGet.path("responses").path("400").path("description").asText())
+                .containsIgnoringCase("missing")
+                .contains("error.places.recommendation.out.of.range")
+                .contains("error.places.recommendation.page.size.exceeded");
+        assertThat(
+                        recommendationsGet
+                                .path("responses")
+                                .path("400")
+                                .path("content")
+                                .path("application/json")
+                                .has("examples"))
+                .isFalse();
+        assertThat(
+                        recommendationsGet
+                                .path("responses")
+                                .path("404")
+                                .path("content")
+                                .path("application/json")
+                                .has("examples"))
+                .isFalse();
 
         JsonNode usersPost = paths.path("/v1/users").path("post");
         assertThat(usersPost.path("responses").path("201").path("headers").has("Location"))
