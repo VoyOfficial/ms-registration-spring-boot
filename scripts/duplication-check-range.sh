@@ -62,7 +62,9 @@ if ! command -v npx >/dev/null 2>&1; then
 fi
 
 echo "Duplication: jscpd nos .java do range (threshold 7%)."
-if ! xargs -r npx --yes jscpd@4.0.5 --config "$REPO_ROOT/.jscpd.json" --format java --exitCode 1 <"$list_file"; then
+# Rely on .jscpd.json threshold (7%). Do not pass --exitCode: that flag
+# fails on any clone and ignores the configured threshold.
+if ! xargs -r npx --yes jscpd@4.0.5 --config "$REPO_ROOT/.jscpd.json" --format java <"$list_file"; then
   echo ""
   echo "Push bloqueado: duplicacao introduzida no range acima de 7%."
   echo "O gate olha so os .java do push, nao o src/ inteiro."
