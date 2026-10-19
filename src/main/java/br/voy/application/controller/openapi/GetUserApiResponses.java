@@ -5,13 +5,9 @@ import br.voy.domain.exception.StandardError;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
+@java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)
+@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @ApiResponse(
         responseCode = "200",
         description = "User Found",
