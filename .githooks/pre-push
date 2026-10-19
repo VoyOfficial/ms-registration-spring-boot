@@ -3,7 +3,8 @@
 #
 # 1. Re-validates every commit message in the push range (catches commits that
 #    entered via rebase/cherry-pick and skipped the commit-msg hook).
-# 2. Runs the full build (`mvn clean verify`) - unit + integration tests.
+# 2. Blocks duplication the push introduces (jscpd, Java files in the range only).
+# 3. Runs the full build (`mvn clean verify`) - unit + integration tests.
 #
 # See: AGENTS.md (section 4, Gate 1), .cursor/rules/definition-of-done.mdc
 
@@ -73,6 +74,13 @@ else
   fi
 
   echo "  Todos os commits no range estao validos"
+fi
+
+echo ""
+echo "Pre-push: duplicacao no range do push (jscpd)..."
+./scripts/duplication-check-range.sh "$merge_base"
+if [ $? -ne 0 ]; then
+  exit 1
 fi
 
 echo ""

@@ -27,10 +27,9 @@ Responda SIM ou NÃO:
 
 - [ ] `CONTEXT.md` atualizado com termos do domínio
 - [ ] ADRs criados para decisões irreversíveis (se houver)
-- [ ] Spec Kit criado (`specs/<feature>/spec.md`)
-- [ ] Plan definido (`specs/<feature>/plan.md`)
-- [ ] Tasks quebradas (`specs/<feature>/tasks.md`)
-- [ ] Domínio/agregado identificado (mapeado para os pacotes `domain`, `application`, `infrastructure`)
+- [ ] Domínio/agregado identificado (pacotes `domain`, `application`, `infrastructure`)
+- [ ] **Default:** `/speckit.lean-plan` revisado por humano, depois `/speckit.lean-checks` numa janela de contexto nova
+- [ ] **Só se a feature for muito grande ou multi-módulo:** Spec Kit tradicional (`/speckit.specify` → `/speckit.plan` → `/speckit.tasks`)
 
 ---
 

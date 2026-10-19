@@ -1,0 +1,12 @@
+{
+  "threshold": 7,
+  "minLines": 5,
+  "minTokens": 50,
+  "maxLines": 10000,
+  "maxSize": "1mb",
+  "reporters": ["console"],
+  "output": "/tmp/jscpd-ms-registration",
+  "absolute": true,
+  "gitignore": true,
+  "ignore": ["**/target/**"]
+}

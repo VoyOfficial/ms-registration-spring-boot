@@ -1,0 +1,33 @@
+---
+alwaysApply: false
+description: Spec Lean default flow (lean-plan, lean-checks, verify). Load when planning or implementing a feature. Traditional speckit stays for very large multi-module work.
+---
+
+# Spec Lean
+
+Fluxo default para feature, bugfix de comportamento e refactor com criterio de aceite. Os comandos `speckit.*` tradicionais continuam no repositorio para feature muito grande ou que cruza varios agregados.
+
+## Quando usar cada fluxo
+
+| Situacao | Fluxo |
+| --- | --- |
+| Um agregado, um contrato HTTP, escopo que cabe num plano | Spec Lean |
+| Varios agregados, contrato publico amplo, ou o plano tradicional ja existe | `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement` |
+
+Na duvida, Lean. Nao gerar `research.md`, `data-model.md`, `contracts/` nem `tasks.md` no fluxo Lean.
+
+## Comandos
+
+1. `/speckit.lean-plan` — escreve `specs/<slug>/plan.md` (Problem, Flow, Impact, Relations, Surface, Landing, Criteria) e para. Humano revisa. Nao implementa.
+2. `/speckit.lean-checks` — le o plano aceito, escreve `checks.md` (claim + prova, Coverage, Handoff) e implementa o bloco.
+3. `/speckit.verify` — verificador novo, nunca o autor. Diff `base..HEAD`, cobre cada check, aponta arquivo fora do Landing, delega estrutura ao `/code-reviewer`.
+
+## Isolamento de fases
+
+A implementacao comeca numa janela de contexto zerada. Quem escreveu o plano nao implementa na mesma conversa: o transcript de planejamento compete com o codigo. `/speckit.lean-checks` recusa seguir se o plano foi gerado nesta mesma conversa e pede uma janela nova.
+
+Quem implementa nao declara a tarefa pronta. Com `checks.md` no branch e Java no range, `.cursor/hooks/spec-lean-verify-gate.py` dispara `/speckit.verify`. O hook fica quieto em planejamento, discussao e docs.
+
+## Provas
+
+Cada criterio de aceite vira um check com prova executavel (`./mvnw test -Dtest=...` ou o teste de integracao da camada). E2E nao entra: este servico nao tem UI web (Playwright nao se aplica) e nao tem framework E2E. Gate 2 do DoD segue suspenso.

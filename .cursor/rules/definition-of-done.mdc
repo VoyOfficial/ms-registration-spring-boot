@@ -124,7 +124,7 @@ Pre-commit Hook (quando configurado):  mvn -q -DskipITs test (compilacao + teste
 DoD Harness (manual, antes PR):        mvn clean verify + Review + Docs
 ```
 
-Hooks = **preventivo** (fast feedback). DoD = **gate final** (comprehensive). Ver `.cursor/rules/pre-commit-hooks.mdc` para o estado atual dos hooks (ainda nao configurados).
+Hooks = **preventivo** (fast feedback). DoD = **gate final** (comprehensive). Os hooks vivem em `.githooks/` (ver `.cursor/rules/pre-commit-hooks.mdc`).
 
 ### Blocking Conditions
 
@@ -138,13 +138,23 @@ Hooks = **preventivo** (fast feedback). DoD = **gate final** (comprehensive). Ve
 
 ## 🚀 Como Usar
 
-Checklist manual antes de criar PR:
+### Metodo 1: Script
+
+```bash
+./scripts/validate-dod.sh --task ISSUE-<n> --help
+```
+
+Antes do PR existir: `./scripts/validate-dod.sh --task ISSUE-<n> --skip-pr` e, depois do `/code-reviewer`, `--review-done`.
+
+Exit codes: `0` gates ativos ok, `1` gate falhou, `2` uso invalido.
+
+### Metodo 2: Checklist manual
 
 ```
 ✅ mvn clean verify → todos verdes
-✅ @code-reviewer aprovado
-✅ Docs Obsidian com YAML
-✅ Criar PR via @github
+✅ /code-reviewer aprovado
+✅ Docs Obsidian com YAML (ISSUE no frontmatter)
+✅ Criar PR via /github
 ```
 
 ---

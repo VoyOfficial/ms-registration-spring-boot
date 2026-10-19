@@ -1,134 +1,138 @@
 ---
-alwaysApply: false
-description: Standard end-to-end harness engineering workflow (session startup, feedforward, execution, feedback/quality gates) for any work in this repository.
+alwaysApply: true
+description: Single source of the harness workflow (session, feedforward, testing, commits, DoD).
 ---
 
 # Harness Engineering - Workflow Padrao
 
-> Versao: 1.0.0
-> Baseado em: Harness Engineering para agentes de codigo
+> Versao: 2.0.0
+> Fonte unica de workflow deste repositorio. `AGENTS.md` apenas aponta para ca.
 
-Este documento define o workflow padrao para qualquer trabalho neste repositorio.
+Harness Engineering e o fluxo default para feature, bugfix, refactor e manutencao.
 
-## Regra Principal
+- Nao iniciar implementacao sem Session Startup + Feedforward.
+- Nao considerar tarefa concluida sem os gates ativos do DoD.
+- Spec Lean e o default. Spec Kit tradicional fica para feature muito grande ou multi-modulo.
 
-- Harness Engineering e o fluxo default para feature, bugfix, refactor e manutencao.
-- Nao iniciar implementacao sem executar Session Startup + Feedforward.
-- Nao considerar tarefa concluida sem passar pelo gate de validacao.
+## 1) Session Startup (primeiro prompt)
 
-## 1) Session Startup (obrigatorio no primeiro prompt)
+1. `git branch --show-current` e achar a Issue no nome da branch quando existir (`feature/12-nome`).
+2. Ler `docs/obsidian/CURRENT_WORK.md`.
+3. Buscar sessoes em `docs/obsidian/Sessions/`.
+4. Se houver Issue pai, carregar a sessao relacionada.
+5. Sem contexto em Obsidian: seguir como sessao nova. Nao usar `docs/memory/session/`.
 
-Execute estes passos no inicio de cada sessao:
-
-1. Descobrir branch atual com `git branch --show-current`.
-2. Identificar a Issue relacionada pelo nome da branch quando existir (ex.: `feature/12-nome-da-feature`).
-3. Ler `docs/obsidian/CURRENT_WORK.md` para contexto de ativo/bloqueado/concluido.
-4. Buscar sessoes anteriores por Issue em `docs/obsidian/Sessions/`.
-5. Se houver Issue pai, carregar sessao relacionada.
-6. Se nao houver contexto em Obsidian, seguir como nova sessao sem usar `docs/memory/session/`.
-
-Saida esperada para o usuario:
-
-- 1-2 linhas com: tarefa ativa, estado atual e proximo passo.
-- Se nao houver contexto relevante, seguir sem ruido.
+Saida: 1-2 linhas com tarefa ativa, estado e proximo passo. Sem contexto, seguir sem ruido.
 
 ## 2) Feedforward (antes de codar)
 
-Antes de editar codigo:
+Desenhar a solucao inteira antes da primeira edicao. Esse desenho e o que o agente executa; nao o ciclo RED/GREEN/REFACTOR.
 
-1. Ler a Issue no GitHub (`gh issue view <n>`) - titulo, descricao e acceptance criteria.
-2. Confirmar escopo tecnico com instrucoes aplicaveis da pasta `.cursor/rules/`.
-3. Validar padrao Clean Architecture / Ports & Adapters (`architecture.mdc`) e convencoes do projeto.
-4. Definir plano minimo de implementacao + testes por camada (`domain`/`application`/`infrastructure`).
-5. Definir se a mudanca exige nova migration Flyway (`src/main/resources/db/migration/`).
+1. Ler a Issue (`gh issue view <n>`): titulo, descricao, criterios de aceite.
+2. Confirmar escopo com as rules aplicaveis (`.cursor/rules/`).
+3. Validar Clean Architecture (`architecture.mdc`) e convencoes.
+4. Fechar o desenho: agregado, camadas, tipos novos vs reuso, migration Flyway, testes por camada.
+5. Feature normal: `/speckit.lean-plan` e parar para revisao humana. Feature muito grande: `/speckit.specify`.
 
 Checklist de entrada:
 
-- Requisito funcional compreendido.
-- Criterios de aceite listados.
-- Arquivos alvo mapeados (por camada).
+- Requisito compreendido e criterios listados.
+- Arquivos alvo mapeados por camada.
+- Reuso vs criacao decidido.
 - Estrategia de teste definida (unit/integration).
 
-## 3) Implementacao (TDD + sensores rapidos)
+## 3) Implementacao
 
-Fluxo recomendado:
+Testes sao obrigatorios. O ciclo RED → GREEN → REFACTOR dentro do loop do agente nao e. Ver `.cursor/rules/testing-workflow.mdc` e `docs/obsidian/Decisions/007-tdd-fora-do-loop-do-agente.md`.
 
-1. RED: criar/ajustar teste para falhar.
-2. GREEN: implementar o minimo para passar.
-3. REFACTOR: melhorar legibilidade/arquitetura mantendo verde.
+1. Implementar o desenho do feedforward, camada a camada (`domain` → `infrastructure` → `application`).
+2. Escrever os testes que prendem o comportamento (podem nascer junto com o codigo).
+3. Sensores rapidos: compilacao, `./mvnw test -Dtest=NomeDaClasseTest`, Bean Validation no `Request`.
 
-Sensores durante implementacao:
+Feature com `checks.md`: quem implementa nao declara conclusao. O hook `.cursor/hooks/spec-lean-verify-gate.py` pede `/speckit.verify` num verificador que nao e o autor.
 
-- Compilacao Java (erros de tipo/sintaxe)
-- `mvn test` focado na classe alterada (`mvn test -Dtest=NomeDaClasseTest`)
-- Bean Validation nas anotacoes de `Request`
+## 4) Feedback e gates
 
-## 4) Feedback e Gate de Qualidade
+Ordem:
 
-Ordem de validacao:
+1. Unit tests (`domain.service`).
+2. Integration tests (`@WebMvcTest` no controller, `@DataJpaTest` no repository).
+3. E2E suspenso ate existir framework. Nao inventar gate.
 
-1. Unit tests (`domain.service` - base da piramide).
-2. Integration tests (`application.controller` via `@WebMvcTest`, `infrastructure.repository` via `@DataJpaTest`).
-3. E2E - ainda nao configurado (ver `validation-pyramid.mdc`); quando existir, vira gate final.
+DoD ativo, nesta ordem: codigo/testes → code review → documentacao Obsidian → PR. E2E fica de fora.
 
-Regra de pronto:
+Metodo automatico: `./scripts/validate-dod.sh --help`.
 
-- Feature/bugfix pode ser marcada como done quando unit + integration estiverem verdes (`mvn clean verify`) (E2E entra como gate adicional apenas quando configurado).
-- Nao criar PR com testes obrigatorios pendentes.
+Referencia: `.cursor/rules/definition-of-done.mdc`. BLOCK se qualquer gate ativo falhar.
 
-**Definition of Done (DoD) Harness:**
+## 5) Commits
 
-Antes de considerar a task concluida, executar validacao completa via DoD Harness:
+Enforced por `.githooks/` (`commit-msg`, `pre-commit`, `pre-push`), instalados a cada `./mvnw`. Nao usar `--no-verify`.
 
-- **Referencia obrigatoria**: `.cursor/rules/definition-of-done.mdc`
-- **Gates ativos**: Codigo/Testes → Code Review → Documentacao → PR
-- **Enforcement**: BLOCK se qualquer gate ativo falhar
+Formato: Conventional Commits em ingles, uma linha, sem corpo.
 
-## 5) Commit e Rastreabilidade
+```
+<type>(<module>/<file>): <description>
+```
 
-- Seguir a politica central de commits em `AGENTS.md` (secao "Commits").
-- Este arquivo define apenas a ordem operacional do workflow; regras de formato e exemplos de commit ficam centralizados para evitar duplicacao.
+Tipos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `perf`.
 
-## 6) Session Save (obrigatorio ao encerrar trabalho significativo)
+1. Escopo = pacote/modulo + arquivo principal (`user/userregistryservice`).
+2. Descricao em ingles, minuscula, imperativo.
+3. Commits atomicos (1-3 arquivos quando possivel), na ordem `domain` → `infrastructure` → `application` → testes.
+4. Commitar `docs/obsidian/` (Sessions, Work Items, Decisions, Modules, `CURRENT_WORK.md`).
+5. Nao commitar `docs/obsidian/.obsidian/`, `CONTEXT.md` na raiz, nem um `CURRENT_WORK.md` na raiz.
 
-Ao final da sessao:
+Exemplos validos:
+
+- `feat(user/userregistryservice): validate duplicate cpf before persisting`
+- `fix(user/usercontroller): return 404 when user is not found`
+- `test(user/userregistryservice): add edge cases for invalid cpf`
+
+Exemplos invalidos:
+
+- `feat: adiciona validacao`
+- `TASK-123: fix bug`
+
+## 6) Session Save
+
+Ao encerrar trabalho significativo:
 
 1. Atualizar ou criar sessao em `docs/obsidian/Sessions/` e commitar.
-2. Registrar: contexto, decisoes, arquivos tocados, proximos passos e status.
-3. Atualizar e commitar `docs/obsidian/CURRENT_WORK.md` (Active, Blocked ou Recently Completed).
+2. Registrar contexto, decisoes, arquivos, proximos passos e status.
+3. Atualizar `docs/obsidian/CURRENT_WORK.md`.
 
-Ao finalizar a task (normalmente abertura de PR):
+Ao abrir o PR:
 
-1. Garantir Issue do GitHub com label/status apropriado.
-2. Garantir sessions da task com `status: closed`.
-3. Garantir `parent_session` explicito em todas as sessions (`[[...]]` ou `none`).
+1. Issue com label/status apropriado (`ready-for-review`).
+2. Sessoes da task com `status: closed`.
+3. `parent_session` explicito em toda sessao (`[[...]]` ou `none`).
 
-Observacao:
+Consolidar: uma sessao por bloco coeso, nao por micro-fix. Maximo ~5 sessoes por Issue, salvo feature muito grande.
 
-- `docs/obsidian/Sessions/` e a fonte de verdade para leitura e escrita de sessoes neste projeto.
-
-## Sequencia Operacional (resumo)
+## Sequencia
 
 1. Session Startup
-2. Feedforward
-3. Implementacao (TDD)
-4. Feedback (piramide de testes)
+2. Feedforward (solucao inteira)
+3. Implementacao + testes
+4. Feedback (DoD)
 5. Commit
 6. Session Save
 
-## Instrucoes Relacionadas (validas neste repo)
+## Rules relacionadas
 
 Feedforward:
 
 - `ms-registration.mdc`
-- `architecture.mdc`
-- `code-conventions.mdc`
-- `solid-principles.mdc`
+- `architecture.mdc` (carrega com `src/**/*.java`)
+- `code-conventions.mdc` (carrega com `src/**/*.java`)
+- `solid-principles.mdc` (carrega com `src/**/*.java`)
+- `spec-lean.mdc` (feature normal)
 
 Feedback:
 
-- `definition-of-done.mdc` (DoD Harness - OBRIGATORIO)
-- `tdd-workflow.mdc`
+- `definition-of-done.mdc`
+- `testing-workflow.mdc`
 - `validation-pyramid.mdc`
 - `pre-commit-hooks.mdc`
 
@@ -137,10 +141,10 @@ Suporte:
 - `memory-system.mdc`
 - `documentation.mdc`
 
-## Anti-Patterns (nao fazer)
+## Anti-patterns
 
-- Comecar codificacao sem contexto da task.
-- Pular validacao em camadas.
-- Declarar done sem evidenciar os gates ativos.
-- Referenciar instrucoes inexistentes ou desatualizadas.
-- Atualizar muitos arquivos sem plano/teste focado.
+- Codar sem desenho da solucao.
+- Exigir RED/GREEN/REFACTOR dentro do loop do agente.
+- Declarar done sem os gates ativos, ou o autor se autoaprovar quando existe `checks.md`.
+- Pular hooks com `--no-verify`.
+- Atualizar muitos arquivos sem plano e sem teste focado.

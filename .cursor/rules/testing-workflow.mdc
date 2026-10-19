@@ -1,0 +1,55 @@
+---
+alwaysApply: false
+description: Mandatory tests and design-before-code. Use when implementing features, fixing bugs, or refactoring. Does not require Red-Green-Refactor inside the agent loop.
+---
+
+# Testing Workflow
+
+> Load this when implementing features, fixing bugs, or refactoring.
+> Writing tests is mandatory. The Red-Green-Refactor cycle inside the agent loop is not.
+
+Decisao: `docs/obsidian/Decisions/007-tdd-fora-do-loop-do-agente.md`.
+
+## Antes de editar codigo
+
+Desenhar a solucao inteira no feedforward, antes da primeira edicao:
+
+- agregado e camadas (`domain` / `application` / `infrastructure`)
+- tipos novos e o que sera reusado
+- migration Flyway, se houver
+- quais testes de unidade e de integracao provam o comportamento
+
+Implementar so depois desse desenho. Nao descobrir a arquitetura no meio do codigo.
+
+## Testes obrigatorios
+
+Toda mudanca de comportamento termina com testes que falhariam se o comportamento sumisse.
+
+- **domain** (`Service`/UseCase): teste puro com Mockito. Mockar so o `Repository` (interface). Sem `@SpringBootTest`.
+- **application** (`Controller`): `@WebMvcTest` + `MockMvc`, com o UseCase mockado via `@MockBean`.
+- **infrastructure** (`Repository`): `@DataJpaTest` (H2) ou teste de integracao do mapeamento `Model` ↔ dominio.
+- **application.validation**: teste unitario do `ConstraintValidator`, sem subir o contexto Spring.
+
+Bugfix: o teste precisa reproduzir o bug. Pode nascer junto com o fix. Nao ha etapa obrigatoria de ver o teste falhar antes de escrever o codigo.
+
+Refactor: a suite que cobre o comportamento atual fica verde antes e depois da mudanca.
+
+## O que nao e obrigatorio
+
+- Escrever o teste primeiro.
+- O ciclo RED → GREEN → REFACTOR dentro do loop do agente.
+- Reexecutar o mesmo teste em tres fases so para cumprir o ritual.
+
+Esses habitos custam varias voltas de contexto, quebram entre modelos e nao transferem o beneficio humano do TDD. A rede de seguranca fica nos testes e no `./mvnw clean verify`.
+
+## Feature done (testes)
+
+```
+Unit tests (domain.service) + Integration tests (controller / repository) = testes ok
+```
+
+E2E nao e gate hoje. Quando existir um framework (Testcontainers full-stack ou REST Assured contra ambiente sobido), ele entra como gate final. Ate la, Gate 2 do DoD permanece suspenso.
+
+## Commits
+
+Formato, escopo e exemplos ficam em `.cursor/rules/harness-engineering.mdc` (secao Commits).

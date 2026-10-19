@@ -4,7 +4,7 @@
 # Runs only when there are staged .java files. Blocks the commit if
 # formatting, static analysis, or unit tests fail.
 #
-# See: .cursor/rules/pre-commit-hooks.mdc, .cursor/rules/tdd-workflow.mdc
+# See: .cursor/rules/pre-commit-hooks.mdc, .cursor/rules/testing-workflow.mdc
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT" || exit 1
@@ -41,7 +41,7 @@ echo "Pre-commit: testes unitarios (mvn -DskipITs test)..."
 if [ $? -ne 0 ]; then
   echo ""
   echo "Commit bloqueado: testes unitarios falhando."
-  echo "Corrija os testes antes de commitar (TDD Red-Green-Refactor)."
+  echo "Corrija os testes antes de commitar."
   echo ""
   exit 1
 fi

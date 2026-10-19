@@ -1,5 +1,7 @@
 ---
-alwaysApply: true
+description: Java naming and code conventions. Loads when src/**/*.java is in context.
+globs: src/**/*.java
+alwaysApply: false
 ---
 
 # Code Conventions - ms-registration-spring-boot

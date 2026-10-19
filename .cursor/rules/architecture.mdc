@@ -1,5 +1,7 @@
 ---
-alwaysApply: true
+description: Clean Architecture templates and the dependency rule. Loads when src/**/*.java is in context.
+globs: src/**/*.java
+alwaysApply: false
 ---
 
 # ARCHITECTURE - Clean Architecture / Ports & Adapters (ms-registration-spring-boot)

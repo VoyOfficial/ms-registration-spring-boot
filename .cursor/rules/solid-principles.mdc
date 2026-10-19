@@ -1,5 +1,7 @@
 ---
-alwaysApply: true
+description: SOLID principles and refactoring patterns. Loads when src/**/*.java is in context.
+globs: src/**/*.java
+alwaysApply: false
 ---
 
 # PRINCÍPIOS SOLID E BOAS PRÁTICAS DE DESENVOLVIMENTO
@@ -185,7 +187,7 @@ public class UserRegistryService implements UserRegistryUseCase {
 
 ## 🔄 Padrões de Refatoração
 
-### 1. Refatoração Guiada por Testes (TDD)
+### 1. Refatoração com a suíte verde
 
 **Processo recomendado:**
 
