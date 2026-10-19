@@ -23,7 +23,7 @@ O grupo `v1` do springdoc apontava para `by.voy...` (typo). DTOs de Place sem `@
 
 - `OpenApiConfig`: package scan `br.voy.application.controller`, `pathsToMatch(/v1/**)`, Info atualizado
 - `@Schema` em request/response DTOs + `StandardError` / `Interval` / `PlacePhoto`
-- `PlaceController` recommendations: schema real `NearbyPlacesResponse` + erros `StandardError`
+- `PlaceController` recommendations: schema real `NearbyPlacesResponse`; erros `DefaultResponse` (alinhado ao `ExceptionHandlerAdvice`)
 - `UserController` GET: response 404 documentado
 - `ApiDocumentationValidator` movido para `infrastructure.config.openapi` e endurecido (DTO class/fields, Operation summary, ApiResponses content, Parameter descriptions)
 - Removida exclusão ArchUnit do validator no domain
@@ -49,10 +49,12 @@ O grupo `v1` do springdoc apontava para `by.voy...` (typo). DTOs de Place sem `@
 - Removed OpenAPI `@Schema` from domain `Interval`/`PlacePhoto`; added `IntervalResponse`/`PlacePhotoResponse`
 - Deleted single-caller `controller.openapi` meta-annotations; restored idiomatic mappings
 - Validator uses direct swagger imports again; negative unit tests + stronger smoke assertions
+- Recommendations 400/404/500 OpenAPI schemas switched to `DefaultResponse` (runtime envelope)
+- Smoke asserts `DefaultResponse` on recommendations errors; `PlaceDetailsResponseTest` covers photo API-key strip
 - PR: https://github.com/VoyOfficial/ms-registration-spring-boot/pull/47
 
 ## Proximos passos
 
 - [x] Abrir PR contra `develop` com `Closes #46`
 - [x] Referenciar voy-app-react-native#80 no PR
-- [ ] Re-run `/code-reviewer` after review-fix push
+- [x] Fix High: recommendations error schema matches runtime `DefaultResponse`

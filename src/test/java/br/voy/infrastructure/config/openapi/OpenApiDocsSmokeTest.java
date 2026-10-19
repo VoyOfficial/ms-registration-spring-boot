@@ -61,6 +61,7 @@ class OpenApiDocsSmokeTest {
         assertThat(schemas.has("IntervalResponse")).isTrue();
         assertThat(schemas.has("UserResponse")).isTrue();
         assertThat(schemas.has("StandardError")).isTrue();
+        assertThat(schemas.has("DefaultResponse")).isTrue();
         assertThat(schemas.has("Interval")).isFalse();
         assertThat(schemas.has("PlacePhoto")).isFalse();
 
@@ -68,7 +69,11 @@ class OpenApiDocsSmokeTest {
         assertThat(schemaRef(recommendationsGet.path("responses").path("200")))
                 .contains("NearbyPlacesResponse");
         assertThat(schemaRef(recommendationsGet.path("responses").path("404")))
-                .contains("StandardError");
+                .contains("DefaultResponse");
+        assertThat(schemaRef(recommendationsGet.path("responses").path("400")))
+                .contains("DefaultResponse");
+        assertThat(schemaRef(recommendationsGet.path("responses").path("500")))
+                .contains("DefaultResponse");
 
         JsonNode usersPost = paths.path("/v1/users").path("post");
         assertThat(usersPost.path("responses").path("201").path("headers").has("Location"))

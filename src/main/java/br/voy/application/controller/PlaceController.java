@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import br.voy.application.controller.request.PlaceRequest;
+import br.voy.application.controller.response.DefaultResponse;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
 import br.voy.application.controller.response.PlaceResponse;
@@ -269,17 +270,13 @@ public class PlaceController {
             content =
                     @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = StandardError.class),
+                            schema = @Schema(implementation = DefaultResponse.class),
                             examples =
                                     @ExampleObject(
                                             value =
                                                     """
                     {
-                        "timestamp": "2024-01-01T12:00:00Z",
-                        "status": 404,
-                        "error": "Not Found",
-                        "message": "Recommended places not found",
-                        "path": "/api/registration/v1/places/recommendations"
+                        "message": "não encontrado"
                     }
                 """)))
     @ApiResponse(
@@ -288,18 +285,14 @@ public class PlaceController {
             content =
                     @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = StandardError.class),
+                            schema = @Schema(implementation = DefaultResponse.class),
                             examples = {
                                 @ExampleObject(
                                         name = "Invalid format",
                                         value =
                                                 """
                         {
-                            "timestamp": "2024-01-01T12:00:00Z",
-                            "status": 400,
-                            "error": "Bad Request",
-                            "message": "latitude e/ou longitude no formato errado",
-                            "path": "/api/registration/v1/places/recommendations"
+                            "message": "latitude e/ou longitude no formato errado"
                         }
                     """),
                                 @ExampleObject(
@@ -307,11 +300,7 @@ public class PlaceController {
                                         value =
                                                 """
                         {
-                            "timestamp": "2024-01-01T12:00:00Z",
-                            "status": 400,
-                            "error": "Bad Request",
-                            "message": "raio de busca máxima é de 50.0 km",
-                            "path": "/api/registration/v1/places/recommendations"
+                            "message": "raio de busca máxima é de 50.0 km"
                         }
                             """)
                             }))
@@ -321,7 +310,7 @@ public class PlaceController {
             content =
                     @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = StandardError.class)))
+                            schema = @Schema(implementation = DefaultResponse.class)))
     @GetMapping("/recommendations")
     public ResponseEntity<NearbyPlacesResponse> getRecommendedPlaces(
             @RequestParam
