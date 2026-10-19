@@ -20,6 +20,10 @@ Replace `FailClosedSponsorshipEligibilityAdapter` with a table-backed `Sponsorsh
 
 `cursor/sponsor-eligibility-table-b636`
 
+## Pull request
+
+https://github.com/VoyOfficial/ms-registration-spring-boot/pull/44
+
 ## Sessions
 
 - [[2026-10-19-issue-43-sponsor-eligibility-table]]

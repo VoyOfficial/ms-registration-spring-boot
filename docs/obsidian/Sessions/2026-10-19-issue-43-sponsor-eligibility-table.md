@@ -14,6 +14,10 @@ parent_session: [[2026-10-12-issue-27-sponsored-place-registry]]
 
 - Primary: [[ISSUE-43]]
 
+## Links
+
+- **PR**: https://github.com/VoyOfficial/ms-registration-spring-boot/pull/44
+
 ## Contexto
 
 Substituir o adapter fail-closed por uma tabela `registration.sponsor` carregada a partir da planilha de ops.
