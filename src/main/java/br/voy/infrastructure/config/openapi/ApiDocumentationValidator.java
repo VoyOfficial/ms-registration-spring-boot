@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -16,6 +15,7 @@ import org.reflections.scanners.Scanners;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -142,16 +142,17 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
     }
 
     private void validateApiResponses(Class<?> controller, Method method) {
-        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
-        if (apiResponses == null || apiResponses.value().length == 0) {
+        Set<ApiResponse> apiResponses =
+                AnnotatedElementUtils.getMergedRepeatableAnnotations(method, ApiResponse.class);
+        if (apiResponses.isEmpty()) {
             throw new IllegalStateException(
                     "Endpoint "
                             + method.getName()
                             + " in "
                             + controller.getSimpleName()
-                            + " must declare @ApiResponses.");
+                            + " must declare @ApiResponse/@ApiResponses.");
         }
-        for (ApiResponse apiResponse : apiResponses.value()) {
+        for (ApiResponse apiResponse : apiResponses) {
             if (isBlank(apiResponse.description())) {
                 throw new IllegalStateException(
                         "Endpoint "

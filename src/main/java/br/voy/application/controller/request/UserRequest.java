@@ -42,10 +42,9 @@ public class UserRequest extends AbstractRequest {
     private LocalDate dateBirth;
 
     @Schema(
-            description = "Marital status",
-            type = "string",
-            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"},
-            example = "SINGLE")
+            description = "Civil status accepted by the registry API",
+            example = "SINGLE",
+            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"})
     @NotBlank
     @ValueOfEnum(
             enumClass = MaritalStatusEnum.class,
@@ -53,10 +52,9 @@ public class UserRequest extends AbstractRequest {
     private String maritalStatus;
 
     @Schema(
-            description = "Sex",
-            type = "string",
-            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"},
-            example = "MALE")
+            description = "Biological sex option selected at signup",
+            example = "MALE",
+            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"})
     @NotEmpty
     @ValueOfEnum(enumClass = SexEnum.class, message = "{user.sex.message.invalid}")
     private String sex;

@@ -32,18 +32,10 @@ public class UserResponse {
     @Schema(description = "Date of birth", example = "1990-05-20", type = "string", format = "date")
     private LocalDate dateBirth;
 
-    @Schema(
-            description = "Marital status",
-            type = "string",
-            allowableValues = {"SINGLE", "MARRIED", "DIVORCED", "SEPARATED", "WIDOWED"},
-            example = "SINGLE")
+    @Schema(description = "Persisted marital status label", example = "SINGLE")
     private String maritalStatus;
 
-    @Schema(
-            description = "Sex",
-            type = "string",
-            allowableValues = {"MALE", "FEMALE", "DO_NOT_INFORM"},
-            example = "MALE")
+    @Schema(description = "Persisted sex label", example = "MALE")
     private String sex;
 
     @Schema(description = "City", example = "Lafayette")

@@ -3,6 +3,7 @@ package br.voy.application.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import br.voy.application.controller.openapi.PlacesClientErrorApiResponses;
 import br.voy.application.controller.request.PlaceRequest;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
@@ -22,7 +23,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -57,38 +57,11 @@ public class PlaceController {
     @Autowired private GetRecommendedPlacesUseCase placeRecommendationUseCase;
 
     @Operation(summary = "Get 20 nearby Places per time")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Getting 20 Nearby Places ",
-                        content =
-                                @Content(
-                                        schema =
-                                                @Schema(
-                                                        implementation =
-                                                                NearbyPlacesResponse.class))),
-                @ApiResponse(
-                        responseCode = "204",
-                        description = "error.places.api.nearby.places.zero.results.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "403",
-                        description = "error.places.api.request.denied.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "422",
-                        description = "error.places.api.details.invalid.request.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "429",
-                        description = "error.places.api.over.query.limit.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content = @Content(schema = @Schema(implementation = StandardError.class)))
-            })
+    @ApiResponse(
+            responseCode = "200",
+            description = "Nearby places page returned",
+            content = @Content(schema = @Schema(implementation = NearbyPlacesResponse.class)))
+    @PlacesClientErrorApiResponses
     @ResponseStatus(OK)
     @GetMapping()
     public ResponseEntity<NearbyPlacesResponse> getNearbyPlaces(
@@ -144,42 +117,15 @@ public class PlaceController {
     }
 
     @Operation(summary = "Get Details of a Place by Google ID")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Getting Details of a Place",
-                        content =
-                                @Content(
-                                        schema =
-                                                @Schema(
-                                                        implementation =
-                                                                PlaceDetailsResponse.class))),
-                @ApiResponse(
-                        responseCode = "204",
-                        description = "error.places.api.details.zero.results.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "403",
-                        description = "error.places.api.request.denied.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "error.places.api.not.found.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "422",
-                        description = "error.places.api.details.invalid.request.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "429",
-                        description = "error.places.api.over.query.limit.message",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content = @Content(schema = @Schema(implementation = StandardError.class)))
-            })
+    @ApiResponse(
+            responseCode = "200",
+            description = "Place details returned",
+            content = @Content(schema = @Schema(implementation = PlaceDetailsResponse.class)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "error.places.api.not.found.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @PlacesClientErrorApiResponses
     @ResponseStatus(OK)
     @GetMapping("/{placeId}")
     public PlaceDetailsResponse getPlaceDetails(
@@ -201,42 +147,36 @@ public class PlaceController {
         return placeDetailsResponse;
     }
 
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "201",
-                        description = "Sponsored place registered",
-                        content = @Content,
-                        headers =
-                                @Header(
-                                        name = "Location",
-                                        description = "Url to access the created resource")),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "Bad Request - invalid payload or city mismatch",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "403",
-                        description =
-                                "Forbidden - establishment not approved or subscription inactive",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "422",
-                        description = "Unprocessable Entity - place already exists",
-                        content = @Content(schema = @Schema(implementation = StandardError.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content = @Content(schema = @Schema(implementation = StandardError.class)))
-            })
-    @ResponseStatus(CREATED)
-    @PostMapping
     @Operation(
             summary = "Register sponsored place",
             description =
                     "Registers a sponsored establishment after resolving approval and an active"
                             + " subscription from the sponsor table by name and city, enriching"
                             + " data via Google Places, and rejecting duplicates by googlePlaceId.")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Sponsored place registered",
+            content = @Content,
+            headers =
+                    @Header(name = "Location", description = "Url to access the created resource"))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Bad Request - invalid payload or city mismatch",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - establishment not approved or subscription inactive",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "Unprocessable Entity - place already exists",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error while registering place",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ResponseStatus(CREATED)
+    @PostMapping
     public ResponseEntity<Long> createPlaceRecommendation(
             @Parameter(description = "Request to register the sponsored place") @RequestBody @Valid
                     PlaceRequest request,
@@ -257,22 +197,17 @@ public class PlaceController {
             summary = "Get recommended places",
             description =
                     "Returns up to 5 places closest to the given coordinates. Latitude and longitude are required.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Recommended places returned successfully",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema =
-                                                @Schema(
-                                                        implementation =
-                                                                NearbyPlacesResponse.class),
-                                        examples =
-                                                @ExampleObject(
-                                                        value =
-                                                                """
+    @ApiResponse(
+            responseCode = "200",
+            description = "Recommended places returned successfully",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = NearbyPlacesResponse.class),
+                            examples =
+                                    @ExampleObject(
+                                            value =
+                                                    """
                     {
                         "places": [
                             {
@@ -290,18 +225,18 @@ public class PlaceController {
                         ],
                         "nextTokenPage": null
                     }
-                """))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Recommended places not found",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = StandardError.class),
-                                        examples =
-                                                @ExampleObject(
-                                                        value =
-                                                                """
+                """)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "Recommended places not found",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class),
+                            examples =
+                                    @ExampleObject(
+                                            value =
+                                                    """
                     {
                         "timestamp": "2024-01-01T12:00:00Z",
                         "status": 404,
@@ -309,19 +244,19 @@ public class PlaceController {
                         "message": "Recommended places not found",
                         "path": "/api/registration/v1/places/recommendations"
                     }
-                """))),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "Bad Request - invalid coordinates or range",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = StandardError.class),
-                                        examples = {
-                                            @ExampleObject(
-                                                    name = "Invalid format",
-                                                    value =
-                                                            """
+                """)))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Bad Request - invalid coordinates or range",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class),
+                            examples = {
+                                @ExampleObject(
+                                        name = "Invalid format",
+                                        value =
+                                                """
                         {
                             "timestamp": "2024-01-01T12:00:00Z",
                             "status": 400,
@@ -330,10 +265,10 @@ public class PlaceController {
                             "path": "/api/registration/v1/places/recommendations"
                         }
                     """),
-                                            @ExampleObject(
-                                                    name = "Range out of permitted limit",
-                                                    value =
-                                                            """
+                                @ExampleObject(
+                                        name = "Range out of permitted limit",
+                                        value =
+                                                """
                         {
                             "timestamp": "2024-01-01T12:00:00Z",
                             "status": 400,
@@ -342,15 +277,14 @@ public class PlaceController {
                             "path": "/api/registration/v1/places/recommendations"
                         }
                             """)
-                                        })),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "Internal Server Error",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = StandardError.class)))
-            })
+                            }))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Unexpected failure while listing recommendations",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)))
     @GetMapping("/recommendations")
     public ResponseEntity<NearbyPlacesResponse> getRecommendedPlaces(
             @RequestParam
