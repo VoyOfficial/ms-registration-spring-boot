@@ -4,8 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- [[ISSUE-27]] — Sponsored place registry on `cursor/sponsored-place-registry-65c7` (PR #42). Session: [[2026-10-12-issue-27-sponsored-place-registry]]
-- [[ISSUE-43]] — Follow-up: table-backed sponsorship eligibility (MVP). https://github.com/VoyOfficial/ms-registration-spring-boot/issues/43
+- none
 
 ## Blocked
 
@@ -13,4 +12,6 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
+- [[ISSUE-43]] — Sponsor table eligibility (`registration.sponsor`). Session: [[2026-10-19-issue-43-sponsor-eligibility-table]]
+- Merged PR #42 — sponsored place registry (issue #27)
 - Merged PR #39 (`create-get-place-from-db` → `develop`) — nearby from DB, recommendations, review fixes

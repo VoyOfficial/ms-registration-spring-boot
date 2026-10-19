@@ -20,3 +20,7 @@ Issue #27 requires rejecting sponsored place registration when the establishment
 - Production registry stays fail-closed until a real adapter (subscription MS or sponsor table) is wired.
 - Tests stub/mock `SponsorshipEligibilityPort` for eligible and ineligible paths.
 - `PlaceRequest` carries only place fields (`name`, `city`, `ranking`, optional dates).
+
+## Update (2026-10-19)
+
+The fail-closed adapter is replaced by the sponsor table. The port, the 403, and the ban on client-attested flags stay in force. See [[Decisions/006-sponsor-table-eligibility]].
