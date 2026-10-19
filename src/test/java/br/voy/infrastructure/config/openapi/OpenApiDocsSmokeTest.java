@@ -33,7 +33,7 @@ class OpenApiDocsSmokeTest {
     @Autowired private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("OpenAPI v1 group exports Place and User paths for mobile clients")
+    @DisplayName("OpenAPI v1 group exports Place and User contracts for mobile clients")
     void apiDocsExposePlaceAndUserEndpoints() throws Exception {
         MvcResult result =
                 mockMvc.perform(get("/v3/api-docs/v1")).andExpect(status().isOk()).andReturn();
@@ -57,7 +57,41 @@ class OpenApiDocsSmokeTest {
         assertThat(schemas.has("PlaceResponse")).isTrue();
         assertThat(schemas.has("NearbyPlacesResponse")).isTrue();
         assertThat(schemas.has("PlaceDetailsResponse")).isTrue();
+        assertThat(schemas.has("PlacePhotoResponse")).isTrue();
+        assertThat(schemas.has("IntervalResponse")).isTrue();
         assertThat(schemas.has("UserResponse")).isTrue();
         assertThat(schemas.has("StandardError")).isTrue();
+        assertThat(schemas.has("Interval")).isFalse();
+        assertThat(schemas.has("PlacePhoto")).isFalse();
+
+        JsonNode recommendationsGet = paths.path("/v1/places/recommendations").path("get");
+        assertThat(schemaRef(recommendationsGet.path("responses").path("200")))
+                .contains("NearbyPlacesResponse");
+        assertThat(schemaRef(recommendationsGet.path("responses").path("404")))
+                .contains("StandardError");
+
+        JsonNode usersPost = paths.path("/v1/users").path("post");
+        assertThat(usersPost.path("responses").path("201").path("headers").has("Location"))
+                .isTrue();
+
+        JsonNode nearbyGet = paths.path("/v1/places").path("get");
+        assertThat(nearbyGet.path("responses").path("204").path("description").asText())
+                .contains("search was successful but returned no results");
+        assertThat(nearbyGet.path("responses").path("422").path("description").asText())
+                .contains("coordinates or radius are invalid");
+
+        JsonNode detailsGet = paths.path("/v1/places/{placeId}").path("get");
+        assertThat(detailsGet.path("responses").path("204").path("description").asText())
+                .contains("no longer refers to a valid result");
+        assertThat(detailsGet.path("responses").path("422").path("description").asText())
+                .contains("PlaceId is not a valid");
+    }
+
+    private static String schemaRef(JsonNode responseNode) {
+        JsonNode schema = responseNode.path("content").path("application/json").path("schema");
+        if (schema.has("$ref")) {
+            return schema.path("$ref").asText();
+        }
+        return schema.toString();
     }
 }

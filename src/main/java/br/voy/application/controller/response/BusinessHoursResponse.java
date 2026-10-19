@@ -1,7 +1,6 @@
 package br.voy.application.controller.response;
 
 import br.voy.domain.entity.BusinessHours;
-import br.voy.domain.entity.Interval;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -23,13 +22,13 @@ public class BusinessHoursResponse {
     private String day;
 
     @Schema(description = "Open and close interval for the day")
-    private Interval interval;
+    private IntervalResponse interval;
 
     public static BusinessHoursResponse toBusinessHoursResponse(BusinessHours businessHours) {
 
         return BusinessHoursResponse.builder()
                 .day(businessHours.getDay())
-                .interval(businessHours.getInterval())
+                .interval(IntervalResponse.fromDomain(businessHours.getInterval()))
                 .build();
     }
 }

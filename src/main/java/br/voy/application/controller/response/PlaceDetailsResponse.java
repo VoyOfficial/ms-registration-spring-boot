@@ -1,9 +1,9 @@
 package br.voy.application.controller.response;
 
 import br.voy.domain.entity.PlaceDetails;
-import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class PlaceDetailsResponse {
     private String principalPhoto;
 
     @Schema(description = "Photo gallery")
-    private List<PlacePhoto> photos;
+    private List<PlacePhotoResponse> photos;
 
     @Schema(
             description = "Formatted address",
@@ -66,6 +66,18 @@ public class PlaceDetailsResponse {
                         .map(BusinessHoursResponse::toBusinessHoursResponse)
                         .collect(Collectors.toList());
 
+        List<PlacePhotoResponse> photoResponses =
+                place.getPhotos() == null
+                        ? Collections.emptyList()
+                        : place.getPhotos().stream()
+                                .map(
+                                        photo ->
+                                                PlacePhotoResponse.fromDomain(
+                                                        photo,
+                                                        PlaceResponse.stripApiKey(
+                                                                photo.getPhotoUrl())))
+                                .collect(Collectors.toList());
+
         return PlaceDetailsResponse.builder()
                 .googlePlaceId(place.getGooglePlaceId())
                 .name(place.getName())
@@ -73,7 +85,7 @@ public class PlaceDetailsResponse {
                 .contact(place.getContact())
                 .businessHours(businessHoursResponseList)
                 .rating(place.getRating())
-                .photos(place.getPhotos())
+                .photos(photoResponses)
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .address(place.getAddress())
                 .latitude(place.getLatitude())

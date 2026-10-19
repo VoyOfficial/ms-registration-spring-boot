@@ -3,7 +3,6 @@ package br.voy.application.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import br.voy.application.controller.openapi.PlacesClientErrorApiResponses;
 import br.voy.application.controller.request.PlaceRequest;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
@@ -61,7 +60,26 @@ public class PlaceController {
             responseCode = "200",
             description = "Nearby places page returned",
             content = @Content(schema = @Schema(implementation = NearbyPlacesResponse.class)))
-    @PlacesClientErrorApiResponses
+    @ApiResponse(
+            responseCode = "204",
+            description = "error.places.api.nearby.places.zero.results.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "403",
+            description = "error.places.api.request.denied.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "error.places.api.nearby.place.invalid.request.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "429",
+            description = "error.places.api.over.query.limit.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
     @ResponseStatus(OK)
     @GetMapping()
     public ResponseEntity<NearbyPlacesResponse> getNearbyPlaces(
@@ -122,10 +140,29 @@ public class PlaceController {
             description = "Place details returned",
             content = @Content(schema = @Schema(implementation = PlaceDetailsResponse.class)))
     @ApiResponse(
+            responseCode = "204",
+            description = "error.places.api.details.zero.results.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "403",
+            description = "error.places.api.request.denied.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
             responseCode = "404",
             description = "error.places.api.not.found.message",
             content = @Content(schema = @Schema(implementation = StandardError.class)))
-    @PlacesClientErrorApiResponses
+    @ApiResponse(
+            responseCode = "422",
+            description = "error.places.api.details.invalid.request.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "429",
+            description = "error.places.api.over.query.limit.message",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = StandardError.class)))
     @ResponseStatus(OK)
     @GetMapping("/{placeId}")
     public PlaceDetailsResponse getPlaceDetails(

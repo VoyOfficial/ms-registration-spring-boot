@@ -67,7 +67,7 @@ public class PlaceResponse {
     private String photo;
 
     @Schema(description = "Photo gallery for the place")
-    private List<PlacePhoto> photos;
+    private List<PlacePhotoResponse> photos;
 
     @Schema(description = "Legacy distance value in meters", example = "1224.0")
     private Float distanceOfLocal = null;
@@ -81,15 +81,12 @@ public class PlaceResponse {
     @Schema(description = "Human-readable distance from the user", example = "1.224 km")
     private String distanceFromUserLocation;
 
-    // Construtor padrão (necessário para frameworks como Jackson e JPA)
     public PlaceResponse() {}
 
-    // Construtor completo
     public PlaceResponse(Place place) {
-        this(place, false); // Default: user not logged or place not saved
+        this(place, false);
     }
 
-    // Construtor com isSaved
     public PlaceResponse(Place place, Boolean isSaved) {
         this.id = place.getId();
         this.googlePlaceId = place.getGooglePlaceId();
@@ -110,12 +107,10 @@ public class PlaceResponse {
         this.distanceFromUserLocation = place.getDistanceFromUserLocation();
     }
 
-    // Método de conversão de Domain para Response (exclui o campo 'about' para recommended places)
     public static PlaceResponse fromDomain(Place place) {
-        return fromDomain(place, false); // Default: user not logged or place not saved
+        return fromDomain(place, false);
     }
 
-    // Método de conversão com isSaved calculado
     public static PlaceResponse fromDomain(Place place, Boolean isSaved) {
         return PlaceResponse.builder()
                 .id(place.getId())
@@ -139,7 +134,7 @@ public class PlaceResponse {
     }
 
     public static PlaceResponse toNearbyPlaceResponse(Place place) {
-        return toNearbyPlaceResponse(place, false); // Default: user not logged or place not saved
+        return toNearbyPlaceResponse(place, false);
     }
 
     public static PlaceResponse toNearbyPlaceResponse(Place place, Boolean isSaved) {
@@ -174,23 +169,15 @@ public class PlaceResponse {
                 .orElse(null);
     }
 
-    private static List<PlacePhoto> sanitizePhotos(List<PlacePhoto> photos) {
+    private static List<PlacePhotoResponse> sanitizePhotos(List<PlacePhoto> photos) {
         if (photos == null) {
             return null;
         }
         return photos.stream()
                 .map(
                         photo ->
-                                PlacePhoto.builder()
-                                        .id(photo.getId())
-                                        .placeId(photo.getPlaceId())
-                                        .photoReference(photo.getPhotoReference())
-                                        .photoUrl(stripApiKey(photo.getPhotoUrl()))
-                                        .imageBase64(photo.getImageBase64())
-                                        .height(photo.getHeight())
-                                        .width(photo.getWidth())
-                                        .htmlAttributions(photo.getHtmlAttributions())
-                                        .build())
+                                PlacePhotoResponse.fromDomain(
+                                        photo, stripApiKey(photo.getPhotoUrl())))
                 .toList();
     }
 

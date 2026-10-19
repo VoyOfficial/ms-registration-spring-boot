@@ -1,6 +1,10 @@
 package br.voy.infrastructure.config.openapi;
 
-import java.lang.annotation.Annotation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -23,12 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/**
- * Startup gate that keeps OpenAPI annotations complete for mobile contract consumers.
- *
- * <p>Covers request/response DTOs ({@code @Schema} on type and fields) and REST endpoints
- * ({@code @Operation}, {@code @ApiResponses} with schemas, {@code @Parameter} on HTTP params).
- */
 @Configuration
 public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
 
@@ -36,26 +34,6 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
         "br.voy.application.controller.request", "br.voy.application.controller.response"
     };
     private static final String CONTROLLER_PACKAGE = "br.voy.application.controller";
-
-    private static final Class<? extends Annotation> SCHEMA =
-            loadAnnotation("io.swagger.v3.oas.annotations.media.Schema");
-    private static final Class<? extends Annotation> OPERATION =
-            loadAnnotation("io.swagger.v3.oas.annotations.Operation");
-    private static final Class<? extends Annotation> PARAMETER =
-            loadAnnotation("io.swagger.v3.oas.annotations.Parameter");
-    private static final Class<? extends Annotation> API_RESPONSE =
-            loadAnnotation("io.swagger.v3.oas.annotations.responses.ApiResponse");
-    private static final Class<? extends Annotation> CONTENT =
-            loadAnnotation("io.swagger.v3.oas.annotations.media.Content");
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Annotation> loadAnnotation(String className) {
-        try {
-            return (Class<? extends Annotation>) Class.forName(className);
-        } catch (ClassNotFoundException ex) {
-            throw new IllegalStateException("Missing OpenAPI annotation type: " + className, ex);
-        }
-    }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -74,15 +52,11 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
             if (!isDocumentableDto(dto)) {
                 continue;
             }
-            if (!dto.isAnnotationPresent(SCHEMA)) {
-                throw new IllegalStateException(
-                        "DTO " + dto.getName() + " must declare class-level @Schema.");
-            }
-            validateDtoFields(dto);
+            validateDocumentableDto(dto);
         }
     }
 
-    private boolean isDocumentableDto(Class<?> dto) {
+    boolean isDocumentableDto(Class<?> dto) {
         if (dto.isInterface()
                 || Modifier.isAbstract(dto.getModifiers())
                 || dto.isAnonymousClass()) {
@@ -92,12 +66,16 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
         return simpleName.endsWith("Request") || simpleName.endsWith("Response");
     }
 
-    private void validateDtoFields(Class<?> dto) {
+    void validateDocumentableDto(Class<?> dto) {
+        if (!dto.isAnnotationPresent(Schema.class)) {
+            throw new IllegalStateException(
+                    "DTO " + dto.getName() + " must declare class-level @Schema.");
+        }
         for (Field field : dto.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
                 continue;
             }
-            Annotation schema = field.getAnnotation(SCHEMA);
+            Schema schema = field.getAnnotation(Schema.class);
             if (schema == null) {
                 throw new IllegalStateException(
                         "DTO field "
@@ -106,8 +84,7 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                                 + field.getName()
                                 + " must declare @Schema with example or description.");
             }
-            if (isBlank(annotationString(schema, "example"))
-                    && isBlank(annotationString(schema, "description"))) {
+            if (isBlank(schema.example()) && isBlank(schema.description())) {
                 throw new IllegalStateException(
                         "DTO field "
                                 + dto.getName()
@@ -131,15 +108,19 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                 if (!isEndpointMethod(method)) {
                     continue;
                 }
-                validateOperation(controller, method);
-                validateApiResponses(controller, method);
-                validateParameters(controller, method);
+                validateEndpoint(controller, method);
             }
         }
     }
 
+    void validateEndpoint(Class<?> controller, Method method) {
+        validateOperation(controller, method);
+        validateApiResponses(controller, method);
+        validateParameters(controller, method);
+    }
+
     private void validateOperation(Class<?> controller, Method method) {
-        Annotation operation = method.getAnnotation(OPERATION);
+        Operation operation = method.getAnnotation(Operation.class);
         if (operation == null) {
             throw new IllegalStateException(
                     "Endpoint "
@@ -148,7 +129,7 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                             + controller.getSimpleName()
                             + " must declare @Operation.");
         }
-        if (isBlank(annotationString(operation, "summary"))) {
+        if (isBlank(operation.summary())) {
             throw new IllegalStateException(
                     "Endpoint "
                             + method.getName()
@@ -159,8 +140,8 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
     }
 
     private void validateApiResponses(Class<?> controller, Method method) {
-        Set<? extends Annotation> apiResponses =
-                AnnotatedElementUtils.getMergedRepeatableAnnotations(method, API_RESPONSE);
+        Set<ApiResponse> apiResponses =
+                AnnotatedElementUtils.getMergedRepeatableAnnotations(method, ApiResponse.class);
         if (apiResponses.isEmpty()) {
             throw new IllegalStateException(
                     "Endpoint "
@@ -169,8 +150,8 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                             + controller.getSimpleName()
                             + " must declare @ApiResponse/@ApiResponses.");
         }
-        for (Annotation apiResponse : apiResponses) {
-            if (isBlank(annotationString(apiResponse, "description"))) {
+        for (ApiResponse apiResponse : apiResponses) {
+            if (isBlank(apiResponse.description())) {
                 throw new IllegalStateException(
                         "Endpoint "
                                 + method.getName()
@@ -185,51 +166,33 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                                 + " in "
                                 + controller.getSimpleName()
                                 + " @ApiResponse "
-                                + annotationString(apiResponse, "responseCode")
+                                + apiResponse.responseCode()
                                 + " must document content schema or response examples.");
             }
         }
     }
 
-    private boolean hasDocumentedContent(Annotation apiResponse) {
-        Object contentsObj = annotationValue(apiResponse, "content");
-        if (!(contentsObj instanceof Annotation[])) {
-            return isNoContentStatus(annotationString(apiResponse, "responseCode"));
+    private boolean hasDocumentedContent(ApiResponse apiResponse) {
+        Content[] contents = apiResponse.content();
+        if (contents == null || contents.length == 0) {
+            return isNoContentStatus(apiResponse.responseCode());
         }
-        Annotation[] contents = (Annotation[]) contentsObj;
-        if (contents.length == 0) {
-            return isNoContentStatus(annotationString(apiResponse, "responseCode"));
-        }
-        for (Annotation content : contents) {
-            if (!CONTENT.isInstance(content)) {
-                continue;
-            }
-            Annotation schema = (Annotation) annotationValue(content, "schema");
-            if (schema != null) {
-                Class<?> implementation = (Class<?>) annotationValue(schema, "implementation");
-                if (implementation != null
-                        && implementation != Void.class
-                        && implementation != void.class) {
-                    return true;
-                }
-            }
-            Object examples = annotationValue(content, "examples");
-            if (examples instanceof Object[] && ((Object[]) examples).length > 0) {
+        for (Content content : contents) {
+            if (content.schema() != null
+                    && content.schema().implementation() != Void.class
+                    && content.schema().implementation() != void.class) {
                 return true;
             }
-            Annotation array = (Annotation) annotationValue(content, "array");
-            if (array != null) {
-                Annotation arraySchema = (Annotation) annotationValue(array, "schema");
-                if (arraySchema != null) {
-                    Class<?> implementation =
-                            (Class<?>) annotationValue(arraySchema, "implementation");
-                    if (implementation != null && implementation != Void.class) {
-                        return true;
-                    }
-                }
+            if (content.examples() != null && content.examples().length > 0) {
+                return true;
+            }
+            if (content.array() != null
+                    && content.array().schema() != null
+                    && content.array().schema().implementation() != Void.class) {
+                return true;
             }
         }
-        return isNoContentStatus(annotationString(apiResponse, "responseCode"));
+        return isNoContentStatus(apiResponse.responseCode());
     }
 
     private boolean isNoContentStatus(String responseCode) {
@@ -241,7 +204,7 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
             if (!requiresParameterDocs(parameter)) {
                 continue;
             }
-            if (!parameter.isAnnotationPresent(PARAMETER)) {
+            if (!parameter.isAnnotationPresent(Parameter.class)) {
                 throw new IllegalStateException(
                         "Endpoint "
                                 + method.getName()
@@ -251,8 +214,8 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                                 + parameter.getName()
                                 + "' must declare @Parameter.");
             }
-            Annotation docs = parameter.getAnnotation(PARAMETER);
-            if (isBlank(annotationString(docs, "description"))) {
+            Parameter docs = parameter.getAnnotation(Parameter.class);
+            if (isBlank(docs.description())) {
                 throw new IllegalStateException(
                         "Endpoint "
                                 + method.getName()
@@ -280,21 +243,6 @@ public class ApiDocumentationValidator implements BeanFactoryPostProcessor {
                 || method.isAnnotationPresent(PutMapping.class)
                 || method.isAnnotationPresent(DeleteMapping.class)
                 || method.isAnnotationPresent(RequestMapping.class);
-    }
-
-    private String annotationString(Annotation annotation, String attribute) {
-        Object value = annotationValue(annotation, attribute);
-        return value == null ? null : String.valueOf(value);
-    }
-
-    private Object annotationValue(Annotation annotation, String attribute) {
-        try {
-            return annotation.annotationType().getMethod(attribute).invoke(annotation);
-        } catch (ReflectiveOperationException ex) {
-            throw new IllegalStateException(
-                    "Cannot read @" + annotation.annotationType().getSimpleName() + "." + attribute,
-                    ex);
-        }
     }
 
     private boolean isBlank(String value) {
