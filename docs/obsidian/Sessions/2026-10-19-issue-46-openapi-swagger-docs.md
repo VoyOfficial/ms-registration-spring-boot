@@ -43,8 +43,16 @@ O grupo `v1` do springdoc apontava para `by.voy...` (typo). DTOs de Place sem `@
 - `src/main/java/br/voy/application/controller/response/*`
 - `src/test/java/br/voy/infrastructure/config/openapi/*`
 
+## Review fix pass (`/code-reviewer`)
+
+- Restored endpoint-accurate Places OpenAPI i18n keys (nearby vs details)
+- Removed OpenAPI `@Schema` from domain `Interval`/`PlacePhoto`; added `IntervalResponse`/`PlacePhotoResponse`
+- Deleted single-caller `controller.openapi` meta-annotations; restored idiomatic mappings
+- Validator uses direct swagger imports again; negative unit tests + stronger smoke assertions
+- PR: https://github.com/VoyOfficial/ms-registration-spring-boot/pull/47
+
 ## Proximos passos
 
-- [ ] Abrir PR contra `develop` com `Closes #46`
-- [ ] Referenciar voy-app-react-native#80 no PR
-- [ ] Validar Swagger UI em runtime quando o ambiente local estiver saudavel
+- [x] Abrir PR contra `develop` com `Closes #46`
+- [x] Referenciar voy-app-react-native#80 no PR
+- [ ] Re-run `/code-reviewer` after review-fix push
