@@ -1,7 +1,7 @@
 ---
 type: task
 date: 2026-10-17
-status: todo
+status: closed
 tags: [task, backend, place, sponsorship]
 github: https://github.com/VoyOfficial/ms-registration-spring-boot/issues/43
 ---
@@ -14,16 +14,34 @@ Replace `FailClosedSponsorshipEligibilityAdapter` with a table-backed `Sponsorsh
 
 ## Parent
 
-[[ISSUE-27]] / PR #42
+[[ISSUE-27]]
+
+## Branch
+
+`cursor/sponsor-eligibility-table-b636`
+
+## Pull request
+
+https://github.com/VoyOfficial/ms-registration-spring-boot/pull/44
+
+## Sessions
+
+- [[2026-10-19-issue-43-sponsor-eligibility-table]]
+
+## Decisoes
+
+- [[Decisions/006-sponsor-table-eligibility]]
+- [[Decisions/005-sponsorship-eligibility-on-registry-request]]
+
+## Modulos
+
+- [[Modules/place]]
 
 ## Acceptance
 
-- Flyway table for sponsors
-- Lookup by name+city; eligible = approved && subscription_active
-- 201 when eligible, 403 otherwise
-- Unit + integration tests
-- Import process documented
-
-## Links
-
-- https://github.com/VoyOfficial/ms-registration-spring-boot/issues/43
+- [x] Flyway table for sponsors
+- [x] Lookup by name+city; eligible = approved && subscription_active
+- [x] 201 when eligible, 403 otherwise
+- [x] Request does not carry approved / subscriptionActive
+- [x] Unit + integration tests
+- [x] Import process documented

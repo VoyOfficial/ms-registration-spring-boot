@@ -235,9 +235,9 @@ public class PlaceController {
     @Operation(
             summary = "Register sponsored place",
             description =
-                    "Registers a sponsored establishment after validating approval and active"
-                            + " subscription via SponsorshipEligibilityPort, enriching data via"
-                            + " Google Places, and rejecting duplicates by googlePlaceId.")
+                    "Registers a sponsored establishment after resolving approval and an active"
+                            + " subscription from the sponsor table by name and city, enriching"
+                            + " data via Google Places, and rejecting duplicates by googlePlaceId.")
     public ResponseEntity<Long> createPlaceRecommendation(
             @Parameter(description = "Request to register the sponsored place") @RequestBody @Valid
                     PlaceRequest request,
