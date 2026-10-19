@@ -40,6 +40,10 @@ graphify-out/cache/
 report/
 .jscpd-report/
 
+### Python ###
+__pycache__/
+*.pyc
+
 ### Cursor MCP secrets ###
 .cursor/mcp.env
 
