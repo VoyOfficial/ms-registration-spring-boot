@@ -4,7 +4,6 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import br.voy.application.controller.request.PlaceRequest;
-import br.voy.application.controller.response.DefaultResponse;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
 import br.voy.application.controller.response.PlaceResponse;
@@ -262,18 +261,20 @@ public class PlaceController {
             value = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Lista de lugares obtida com sucesso",
+                        description = "Recommended places returned successfully",
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = DefaultResponse.class),
+                                        schema =
+                                                @Schema(
+                                                        implementation =
+                                                                NearbyPlacesResponse.class),
                                         examples =
                                                 @ExampleObject(
                                                         value =
                                                                 """
                     {
-                        "message": "ok",
-                        "data": [
+                        "places": [
                             {
                                 "id": 12,
                                 "googlePlaceId": "ChIJsdUuyRc1GZURg7Hy1kfaAeU",
@@ -285,75 +286,60 @@ public class PlaceController {
                                 "latitude": -29.35963,
                                 "longitude": -50.83543,
                                 "distanceFromUserLocation": "1.224 km"
-                            },
-                            {
-                                "id": 8,
-                                "googlePlaceId": "ChIJ-ZdZYBc1GZURaaRRs7WmIAg",
-                                "name": "Belvedere Vale do Quilombo",
-                                "contact": "(54) 3286-4054",
-                                "address": "Av. das Hortênsias, 2536 - Vila Suica, Gramado - RS, 95670-000",
-                                "city": "Gramado",
-                                "ranking": 2,
-                                "latitude": -29.37812,
-                                "longitude": -50.86689,
-                                "distanceFromUserLocation": "2.723 km"
                             }
-                        ]
+                        ],
+                        "nextTokenPage": null
                     }
                 """))),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "Not Found",
+                        description = "Recommended places not found",
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = DefaultResponse.class),
+                                        schema = @Schema(implementation = StandardError.class),
                                         examples =
                                                 @ExampleObject(
                                                         value =
                                                                 """
                     {
-                        "message": "Recommended places not found"
+                        "timestamp": "2024-01-01T12:00:00Z",
+                        "status": 404,
+                        "error": "Not Found",
+                        "message": "Recommended places not found",
+                        "path": "/api/registration/v1/places/recommendations"
                     }
                 """))),
                 @ApiResponse(
                         responseCode = "400",
-                        description = "Bad Request",
+                        description = "Bad Request - invalid coordinates or range",
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = DefaultResponse.class),
+                                        schema = @Schema(implementation = StandardError.class),
                                         examples = {
                                             @ExampleObject(
-                                                    name = "Formato inválido",
+                                                    name = "Invalid format",
                                                     value =
                                                             """
                         {
-                            "message": "latitude e/ou longitude no formato errado"
+                            "timestamp": "2024-01-01T12:00:00Z",
+                            "status": 400,
+                            "error": "Bad Request",
+                            "message": "latitude e/ou longitude no formato errado",
+                            "path": "/api/registration/v1/places/recommendations"
                         }
                     """),
                                             @ExampleObject(
-                                                    name = "Latitude ausente",
+                                                    name = "Range out of permitted limit",
                                                     value =
                                                             """
                         {
-                            "message": "Required request parameter 'latidude' for method parameter type Double is present but converted to null"
-                        }
-                    """),
-                                            @ExampleObject(
-                                                    name = "Longitude ausente",
-                                                    value =
-                                                            """
-                        {
-                            "message": "Required request parameter 'longitude' for method parameter type Double is present but converted to null"
-                        }
-                    """),
-                                            @ExampleObject(
-                                                    name = "Range out of permited limit",
-                                                    value =
-                                                            """
-                        {
-                                "message": "raio de busca máxima é de 50.0 km"
+                            "timestamp": "2024-01-01T12:00:00Z",
+                            "status": 400,
+                            "error": "Bad Request",
+                            "message": "raio de busca máxima é de 50.0 km",
+                            "path": "/api/registration/v1/places/recommendations"
                         }
                             """)
                                         })),
@@ -363,7 +349,7 @@ public class PlaceController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = DefaultResponse.class)))
+                                        schema = @Schema(implementation = StandardError.class)))
             })
     @GetMapping("/recommendations")
     public ResponseEntity<NearbyPlacesResponse> getRecommendedPlaces(

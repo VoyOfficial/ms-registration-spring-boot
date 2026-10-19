@@ -93,6 +93,10 @@ public class UserController {
                         description = "Bad Request",
                         content = @Content(schema = @Schema(implementation = StandardError.class))),
                 @ApiResponse(
+                        responseCode = "404",
+                        description = "User not found",
+                        content = @Content(schema = @Schema(implementation = StandardError.class))),
+                @ApiResponse(
                         responseCode = "500",
                         description = "Internal Server Error",
                         content = @Content(schema = @Schema(implementation = StandardError.class)))
