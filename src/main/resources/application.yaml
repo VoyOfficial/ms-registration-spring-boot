@@ -26,7 +26,7 @@ management:
 info:
   app:
     name: ${spring.application.name}
-    description: "This application is responsible for User Operations"
+    description: "Voy registration API for Users, Places, recommendations and sponsored registry"
     version: "0.0.1"
     developer-name: "Matheus Carvalho"
 

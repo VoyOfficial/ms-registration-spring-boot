@@ -77,8 +77,6 @@ class ArchitectureFitnessTest {
         noClasses()
                 .that()
                 .resideInAPackage("br.voy.domain..")
-                .and()
-                .doNotHaveSimpleName("ApiDocumentationValidator")
                 .should()
                 .dependOnClassesThat()
                 .resideInAPackage("org.springframework.web..")
