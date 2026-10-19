@@ -5,9 +5,14 @@ import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)
-@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+/** Shared 201/400/500 documentation for create endpoints without a response body. */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
 @ApiResponse(
         responseCode = "201",
         description = "Resource created",
