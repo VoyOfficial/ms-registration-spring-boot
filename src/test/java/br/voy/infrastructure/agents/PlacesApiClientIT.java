@@ -12,6 +12,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+// Opt-in live Google calls. A present PLACES_API_KEY alone is not enough:
+// Cloud Agent / CI secrets often lack Places billing and would fail the suite.
+@EnabledIfEnvironmentVariable(named = "RUN_PLACES_LIVE_IT", matches = "(?i)true|1|yes")
 @EnabledIfEnvironmentVariable(named = "PLACES_API_KEY", matches = "(?!fake_key$).+")
 class PlacesApiClientIT {
 
