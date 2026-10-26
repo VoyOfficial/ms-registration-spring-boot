@@ -3,7 +3,7 @@ type: session
 date: 2026-10-19
 workitems: [ISSUE-46]
 tags: [session, openapi, swagger]
-status: closed
+status: done
 parent_workitem: [[ISSUE-46]]
 parent_session: none
 ---
