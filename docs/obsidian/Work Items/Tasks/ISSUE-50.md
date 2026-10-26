@@ -13,6 +13,7 @@ Source: https://github.com/VoyOfficial/ms-registration-spring-boot/issues/50
 ## Sessions
 
 - [[2026-10-26-issue-50-remote-deploy-recommendation-seed]]
+- [[2026-10-26-issue-50-remote-instance]]
 
 ## Escopo
 
@@ -22,5 +23,7 @@ Source: https://github.com/VoyOfficial/ms-registration-spring-boot/issues/50
 
 ## Notes
 
+- Seed (V21) shipped in PR #51. This session publishes the reachable instance + deploy docs.
+- Tunnel URL is ephemeral; durable path is Render blueprint (`render.yaml`).
 - Issue #49 was an accidental create/probe (`test` body); token cannot edit/close issues — close #49 manually
 - Org Project board sync unavailable for this token (`projectsV2` empty / no `project` scope)
