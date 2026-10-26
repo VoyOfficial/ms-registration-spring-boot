@@ -7,7 +7,7 @@ tags: [module, place]
 
 # Place
 
-Nearby: database first (filter by `google_types`), Google fallback, HMAC pagination tokens, page size 20. Recommendations: bounding box + haversine + ranking; active = `status` and date window; empty bbox expands radius.
+Nearby: database first (filter by `google_types`), Google fallback, HMAC pagination tokens, page size 20. Recommendations: bounding box + haversine + ranking; active = `status` and date window; empty bbox expands radius. Default Gramado/Canela recommendations are bootstrapped by Flyway `V21` for remote/mobile validation ([[ISSUE-50]]).
 
 `isSaved` is per-user (`user_saved_places`), not a column used by JPA on `place`. List distance is computed at read time.
 
