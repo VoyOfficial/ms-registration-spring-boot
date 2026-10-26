@@ -12,7 +12,8 @@ public final class RecommendedPlacesTestData {
     public static final double GRAMADO_LONGITUDE = -50.8744;
 
     private static final LocalDate ACTIVE_START = LocalDate.of(2025, 2, 18);
-    private static final LocalDate ACTIVE_END = LocalDate.of(2026, 12, 31);
+    /** Keep far enough ahead so CI/local runs still treat issue #31 places as active. */
+    private static final LocalDate ACTIVE_END = LocalDate.of(2027, 12, 31);
 
     private RecommendedPlacesTestData() {}
 
