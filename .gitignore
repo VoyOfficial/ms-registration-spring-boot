@@ -56,3 +56,6 @@ docs/obsidian/.obsidian/
 ### Local scratch only (canonical work snapshot is docs/obsidian/CURRENT_WORK.md) ###
 /CURRENT_WORK.md
 /CONTEXT.md
+
+### Ephemeral runtime (tunnel URL, local PIDs) ###
+.run/
