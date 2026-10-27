@@ -10,6 +10,8 @@ services:
     environment:
       PROFILE_ACTIVE: dev
       API_PORT: 8080
+      MANAGEMENT_PORT: 8080
+      FLYWAY_ENABLE: "true"
       DATABASE_DB: voy
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432

@@ -11,8 +11,10 @@ management:
       exposure:
         include: health, info, flyway, env
       base-path: /actuator/portal-admin
+  # Default 2022 keeps local dual-port setup. Set MANAGEMENT_PORT=${API_PORT}
+  # (or omit a separate port via same value) on single-port hosts (Render/Railway).
   server:
-    port: 2022
+    port: ${MANAGEMENT_PORT:2022}
   info:
     env:
       enabled: true
@@ -50,9 +52,10 @@ spring:
     username: ${DATABASE_USER:postgres}
     password: ${DATABASE_PASSWORD:password}
   flyway:
+    enabled: ${FLYWAY_ENABLE:true}
     url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_DB:voy}
-    user: postgres
-    password: password
+    user: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:password}
     locations: classpath:db/migration
 
 logging:

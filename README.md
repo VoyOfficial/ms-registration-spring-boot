@@ -53,6 +53,11 @@ Os requisitos para isso são:
 - [Docker-compose](https://docs.docker.com/compose/install/) - Se estiver utilizando Windows, o Docker desktop já possui
   o docker-compose instalado
 
+## ☁️ Deploy remoto (mobile / QA)
+
+Para publicar uma instância alcançável pelo app (`voy-app-react-native`), use o
+blueprint Render ou o tunnel efêmero. Guia completo: [docs/remote-deploy.md](docs/remote-deploy.md).
+
 ## 🎲 Executando a API com o docker-compose
 
 Com esse repositório já clonado em sua máquina e com todos os pré-requisitos atendidos.

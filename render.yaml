@@ -1,0 +1,62 @@
+# Render Blueprint — one-click remote instance for mobile integration (#50).
+# Dashboard: https://dashboard.render.com/blueprints
+# After deploy, set PLACES_API_KEY (and optionally PAGINATION_SECRET_KEY) in the
+# web service env. Free web services may spin down when idle.
+services:
+  - type: web
+    name: ms-registration
+    runtime: docker
+    plan: free
+    # Same port as API → management inherits server.servlet.context-path.
+    healthCheckPath: /api/registration/actuator/portal-admin/health
+    envVars:
+      - key: PROFILE_ACTIVE
+        value: dev
+      - key: API_PORT
+        value: "8080"
+      - key: MANAGEMENT_PORT
+        value: "8080"
+      - key: DATABASE_DB
+        fromDatabase:
+          name: ms-registration-db
+          property: database
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: ms-registration-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: ms-registration-db
+          property: port
+      - key: DATABASE_USER
+        fromDatabase:
+          name: ms-registration-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: ms-registration-db
+          property: password
+      - key: DATABASE_SCHEMA
+        value: registration
+      - key: PLACES_API_KEY
+        sync: false
+      - key: PAGINATION_SECRET_KEY
+        generateValue: true
+      - key: ENABLE_MOCK_SERVICES
+        value: "false"
+      - key: FLYWAY_ENABLE
+        value: "true"
+      - key: EARTH_RADIUS_KM
+        value: "6371"
+      - key: INCREMENTAL_BOUNDING_BOX_RADIUS_KM
+        value: "5"
+      - key: INITIAL_DEFAULT_BOUNDING_BOX_RADIUS_KM
+        value: "10"
+      - key: LIMIT_MAX_BOUNDING_BOX
+        value: "100"
+      - key: MAX_PLACE_SIZE_LIST
+        value: "5"
+
+databases:
+  - name: ms-registration-db
+    plan: basic_256mb
