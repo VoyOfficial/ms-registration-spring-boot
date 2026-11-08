@@ -19,6 +19,8 @@
     <properties>
         <java.version>17</java.version>
         <lombok.version>1.18.30</lombok.version>
+        <!-- Docker/Render builds pass -Dskip.git.hooks=true; local stays false. -->
+        <skip.git.hooks>false</skip.git.hooks>
     </properties>
 
     <dependencies>
@@ -269,7 +271,8 @@
             </plugin>
 
             <!-- Auto-installs the versioned git hooks (.githooks/) on every Maven run,
-                 equivalent to Husky's `prepare` script but without a Node dependency. -->
+                 equivalent to Husky's `prepare` script but without a Node dependency.
+                 Skipped in Docker/CI when .githooks is absent or -Dskip.git.hooks=true. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -282,13 +285,18 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
+                            <skip>${skip.git.hooks}</skip>
                             <target>
+                                <!-- failonerror=false: Docker/CI often has no .git / no .githooks. -->
                                 <exec executable="git" failonerror="false">
                                     <arg value="config"/>
                                     <arg value="core.hooksPath"/>
                                     <arg value=".githooks"/>
                                 </exec>
-                                <chmod dir="${project.basedir}/.githooks" perm="755" includes="*"/>
+                                <exec executable="bash" failonerror="false">
+                                    <arg value="-c"/>
+                                    <arg value="test -d '${project.basedir}/.githooks' &amp;&amp; chmod 755 '${project.basedir}/.githooks/'* || true"/>
+                                </exec>
                             </target>
                         </configuration>
                     </execution>
