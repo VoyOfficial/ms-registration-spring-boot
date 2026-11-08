@@ -7,7 +7,7 @@ tags: [module, place]
 
 # Place
 
-Nearby: database first (filter by `google_types`), Google fallback, HMAC pagination tokens, page size 20. Recommendations: bounding box + haversine + ranking; active = `status` and date window; empty bbox expands radius. Default Gramado/Canela recommendations are bootstrapped by Flyway `V21` for remote/mobile validation ([[ISSUE-50]]).
+Nearby: database first (filter by `google_types`), Google fallback, HMAC pagination tokens, page size 20. Search (issue #54): hybrid DB first + Google Text Search ([[Decisions/008-search-places-hybrid-source]]); filter label mapping still open. Recommendations: bounding box + haversine + ranking; active = `status` and date window; empty bbox expands radius. Default Gramado/Canela recommendations are bootstrapped by Flyway `V21` for remote/mobile validation ([[ISSUE-50]]).
 
 `isSaved` is per-user (`user_saved_places`), not a column used by JPA on `place`. List distance is computed at read time.
 
@@ -29,3 +29,4 @@ Sponsored registry (`POST /v1/places`): resolves eligibility from `registration.
 - [[Decisions/004-merge-into-create-get-place-from-db]]
 - [[Decisions/005-sponsorship-eligibility-on-registry-request]]
 - [[Decisions/006-sponsor-table-eligibility]]
+- [[Decisions/008-search-places-hybrid-source]]
