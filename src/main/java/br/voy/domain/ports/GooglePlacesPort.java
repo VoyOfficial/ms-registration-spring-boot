@@ -12,4 +12,11 @@ public interface GooglePlacesPort {
     PlaceDetails getPlaceDetails(String placeId);
 
     PlaceDetails getPlaceFromText(String placeName, String city);
+
+    NearbyPlaces textSearch(
+            String query,
+            Coordinates coordinates,
+            Integer radiusMeters,
+            String placeType,
+            String nextPageToken);
 }

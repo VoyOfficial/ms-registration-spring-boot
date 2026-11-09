@@ -80,13 +80,18 @@ public class Place {
             longitude = placeSearchResult.geometry.location.lng;
         }
 
+        String address =
+                placeSearchResult.vicinity != null && !placeSearchResult.vicinity.isBlank()
+                        ? placeSearchResult.vicinity
+                        : placeSearchResult.formattedAddress;
+
         return Place.builder()
                 .googlePlaceId(placeSearchResult.placeId)
                 .name(placeSearchResult.name)
                 .about("") // todo refatorar
                 .rating(placeSearchResult.rating)
                 .userRatingsTotal(placeSearchResult.userRatingsTotal)
-                .address(placeSearchResult.vicinity)
+                .address(address)
                 .principalPhoto(photoReference)
                 .googleTypes(joinGoogleTypes(placeSearchResult))
                 .latitude(latitude)
