@@ -166,4 +166,17 @@ class PlaceSearchControllerTest {
                                 .param("longitude", "-50.877113"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("Must return 400 when search place is blank")
+    void mustReturn400WhenSearchPlaceIsBlank() throws Exception {
+        mockMvc.perform(
+                        post(SEARCH_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("place", "   ")
+                                .param("latitude", "-29.366054")
+                                .param("longitude", "-50.877113"))
+                .andExpect(status().isBadRequest());
+    }
 }

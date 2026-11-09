@@ -1,5 +1,6 @@
 package br.voy.application.controller;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Place", description = "Endpoint with all operations of Places")
@@ -133,6 +135,11 @@ public class PlaceController {
             @Parameter(description = "Optional types and ordination filters")
                     @RequestBody(required = false)
                     SearchPlacesRequest request) {
+
+        if (place == null || place.isBlank()) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST, "Required request parameter 'place' is not present");
+        }
 
         logger.info(
                 "PLACE CONTROLLER - SEARCH PLACES START - place: {}, lat: {}, lng: {}",
