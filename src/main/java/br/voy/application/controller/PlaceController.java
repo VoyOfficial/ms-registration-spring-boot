@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import br.voy.application.controller.request.PlaceRequest;
+import br.voy.application.controller.request.SearchPlacesRequest;
 import br.voy.application.controller.response.DefaultResponse;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.application.controller.response.PlaceDetailsResponse;
@@ -15,6 +16,7 @@ import br.voy.domain.usecase.GetNearbyPlacesUseCase;
 import br.voy.domain.usecase.GetPlaceDetailsUseCase;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.domain.usecase.PlaceRegistryUseCase;
+import br.voy.domain.usecase.SearchPlacesUseCase;
 import com.google.maps.model.PlaceType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -55,6 +57,118 @@ public class PlaceController {
     @Autowired private PlaceRegistryUseCase placeRegistryUseCase;
 
     @Autowired private GetRecommendedPlacesUseCase placeRecommendationUseCase;
+
+    @Autowired private SearchPlacesUseCase searchPlacesUseCase;
+
+    @Operation(
+            summary = "Search places by name",
+            description =
+                    "Hybrid search by place name (DB first + Google Text Search), with optional"
+                            + " Portuguese type filters and ordination. Reuses NearbyPlacesResponse.")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Search page returned",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = NearbyPlacesResponse.class)))
+    @ApiResponse(
+            responseCode = "204",
+            description = "No places matched the search on the first page",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "400",
+            description = "Missing required query params place, latitude or longitude",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = DefaultResponse.class)))
+    @ApiResponse(
+            responseCode = "403",
+            description = "error.places.api.request.denied.message",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "error.places.api.nearby.place.invalid.request.message",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "429",
+            description = "error.places.api.over.query.limit.message",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)))
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)))
+    @ResponseStatus(OK)
+    @PostMapping(value = "/search", produces = "application/json")
+    public ResponseEntity<NearbyPlacesResponse> searchPlaces(
+            @Parameter(description = "Place name fragment to search", required = true)
+                    @Schema(example = "Hard Rock", type = "String")
+                    @RequestParam
+                    String place,
+            @Parameter(description = "User's latitude (required)", required = true)
+                    @Schema(example = "-29.366054", type = "Double")
+                    @RequestParam
+                    Double latitude,
+            @Parameter(description = "User's longitude (required)", required = true)
+                    @Schema(example = "-50.877113", type = "Double")
+                    @RequestParam
+                    Double longitude,
+            @Parameter(description = "Opaque pagination token", required = false)
+                    @Schema(example = "MzoxNzMzNjg5MjQ1Njc4OmFCY0RlRmdIaUprTG1Obw:dGVzdGNoZWM")
+                    @RequestParam(required = false, defaultValue = "")
+                    String nextPageToken,
+            @Parameter(description = "Optional types and ordination filters")
+                    @RequestBody(required = false)
+                    SearchPlacesRequest request) {
+
+        logger.info(
+                "PLACE CONTROLLER - SEARCH PLACES START - place: {}, lat: {}, lng: {}",
+                place,
+                latitude,
+                longitude);
+
+        var types = request != null ? request.getTypes() : null;
+        var ordination = request != null ? request.getOrdination() : null;
+
+        var searchResult =
+                searchPlacesUseCase.searchPlaces(
+                        place,
+                        new Coordinates(latitude, longitude),
+                        types,
+                        ordination,
+                        nextPageToken);
+
+        if (searchResult.getPlaces().isEmpty()) {
+            if (nextPageToken != null && !nextPageToken.isBlank()) {
+                return ResponseEntity.ok(new NearbyPlacesResponse(Collections.emptyList(), null));
+            }
+            return ResponseEntity.noContent().build();
+        }
+
+        var placeResponses =
+                searchResult.getPlaces().stream()
+                        .map(PlaceResponse::fromDomain)
+                        .collect(Collectors.toList());
+
+        var response = new NearbyPlacesResponse(placeResponses, searchResult.getNextTokenPage());
+
+        logger.info("PLACE CONTROLLER - SEARCH PLACES FINISH - places: {}", placeResponses.size());
+
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "Get 20 nearby Places per time")
     @ApiResponse(
