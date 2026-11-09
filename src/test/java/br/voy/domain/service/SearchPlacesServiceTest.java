@@ -20,7 +20,6 @@ import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.domain.repository.PlaceRepository;
-import br.voy.domain.utils.PlaceSearchOrdination;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -231,6 +230,7 @@ class SearchPlacesServiceTest {
 
         assertEquals(1, result.getPlaces().size());
         assertEquals("gp1", result.getPlaces().get(0).getGooglePlaceId());
+        verify(googlePlacesPort).textSearch(eq("x"), eq(USER), anyInt(), isNull(), isNull());
     }
 
     @Test

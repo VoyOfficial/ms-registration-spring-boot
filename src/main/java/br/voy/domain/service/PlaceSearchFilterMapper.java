@@ -1,4 +1,4 @@
-package br.voy.domain.utils;
+package br.voy.domain.service;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class PlaceSearchFilterMapper {
+final class PlaceSearchFilterMapper {
 
     private static final Map<String, String> LABEL_TO_GOOGLE_TYPE =
             Map.of(
