@@ -82,7 +82,8 @@ O app mobile precisa buscar estabelecimentos por **nome**, com filtros multi-tip
 
 - `SearchPlacesUseCase.java` (novo)
 - `SearchPlacesService.java` (novo) — híbrido, ordenação, paginação
-- Util/mapa de Filter labels → tipo (novo, mínimo)
+- `PlaceSearchFilterMapper` / `PlaceSearchOrdination` (novo, package-private ao lado do service; mapa Filter PT → tipo + normalize ordination)
+- `Place.java` — fallback `formattedAddress` quando Text Search não traz `vicinity`
 - `GooglePlacesPort.java` — adicionar text search → `NearbyPlaces` (ou lista + token)
 - `PlaceRepository.java` — `findPlacesByNameContaining(...)` (assinatura a fechar na implementação)
 
@@ -119,7 +120,7 @@ O app mobile precisa buscar estabelecimentos por **nome**, com filtros multi-tip
 2. Busca por trecho de nome (CI) retorna places correspondentes do DB quando existem.
 3. `types` com labels PT restringe aos `google_types` do mapa v1; `types` vazio/ausente não filtra por categoria.
 4. `ordination` aplica rating desc, `userRatingsTotal` desc ou distância asc; default `Mais próximo` quando ausente.
-5. Lat/lng obrigatórios: ausência → 400.
+5. Lat/lng obrigatórios: ausência → 400. `place` em branco (`""`/whitespace) → 400.
 6. Página incompleta no DB dispara Text Search Google, persiste novos via `saveIfAbsent`, e completa a página sem duplicar `googlePlaceId`.
 7. Paginação via `nextPageToken` (HMAC) funciona entre páginas.
 8. Zero resultados → 204; fim de paginação vazio → 200 com `places: []` e `nextPageToken: null`.
