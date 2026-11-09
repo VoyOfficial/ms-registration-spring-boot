@@ -16,7 +16,7 @@ Um item por criterio do plano. Nada do Criteria fica sem check. Nada entra aqui 
   - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest#mustOrderByMostRated,SearchPlacesServiceTest#mustOrderByMostCommented,SearchPlacesServiceTest#mustOrderByClosestByDefault`
 
 - [ ] C5: Lat/lng obrigatorios: ausencia → 400.
-  - Prova: `./mvnw test -Dtest=PlaceControllerTest#mustReturn400WhenSearchMissingLatitudeOrLongitude`
+  - Prova: `./mvnw test -Dtest=PlaceSearchControllerTest#mustReturn400WhenSearchMissingLatitudeOrLongitude`
 
 - [ ] C6: Pagina incompleta no DB dispara Text Search Google, persiste novos via `saveIfAbsent`, e completa a pagina sem duplicar `googlePlaceId`.
   - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest#mustSupplementFromGoogleTextSearchWithoutDuplicates`
@@ -25,16 +25,16 @@ Um item por criterio do plano. Nada do Criteria fica sem check. Nada entra aqui 
   - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest#mustPaginateAcrossPagesWithToken`
 
 - [ ] C8: Zero resultados → 204; fim de paginacao vazio → 200 com `places: []` e `nextPageToken: null`.
-  - Prova: `./mvnw test -Dtest=PlaceControllerTest#mustReturn204WhenSearchHasZeroResults,PlaceControllerTest#mustReturn200EmptyWhenSearchContinuationHasNoItems`
+  - Prova: `./mvnw test -Dtest=PlaceSearchControllerTest#mustReturn204WhenSearchHasZeroResults,PlaceSearchControllerTest#mustReturn200EmptyWhenSearchContinuationHasNoItems`
 
 - [ ] C9: Response usa `NearbyPlacesResponse` / `PlaceResponse` (name, address/city, rating, userRatingsTotal, photo, distanceFromUserLocation).
-  - Prova: `./mvnw test -Dtest=PlaceControllerTest#mustReturn200SearchWithNearbyPlacesResponseShape`
+  - Prova: `./mvnw test -Dtest=PlaceSearchControllerTest#mustReturn200SearchWithNearbyPlacesResponseShape`
 
 - [ ] C10: Testes unitarios do service cobrem match, filtro, as tres ordenacoes, hibrido e token; teste de integracao cobre 200/204/400 principais.
-  - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest,PlaceControllerTest`
+  - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest,PlaceSearchControllerTest`
 
 ## Handoff
 - Plano: specs/54-place-search/plan.md
-- Landing: SearchPlacesUseCase, SearchPlacesService, PlaceSearchFilterMapper, PlaceSearchOrdination, GooglePlacesPort.textSearch, PlaceRepository.findPlacesByNameContaining, PlacesApiClient.textSearchQuery, GooglePlacesAdapter(+Mock), PlaceJpaRepository/RelationalPlaceRepository, SearchPlacesRequest, PlaceController POST /search, OpenApiDocsSmokeTest, SearchPlacesServiceTest, PlaceControllerTest search cases
+- Landing: SearchPlacesUseCase, SearchPlacesService, PlaceSearchFilterMapper, PlaceSearchOrdination, GooglePlacesPort.textSearch, PlaceRepository.findPlacesByNameContaining, PlacesApiClient.textSearchQuery, GooglePlacesAdapter(+Mock), PlaceJpaRepository/RelationalPlaceRepository, SearchPlacesRequest, PlaceController POST /search, OpenApiDocsSmokeTest, SearchPlacesServiceTest, PlaceSearchControllerTest
 - Fora de escopo: app React Native, seeds extras, Flyway, DTO SearchPlaceModel, contratos nearby/recommendations/details/registry
 - Verificador: `/speckit.verify` numa sessao que nao implementou este codigo
