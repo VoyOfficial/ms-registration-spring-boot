@@ -4,6 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
+- [[ISSUE-54]] — Busca de locais (`POST /v1/places/search`). Session: [[2026-11-09-issue-54-place-search-lean-checks]]. Aguardando `/speckit.verify`.
 - [[ISSUE-50]] — Deploy remoto para integração mobile (tunnel + Render blueprint). Session: [[2026-10-26-issue-50-remote-instance]]
 
 ## Blocked
