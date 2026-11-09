@@ -152,6 +152,97 @@ public class PlacesApiClient {
         }
     }
 
+    public PlacesSearchResponse textSearchQuery(
+            String query,
+            LatLng location,
+            Integer radiusMeters,
+            PlaceType placeType,
+            String nextPageToken) {
+
+        logger.info(
+                "PLACES API CLIENT - Create Text Search Request - query: {}, location: {}, radius: {}, type: {}",
+                query,
+                location,
+                radiusMeters,
+                placeType);
+
+        var request = PlacesApi.textSearchQuery(context, query, location).language("en");
+
+        if (radiusMeters != null && radiusMeters > 0) {
+            request = request.radius(radiusMeters);
+        }
+
+        if (placeType != null) {
+            request = request.type(placeType);
+        }
+
+        if (nextPageToken != null && !nextPageToken.isEmpty()) {
+            request = request.pageToken(nextPageToken);
+        }
+
+        try {
+
+            logger.info("PLACES API CLIENT - Text Search Query");
+
+            return request.await();
+
+        } catch (ZeroResultsException zeroResultsException) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Zero Results: {}",
+                    zeroResultsException.getMessage());
+
+            PlacesSearchResponse empty = new PlacesSearchResponse();
+            empty.results = new com.google.maps.model.PlacesSearchResult[0];
+            empty.nextPageToken = null;
+            return empty;
+
+        } catch (InvalidRequestException invalidRequestException) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Invalid Request Error: {}",
+                    invalidRequestException.getMessage());
+
+            throw new NearbyPlaceInvalidRequestApiClientException(invalidRequestException);
+
+        } catch (OverQueryLimitException overQueryLimitException) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Over Query Limit Error: {}",
+                    overQueryLimitException.getMessage());
+
+            throw new OverQueryLimitApiClientException(overQueryLimitException);
+
+        } catch (RequestDeniedException requestDeniedException) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Request Denied Error: {}",
+                    requestDeniedException.getMessage());
+
+            throw new RequestDeniedApiClientException(requestDeniedException);
+
+        } catch (UnknownErrorException unknownErrorException) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Unknown Error: {}",
+                    unknownErrorException.getMessage());
+
+            throw new UnknownErrorApiClientException(unknownErrorException);
+
+        } catch (ApiException exception) {
+
+            logger.warn(
+                    "PLACES API CLIENT - Text Search Query - Occurred an Error: {}",
+                    exception.getMessage());
+
+            throw new PlacesApiClientException(exception);
+
+        } catch (IOException | InterruptedException exception) {
+
+            throw new PlacesApiClientException(exception);
+        }
+    }
+
     public PlaceDetails getPlaceDetails(String placeId) {
 
         logger.info("PLACES API CLIENT - Create Place Details Request");

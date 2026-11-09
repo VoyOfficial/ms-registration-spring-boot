@@ -292,4 +292,30 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         return placesDomain;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Place> findPlacesByNameContaining(String placeName) {
+
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FIND PLACES BY NAME CONTAINING - name: {}",
+                placeName);
+
+        if (placeName == null || placeName.isBlank()) {
+            return List.of();
+        }
+
+        var placeModelList = placeJpaRepository.findByNameContainingIgnoreCase(placeName.trim());
+
+        List<Place> placesDomain = new ArrayList<>();
+        for (PlaceModel placeModel : placeModelList) {
+            placesDomain.add(placeModel.toListDomain());
+        }
+
+        logger.info(
+                "RELATIONAL PLACE REPOSITORY - FOUND {} PLACES BY NAME CONTAINING",
+                placesDomain.size());
+
+        return placesDomain;
+    }
 }

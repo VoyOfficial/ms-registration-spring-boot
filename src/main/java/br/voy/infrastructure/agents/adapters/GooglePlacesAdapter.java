@@ -90,6 +90,44 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
     }
 
     @Override
+    public NearbyPlaces textSearch(
+            String query,
+            Coordinates coordinates,
+            Integer radiusMeters,
+            String placeType,
+            String nextPageToken) {
+
+        logger.info(
+                "GOOGLE PLACES API ADAPTER - STARTING TEXT SEARCH - query: {}, Coordinates: {}, Radius: {}, PlaceType: {}",
+                query,
+                coordinates,
+                radiusMeters,
+                placeType);
+
+        LatLng latLng = new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
+        PlaceType placeTypeEnum = createPlaceTypeEnum(placeType);
+
+        var response =
+                placesApiClient.textSearchQuery(
+                        query, latLng, radiusMeters, placeTypeEnum, nextPageToken);
+
+        var places =
+                Arrays.stream(
+                                response.results != null
+                                        ? response.results
+                                        : new com.google.maps.model.PlacesSearchResult[0])
+                        .parallel()
+                        .map(this::processPlaceResult)
+                        .collect(Collectors.toList());
+
+        var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
+
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH TEXT SEARCH - Places: {}", nearbyPlaces);
+
+        return nearbyPlaces;
+    }
+
+    @Override
     public PlaceDetails getPlaceDetails(String placeId) {
 
         logger.info("GOOGLE PLACES API ADAPTER - GET PLACE DETAILS - Place Id: {}", placeId);
