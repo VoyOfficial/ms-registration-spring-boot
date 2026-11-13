@@ -23,6 +23,10 @@ tags: [place, search, api]
 - [[Decisions/008-search-places-hybrid-source]]
 - [[Decisions/009-search-reuses-place-response]]
 
+## Delivery
+
+- PR: https://github.com/VoyOfficial/ms-registration-spring-boot/pull/56 (merged into `develop`, 2026-11-13)
+
 ## Status
 
-Implementação via `/speckit.lean-checks` em andamento; próximo passo obrigatório: `/speckit.verify` em verificador que não é o autor.
+Implementação shipped via PR #56. Remaining: optional `/speckit.verify` in a non-author session + close GitHub issue #54 (agent tokens may lack `issues:write`).

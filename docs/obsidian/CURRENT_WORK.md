@@ -4,8 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- [[ISSUE-54]] — Busca de locais (`POST /v1/places/search`). Session: [[2026-11-09-issue-54-place-search-verify-fixes]]. Fixes do verify aplicados; aguardando `/speckit.verify` em sessão não-autor.
-- [[ISSUE-50]] — Deploy remoto para integração mobile (tunnel + Render blueprint). Session: [[2026-10-26-issue-50-remote-instance]]
+- [[ISSUE-54]] — Busca de locais (`POST /v1/places/search`). PR #56 merged into `develop`. Session: [[2026-11-09-issue-54-place-search-verify-fixes]]. Remaining: `/speckit.verify` in a non-author session (if still desired) + close GitHub issue #54.
 
 ## Blocked
 
@@ -13,6 +12,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
+- [[ISSUE-50]] — Deploy remoto para integração mobile (tunnel + Render blueprint). Session: [[2026-10-26-issue-50-remote-instance]]. GitHub issue closed 2026-10-27.
 - [[ISSUE-46]] — OpenAPI/Swagger for mobile + ApiDocumentationValidator (voy-app-react-native#80). PR #47 merged. Session: [[2026-10-19-issue-46-openapi-swagger-docs]]
 - Workflow lean no harness (contexto always-on -67%, Spec Lean, gates jscpd/DoD, Reuse-First). Session: [[2026-10-19-workflow-lean-harness]]
 - [[ISSUE-43]] — Sponsor table eligibility (`registration.sponsor`), PR #44. Session: [[2026-10-19-issue-43-sponsor-eligibility-table]]
