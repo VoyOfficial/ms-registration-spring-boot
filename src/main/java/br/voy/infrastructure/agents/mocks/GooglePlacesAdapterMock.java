@@ -180,4 +180,46 @@ public class GooglePlacesAdapterMock implements GooglePlacesPort {
     public br.voy.domain.entity.PlaceDetails getPlaceFromText(String placeName, String city) {
         return null; // TODO implementar mock
     }
+
+    @Override
+    public NearbyPlaces textSearch(
+            String query,
+            Coordinates coordinates,
+            Integer radiusMeters,
+            String placeType,
+            String nextPageToken) {
+
+        logger.info(
+                "GOOGLE PLACES API ADAPTER MOCK - STARTING TEXT SEARCH MOCKED - query: {}, Coordinates: {}, PlaceType: {}",
+                query,
+                coordinates,
+                placeType);
+
+        PlacesSearchResult result = new PlacesSearchResult();
+        result.name = query != null && !query.isBlank() ? query : "Local Fictício Busca";
+        result.formattedAddress = "100 Rua Busca, Cidade Fictícia";
+        result.placeId = "text_search_place_id_001";
+        result.types =
+                new String[] {placeType != null && !placeType.isBlank() ? placeType : "restaurant"};
+        result.rating = 4.2f;
+        result.userRatingsTotal = 42;
+        result.geometry = new Geometry();
+        result.geometry.location =
+                new LatLng(coordinates.getLatitude(), coordinates.getLongitude());
+
+        Photo photo = new Photo();
+        photo.photoReference = "text_search_photo_ref";
+        result.photos = new Photo[] {photo};
+
+        PlacesSearchResponse placesSearchResponse = new PlacesSearchResponse();
+        placesSearchResponse.results = new PlacesSearchResult[] {result};
+        placesSearchResponse.nextPageToken = null;
+
+        var places =
+                Arrays.stream(placesSearchResponse.results)
+                        .map(Place::toNearbyPlace)
+                        .collect(Collectors.toList());
+
+        return new NearbyPlaces(places, placesSearchResponse.nextPageToken);
+    }
 }

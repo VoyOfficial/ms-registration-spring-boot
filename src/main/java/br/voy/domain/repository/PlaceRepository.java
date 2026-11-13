@@ -31,5 +31,7 @@ public interface PlaceRepository {
     List<Place> findNearbyPlacesByCoordinates(
             double latitude, double longitude, int radiusInMeters);
 
+    List<Place> findPlacesByNameContaining(String placeName);
+
     List<Place> findPlacesWithMissingCoordinates();
 }

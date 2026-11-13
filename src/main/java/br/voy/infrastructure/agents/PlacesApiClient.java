@@ -92,62 +92,96 @@ public class PlacesApiClient {
             request = request.pageToken(nextPageToken);
         }
 
+        logger.info("PLACES API CLIENT - Search For Nearby Places");
+        return awaitPlacesSearchResponse("Search For Nearby Places", false, request::await);
+    }
+
+    public PlacesSearchResponse textSearchQuery(
+            String query,
+            LatLng location,
+            Integer radiusMeters,
+            PlaceType placeType,
+            String nextPageToken) {
+
+        logger.info(
+                "PLACES API CLIENT - Create Text Search Request - query: {}, location: {}, radius: {}, type: {}",
+                query,
+                location,
+                radiusMeters,
+                placeType);
+
+        var request = PlacesApi.textSearchQuery(context, query, location).language("en");
+
+        if (radiusMeters != null && radiusMeters > 0) {
+            request = request.radius(radiusMeters);
+        }
+
+        if (placeType != null) {
+            request = request.type(placeType);
+        }
+
+        if (nextPageToken != null && !nextPageToken.isEmpty()) {
+            request = request.pageToken(nextPageToken);
+        }
+
+        logger.info("PLACES API CLIENT - Text Search Query");
+        return awaitPlacesSearchResponse("Text Search Query", true, request::await);
+    }
+
+    @FunctionalInterface
+    private interface PlacesSearchAwaitable {
+        PlacesSearchResponse await() throws Exception;
+    }
+
+    private PlacesSearchResponse awaitPlacesSearchResponse(
+            String operation, boolean emptyOnZeroResults, PlacesSearchAwaitable awaitable) {
         try {
-
-            logger.info("PLACES API CLIENT - Search For Nearby Places");
-
-            return request.await();
-
+            return awaitable.await();
         } catch (ZeroResultsException zeroResultsException) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Zero Results Error: {}",
+                    "PLACES API CLIENT - {} - Zero Results: {}",
+                    operation,
                     zeroResultsException.getMessage());
-
+            if (emptyOnZeroResults) {
+                PlacesSearchResponse empty = new PlacesSearchResponse();
+                empty.results = new com.google.maps.model.PlacesSearchResult[0];
+                empty.nextPageToken = null;
+                return empty;
+            }
             throw new NearbyPlacesZeroResultsApiClientException(zeroResultsException);
-
         } catch (InvalidRequestException invalidRequestException) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Invalid Request Error: {}",
+                    "PLACES API CLIENT - {} - Invalid Request Error: {}",
+                    operation,
                     invalidRequestException.getMessage());
-
             throw new NearbyPlaceInvalidRequestApiClientException(invalidRequestException);
-
         } catch (OverQueryLimitException overQueryLimitException) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Over Query Limit Error: {}",
+                    "PLACES API CLIENT - {} - Over Query Limit Error: {}",
+                    operation,
                     overQueryLimitException.getMessage());
-
             throw new OverQueryLimitApiClientException(overQueryLimitException);
-
         } catch (RequestDeniedException requestDeniedException) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Request Denied Error: {}",
+                    "PLACES API CLIENT - {} - Request Denied Error: {}",
+                    operation,
                     requestDeniedException.getMessage());
-
             throw new RequestDeniedApiClientException(requestDeniedException);
-
         } catch (UnknownErrorException unknownErrorException) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Unknown Error: {}",
+                    "PLACES API CLIENT - {} - Unknown Error: {}",
+                    operation,
                     unknownErrorException.getMessage());
-
             throw new UnknownErrorApiClientException(unknownErrorException);
-
         } catch (ApiException exception) {
-
             logger.warn(
-                    "PLACES API CLIENT - Search For Nearby Places - Occurred an Error: {}",
+                    "PLACES API CLIENT - {} - Occurred an Error: {}",
+                    operation,
                     exception.getMessage());
-
             throw new PlacesApiClientException(exception);
-
         } catch (IOException | InterruptedException exception) {
-
+            throw new PlacesApiClientException(exception);
+        } catch (Exception exception) {
             throw new PlacesApiClientException(exception);
         }
     }

@@ -42,4 +42,6 @@ public interface PlaceJpaRepository extends JpaRepository<PlaceModel, Long> {
     @Query(
             "SELECT p FROM PlaceModel p WHERE (p.latitude = 0 OR p.latitude IS NULL) AND (p.longitude = 0 OR p.longitude IS NULL) AND p.googlePlaceId IS NOT NULL")
     List<PlaceModel> findPlacesWithMissingCoordinates();
+
+    List<PlaceModel> findByNameContainingIgnoreCase(String name);
 }

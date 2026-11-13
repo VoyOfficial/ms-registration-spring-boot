@@ -50,8 +50,21 @@ class OpenApiDocsSmokeTest {
         assertThat(paths.has("/v1/places")).isTrue();
         assertThat(paths.has("/v1/places/{placeId}")).isTrue();
         assertThat(paths.has("/v1/places/recommendations")).isTrue();
+        assertThat(paths.has("/v1/places/search")).isTrue();
         assertThat(paths.has("/v1/users")).isTrue();
         assertThat(paths.has("/v1/users/{userId}")).isTrue();
+
+        JsonNode searchPost = paths.path("/v1/places/search").path("post");
+        assertThat(searchPost.isMissingNode()).isFalse();
+        assertThat(schemaRef(searchPost.path("responses").path("200")))
+                .contains("NearbyPlacesResponse");
+        JsonNode searchParams = searchPost.path("parameters");
+        assertThat(searchParams.toString()).contains("place");
+        assertThat(searchParams.toString()).contains("latitude");
+        assertThat(searchParams.toString()).contains("longitude");
+        assertThat(searchParams.toString()).contains("nextPageToken");
+        assertThat(searchPost.path("requestBody").toString()).contains("SearchPlacesRequest");
+        assertThat(root.path("components").path("schemas").has("SearchPlacesRequest")).isTrue();
 
         JsonNode schemas = root.path("components").path("schemas");
         assertThat(schemas.has("PlaceResponse")).isTrue();
