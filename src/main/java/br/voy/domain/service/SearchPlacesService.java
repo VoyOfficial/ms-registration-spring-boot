@@ -8,8 +8,6 @@ import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.usecase.SearchPlacesUseCase;
 import br.voy.domain.utils.GeoCalculator;
 import br.voy.domain.utils.PaginationTokenEncoder;
-import br.voy.domain.utils.PlaceSearchFilterMapper;
-import br.voy.domain.utils.PlaceSearchOrdination;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -234,7 +232,7 @@ public class SearchPlacesService implements SearchPlacesUseCase {
             logger.warn(
                     "SEARCH PLACES SERVICE - Invalid token, treating as first page: {}",
                     e.getMessage());
-            return new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), nextPageToken);
+            return new PaginationTokenEncoder.PaginationState(0, new HashSet<>(), null);
         }
     }
 

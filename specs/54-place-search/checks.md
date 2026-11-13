@@ -15,8 +15,8 @@ Um item por criterio do plano. Nada do Criteria fica sem check. Nada entra aqui 
 - [ ] C4: `ordination` aplica rating desc, `userRatingsTotal` desc ou distancia asc; default `Mais proximo` quando ausente.
   - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest#mustOrderByMostRated,SearchPlacesServiceTest#mustOrderByMostCommented,SearchPlacesServiceTest#mustOrderByClosestByDefault`
 
-- [ ] C5: Lat/lng obrigatorios: ausencia → 400.
-  - Prova: `./mvnw test -Dtest=PlaceSearchControllerTest#mustReturn400WhenSearchMissingLatitudeOrLongitude`
+- [ ] C5: Lat/lng obrigatorios: ausencia → 400; `place` em branco → 400.
+  - Prova: `./mvnw test -Dtest=PlaceSearchControllerTest#mustReturn400WhenSearchMissingLatitudeOrLongitude,PlaceSearchControllerTest#mustReturn400WhenSearchPlaceIsBlank`
 
 - [ ] C6: Pagina incompleta no DB dispara Text Search Google, persiste novos via `saveIfAbsent`, e completa a pagina sem duplicar `googlePlaceId`.
   - Prova: `./mvnw test -Dtest=SearchPlacesServiceTest#mustSupplementFromGoogleTextSearchWithoutDuplicates`
@@ -35,6 +35,6 @@ Um item por criterio do plano. Nada do Criteria fica sem check. Nada entra aqui 
 
 ## Handoff
 - Plano: specs/54-place-search/plan.md
-- Landing: SearchPlacesUseCase, SearchPlacesService, PlaceSearchFilterMapper, PlaceSearchOrdination, GooglePlacesPort.textSearch, PlaceRepository.findPlacesByNameContaining, PlacesApiClient.textSearchQuery, GooglePlacesAdapter(+Mock), PlaceJpaRepository/RelationalPlaceRepository, SearchPlacesRequest, PlaceController POST /search, OpenApiDocsSmokeTest, SearchPlacesServiceTest, PlaceSearchControllerTest
+- Landing: SearchPlacesUseCase, SearchPlacesService, PlaceSearchFilterMapper, PlaceSearchOrdination (package-private em domain.service), Place.java (address fallback Text Search), GooglePlacesPort.textSearch, PlaceRepository.findPlacesByNameContaining, PlacesApiClient.textSearchQuery, GooglePlacesAdapter(+Mock), PlaceJpaRepository/RelationalPlaceRepository, SearchPlacesRequest, PlaceController POST /search, OpenApiDocsSmokeTest, SearchPlacesServiceTest, PlaceSearchControllerTest
 - Fora de escopo: app React Native, seeds extras, Flyway, DTO SearchPlaceModel, contratos nearby/recommendations/details/registry
 - Verificador: `/speckit.verify` numa sessao que nao implementou este codigo

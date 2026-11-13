@@ -1,6 +1,6 @@
-package br.voy.domain.utils;
+package br.voy.domain.service;
 
-public final class PlaceSearchOrdination {
+final class PlaceSearchOrdination {
 
     public static final String MOST_RATED = "Mais avaliados";
     public static final String MOST_COMMENTED = "Mais comentados";
