@@ -1,7 +1,7 @@
 ---
 type: workitem
 id: ISSUE-50
-status: in-progress
+status: done
 date: 2026-10-26
 tags: [task, deploy, mobile, recommendations]
 ---
@@ -21,9 +21,13 @@ Source: https://github.com/VoyOfficial/ms-registration-spring-boot/issues/50
 - Seed Flyway de lugares recomendados (Gramado/Canela) para o endpoint de recommendations não voltar vazio
 - Smoke de recommendations + OpenAPI no ambiente remoto
 
+## Delivery
+
+- Seed (V21) shipped in PR #51
+- Tunnel URL is ephemeral; durable path is Render blueprint (`render.yaml`)
+- GitHub issue #50 closed 2026-10-27 (`completed`)
+
 ## Notes
 
-- Seed (V21) shipped in PR #51. This session publishes the reachable instance + deploy docs.
-- Tunnel URL is ephemeral; durable path is Render blueprint (`render.yaml`).
-- Issue #49 was an accidental create/probe (`test` body); token cannot edit/close issues — close #49 manually
+- Issue #49 was an accidental create/probe (`test` body); token cannot edit/close issues — close #49 manually if still open
 - Org Project board sync unavailable for this token (`projectsV2` empty / no `project` scope)
