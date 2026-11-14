@@ -2,6 +2,9 @@ package br.voy.infrastructure.agents.adapters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.voy.domain.entity.Coordinates;
@@ -11,6 +14,7 @@ import br.voy.infrastructure.agents.PlacesApiClient;
 import com.google.maps.model.Geometry;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.Photo;
+import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
 import java.util.List;
@@ -59,5 +63,38 @@ class GooglePlacesAdapterTest {
 
         assertEquals("google-ref", place.getPrincipalPhoto());
         assertEquals("R29vZ2xlQmFubmVy", place.getPhotos().get(0).getImageBase64());
+    }
+
+    @Test
+    @DisplayName("Should download only the first photo for a list result")
+    void shouldDownloadOnlyTheFirstPhotoForAListResult() {
+        Photo first = new Photo();
+        first.photoReference = "first-ref";
+        Photo second = new Photo();
+        second.photoReference = "second-ref";
+
+        PlacesSearchResult result = new PlacesSearchResult();
+        result.placeId = "google-place";
+        result.name = "Pizza Place";
+        result.geometry = new Geometry();
+        result.geometry.location = new LatLng(-29.38, -50.87);
+        result.photos = new Photo[] {first, second};
+
+        PlacesSearchResponse response = new PlacesSearchResponse();
+        response.results = new PlacesSearchResult[] {result};
+
+        when(placesApiClient.textSearchQuery(
+                        any(), any(), any(), nullable(PlaceType.class), nullable(String.class)))
+                .thenReturn(response);
+        when(placesApiClient.getPlacePhotos(any())).thenReturn(List.of());
+
+        adapter.textSearch("Pizza", new Coordinates(-29.38, -50.87), 5000, null, null);
+
+        verify(placesApiClient)
+                .getPlacePhotos(
+                        argThat(
+                                photos ->
+                                        photos.length == 1
+                                                && "first-ref".equals(photos[0].photoReference)));
     }
 }
