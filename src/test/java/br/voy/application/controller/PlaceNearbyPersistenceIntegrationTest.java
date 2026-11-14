@@ -10,14 +10,20 @@ import static org.mockito.Mockito.when;
 import br.voy.application.controller.response.NearbyPlacesResponse;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.ports.GooglePlacesPort;
+import br.voy.domain.repository.PlaceRepository;
 import br.voy.domain.service.GetPlaceDetailsService;
 import br.voy.domain.service.PlaceRegistryService;
 import br.voy.domain.usecase.GetRecommendedPlacesUseCase;
 import br.voy.infrastructure.agents.PlacesApiClient;
 import br.voy.infrastructure.model.PlaceModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
+import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,8 +58,13 @@ class PlaceNearbyPersistenceIntegrationTest {
 
     @Autowired private PlaceJpaRepository placeJpaRepository;
 
+    @Autowired private PlacePhotoJpaRepository placePhotoJpaRepository;
+
+    @Autowired private PlaceRepository placeRepository;
+
     @BeforeEach
     void setUp() {
+        placePhotoJpaRepository.deleteAll();
         placeJpaRepository.deleteAll();
     }
 
@@ -193,6 +204,87 @@ class PlaceNearbyPersistenceIntegrationTest {
         assertThat(secondResponse.getStatusCode().value()).isEqualTo(200);
 
         verify(googlePlacesPort).getNearbyPlaces(any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Should return principal photo base64 for a stored place and a Google place")
+    void shouldReturnPrincipalPhotoBase64ForStoredAndGooglePlaces() throws Exception {
+        byte[] storedImage = new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 1, 2, 3, 4};
+        byte[] otherImage = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 9, 8, 7};
+        String storedBase64 = Base64.getEncoder().encodeToString(storedImage);
+        String otherBase64 = Base64.getEncoder().encodeToString(otherImage);
+        String googleBase64 = "R29vZ2xlQmFubmVy";
+
+        placeRepository.savePlace(
+                Place.builder()
+                        .googlePlaceId("banner-db-001")
+                        .name("Persisted Banner")
+                        .address("Rua 1")
+                        .city("Canela")
+                        .latitude(-29.381)
+                        .longitude(-50.871)
+                        .principalPhoto("principal-ref")
+                        .principalPhotoUrl(
+                                "https://maps.googleapis.com/maps/api/place/photo?photo_reference=principal-ref&key=secret-db-key")
+                        .googleTypes("tourist_attraction")
+                        .photos(
+                                List.of(
+                                        PlacePhoto.builder()
+                                                .photoReference("other-ref")
+                                                .imageBase64(otherBase64)
+                                                .photoUrl(
+                                                        "https://example.com/other?key=secret-db-key")
+                                                .build(),
+                                        PlacePhoto.builder()
+                                                .photoReference("principal-ref")
+                                                .imageBase64(storedBase64)
+                                                .photoUrl(
+                                                        "https://example.com/principal?key=secret-db-key")
+                                                .build()))
+                        .build());
+
+        when(googlePlacesPort.getNearbyPlaces(any(), any(), any(), any()))
+                .thenReturn(
+                        new NearbyPlaces(
+                                List.of(
+                                        Place.builder()
+                                                .googlePlaceId("banner-google-001")
+                                                .name("Google Banner")
+                                                .latitude(-29.382)
+                                                .longitude(-50.872)
+                                                .principalPhoto("google-ref")
+                                                .principalPhotoUrl(
+                                                        "https://maps.googleapis.com/maps/api/place/photo?photo_reference=google-ref&key=secret-google-key")
+                                                .photos(
+                                                        List.of(
+                                                                PlacePhoto.builder()
+                                                                        .photoReference(
+                                                                                "google-ref")
+                                                                        .imageBase64(googleBase64)
+                                                                        .build()))
+                                                .build()),
+                                null));
+
+        var response = restTemplate.getForEntity(buildUrl(), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        JsonNode places = new ObjectMapper().readTree(response.getBody()).path("places");
+        assertThat(photoNamed(places, "Persisted Banner")).isEqualTo(storedBase64);
+        assertThat(photoNamed(places, "Google Banner")).isEqualTo(googleBase64);
+        assertThat(response.getBody()).doesNotContain("secret-db-key");
+        assertThat(response.getBody()).doesNotContain("secret-google-key");
+        assertThat(response.getBody()).doesNotContain(otherBase64);
+    }
+
+    private static String photoNamed(JsonNode places, String name) {
+        for (JsonNode place : places) {
+            if (name.equals(place.path("name").asText())) {
+                JsonNode photo = place.path("photo");
+                return photo.isMissingNode() || photo.isNull() ? null : photo.asText();
+            }
+        }
+        return null;
     }
 
     private List<PlaceModel> seedNearbyPlaces(String idPrefix, int count) {

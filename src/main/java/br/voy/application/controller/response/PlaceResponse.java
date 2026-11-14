@@ -63,7 +63,10 @@ public class PlaceResponse {
     @Schema(description = "Principal photo reference", example = "AeJbb3e...")
     private String photoReference;
 
-    @Schema(description = "Principal photo URL or base64 payload without API key")
+    @Schema(
+            description =
+                    "Principal photo as raw base64 with no data-uri prefix and no API key."
+                            + " Clients prefix data:image/png;base64,")
     private String photo;
 
     @Schema(description = "Photo gallery for the place")
@@ -100,7 +103,7 @@ public class PlaceResponse {
         this.userRatingsTotal = place.getUserRatingsTotal();
         this.isSaved = isSaved;
         this.photoReference = place.getPrincipalPhoto();
-        this.photo = stripApiKey(place.getPrincipalPhotoUrl());
+        this.photo = bannerPhoto(place);
         this.photos = sanitizePhotos(place.getPhotos());
         this.latitude = place.getLatitude();
         this.longitude = place.getLongitude();
@@ -125,7 +128,7 @@ public class PlaceResponse {
                 .userRatingsTotal(place.getUserRatingsTotal())
                 .isSaved(isSaved)
                 .photoReference(place.getPrincipalPhoto())
-                .photo(stripApiKey(place.getPrincipalPhotoUrl()))
+                .photo(bannerPhoto(place))
                 .photos(sanitizePhotos(place.getPhotos()))
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
@@ -148,25 +151,42 @@ public class PlaceResponse {
                 .address(place.getAddress())
                 .isSaved(isSaved)
                 .photoReference(place.getPrincipalPhoto())
-                .photo(getPrincipalPhotoBase64(place))
+                .photo(bannerPhoto(place))
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .build();
     }
 
-    private static String getPrincipalPhotoBase64(Place place) {
+    private static String bannerPhoto(Place place) {
+        String base64 = principalPhotoBase64(place);
+        if (base64 != null && !base64.isBlank()) {
+            return base64;
+        }
+        return stripApiKey(place.getPrincipalPhotoUrl());
+    }
+
+    private static String principalPhotoBase64(Place place) {
         if (place.getPhotos() == null || place.getPhotos().isEmpty()) {
             return null;
         }
 
-        return place.getPhotos().stream()
-                .filter(
-                        p ->
-                                p.getPhotoReference() != null
-                                        && p.getPhotoReference().equals(place.getPrincipalPhoto()))
-                .map(PlacePhoto::getImageBase64)
-                .findFirst()
-                .orElse(null);
+        String principalReference = place.getPrincipalPhoto();
+        String fallback = null;
+        for (PlacePhoto photo : place.getPhotos()) {
+            String encoded = photo.getImageBase64();
+            if (encoded == null || encoded.isBlank()) {
+                continue;
+            }
+            if (fallback == null) {
+                fallback = encoded;
+            }
+            if (principalReference != null
+                    && !principalReference.isBlank()
+                    && principalReference.equals(photo.getPhotoReference())) {
+                return encoded;
+            }
+        }
+        return fallback;
     }
 
     private static List<PlacePhotoResponse> sanitizePhotos(List<PlacePhoto> photos) {
