@@ -11,10 +11,13 @@ Nearby: database first (filter by `google_types`), Google fallback, HMAC paginat
 
 `isSaved` is per-user (`user_saved_places`), not a column used by JPA on `place`. List distance is computed at read time.
 
+List payloads (`GET /v1/places`, recommendations, name search) set `PlaceResponse.photo` to the principal image as raw base64, with no API key and no data-uri prefix. The list query loads that one photo, not the gallery. `POST /v1/places/search` binds `{ types, ordination }` from the JSON body.
+
 Sponsored registry (`POST /v1/places`): resolves eligibility from `registration.sponsor` by normalized name and city (`approved` and `subscription_active`), enriches via Google Places (`getPlaceFromText`), rejects duplicates by `googlePlaceId`, persists recommendation window (`status=true`, start/end). Missing, unapproved, or inactive sponsors get 403. Spreadsheet import: `scripts/import-sponsors.py`.
 
 ## Related
 
+- [[ISSUE-59]]
 - [[ISSUE-27]]
 - [[ISSUE-43]]
 - [[PR-38]]
