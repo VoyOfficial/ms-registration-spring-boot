@@ -251,7 +251,7 @@ public class SearchPlacesService implements SearchPlacesUseCase {
                 .longitude(place.getLongitude())
                 .googleTypes(place.getGoogleTypes())
                 .distanceFromUserLocation(place.getDistanceFromUserLocation())
-                .photos(place.getPhotos() != null ? place.getPhotos() : List.of())
+                .photos(ListPlacePhotos.principalOnly(place))
                 .build();
     }
 }

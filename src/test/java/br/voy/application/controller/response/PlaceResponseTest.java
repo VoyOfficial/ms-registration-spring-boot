@@ -36,8 +36,8 @@ class PlaceResponseTest {
 
         assertEquals("photo-ref", response.getPhotoReference());
         assertNull(response.getPhoto());
+        assertNull(response.getPhotos());
         assertFalse(String.valueOf(response).contains("secret-key"));
-        assertNull(response.getPhotos().get(0).getPhotoUrl());
     }
 
     @Test
@@ -68,9 +68,11 @@ class PlaceResponseTest {
         PlaceResponse response = PlaceResponse.fromDomain(place);
 
         assertEquals(banner, response.getPhoto());
+        assertNull(response.getPhotos());
         assertTrue(response.getPhoto().matches("^[A-Za-z0-9+/=]+$"));
         assertFalse(response.getPhoto().contains("key="));
         assertFalse(String.valueOf(response).contains("secret-key"));
+        assertFalse(String.valueOf(response).contains("b3RoZXI="));
     }
 
     @Test
@@ -92,5 +94,6 @@ class PlaceResponseTest {
         PlaceResponse response = PlaceResponse.fromDomain(place);
 
         assertEquals("cGVyc2lzdGVk", response.getPhoto());
+        assertNull(response.getPhotos());
     }
 }

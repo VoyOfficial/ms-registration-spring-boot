@@ -14,7 +14,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor

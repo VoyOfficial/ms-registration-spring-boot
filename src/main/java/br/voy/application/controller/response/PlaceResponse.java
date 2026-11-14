@@ -69,7 +69,10 @@ public class PlaceResponse {
                             + " Clients prefix data:image/png;base64,")
     private String photo;
 
-    @Schema(description = "Photo gallery for the place")
+    @Schema(
+            description =
+                    "Omitted on list endpoints. The banner is photo. Place details return the"
+                            + " gallery.")
     private List<PlacePhotoResponse> photos;
 
     @Schema(description = "Legacy distance value in meters", example = "1224.0")
@@ -104,7 +107,6 @@ public class PlaceResponse {
         this.isSaved = isSaved;
         this.photoReference = place.getPrincipalPhoto();
         this.photo = bannerPhoto(place);
-        this.photos = sanitizePhotos(place.getPhotos());
         this.latitude = place.getLatitude();
         this.longitude = place.getLongitude();
         this.distanceFromUserLocation = place.getDistanceFromUserLocation();
@@ -129,7 +131,6 @@ public class PlaceResponse {
                 .isSaved(isSaved)
                 .photoReference(place.getPrincipalPhoto())
                 .photo(bannerPhoto(place))
-                .photos(sanitizePhotos(place.getPhotos()))
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .distanceFromUserLocation(place.getDistanceFromUserLocation())
@@ -187,18 +188,6 @@ public class PlaceResponse {
             }
         }
         return fallback;
-    }
-
-    private static List<PlacePhotoResponse> sanitizePhotos(List<PlacePhoto> photos) {
-        if (photos == null) {
-            return null;
-        }
-        return photos.stream()
-                .map(
-                        photo ->
-                                PlacePhotoResponse.fromDomain(
-                                        photo, stripApiKey(photo.getPhotoUrl())))
-                .toList();
     }
 
     static String stripApiKey(String url) {
