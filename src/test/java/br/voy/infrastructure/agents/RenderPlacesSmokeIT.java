@@ -2,6 +2,7 @@ package br.voy.infrastructure.agents;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.voy.domain.entity.Place;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
@@ -11,20 +12,30 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 /**
- * Live checks against the deployed registration service. Opt-in because every run calls the real
- * Render instance and search persists places. Run with {@code RUN_RENDER_IT=true ./mvnw
- * -Dtest=RenderPlacesSmokeIT test}.
+ * Live HTTP checks against a running registration service that talks to real Google Places (mock
+ * off). Opt-in because every run hits Google and search may persist places.
+ *
+ * <p>Local API (recommended before merge when Places Google paths change):
+ *
+ * <pre>
+ * ENABLE_MOCK_SERVICES=false PLACES_API_KEY=... java -jar target/*.jar
+ * RUN_PLACES_SMOKE_IT=true PLACES_SMOKE_BASE_URL=http://localhost:8080 \
+ *   ./mvnw -Dtest=RenderPlacesSmokeIT test
+ * </pre>
+ *
+ * <p>Deployed Render: {@code RUN_RENDER_IT=true} (or {@code RUN_PLACES_SMOKE_IT=true} with the
+ * default base URL).
  */
-@EnabledIfEnvironmentVariable(named = "RUN_RENDER_IT", matches = "(?i)true|1|yes")
+@EnabledIf("isEnabled")
 class RenderPlacesSmokeIT {
 
-    private static final String BASE_URL =
-            System.getenv().getOrDefault("RENDER_BASE_URL", "https://ms-registration.onrender.com");
+    private static final String DEFAULT_BASE_URL = "https://ms-registration.onrender.com";
 
-    private static final int MAX_LIST_PHOTO_CHARS = 200_000;
+    private static final String BASE_URL =
+            System.getenv().getOrDefault("PLACES_SMOKE_BASE_URL", DEFAULT_BASE_URL);
 
     private static final long MAX_ELAPSED_MS = 30_000;
 
@@ -33,8 +44,22 @@ class RenderPlacesSmokeIT {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    static boolean isEnabled() {
+        return isTruthy(System.getenv("RUN_PLACES_SMOKE_IT"))
+                || isTruthy(System.getenv("RUN_RENDER_IT"));
+    }
+
+    private static boolean isTruthy(String value) {
+        if (value == null) {
+            return false;
+        }
+        return value.equalsIgnoreCase("true")
+                || value.equals("1")
+                || value.equalsIgnoreCase("yes");
+    }
+
     @Test
-    @DisplayName("Nearby list on Render returns within 30 seconds")
+    @DisplayName("Nearby list returns within 30 seconds")
     void nearbyListReturnsWithinThirtySeconds() throws Exception {
         JsonNode body = get("/api/registration/v1/places?latitude=-29.385436&longitude=-50.877608");
 
@@ -44,7 +69,7 @@ class RenderPlacesSmokeIT {
     }
 
     @Test
-    @DisplayName("Recommendations on Render return within 30 seconds")
+    @DisplayName("Recommendations return within 30 seconds")
     void recommendationsReturnWithinThirtySeconds() throws Exception {
         JsonNode body =
                 get(
@@ -56,7 +81,7 @@ class RenderPlacesSmokeIT {
     }
 
     @Test
-    @DisplayName("Pizza search on Render returns within 30 seconds")
+    @DisplayName("Pizza search returns within 30 seconds")
     void pizzaSearchReturnsWithinThirtySeconds() throws Exception {
         HttpRequest request =
                 HttpRequest.newBuilder()
@@ -105,8 +130,13 @@ class RenderPlacesSmokeIT {
         for (JsonNode place : places) {
             String photo = place.path("photo").asText("");
             assertThat(photo.length())
-                    .withFailMessage(place.path("name").asText())
-                    .isLessThan(MAX_LIST_PHOTO_CHARS);
+                    .withFailMessage(
+                            place.path("name").asText()
+                                    + " photo chars="
+                                    + photo.length()
+                                    + " max="
+                                    + Place.MAX_LIST_PHOTO_BASE64_CHARS)
+                    .isLessThanOrEqualTo(Place.MAX_LIST_PHOTO_BASE64_CHARS);
         }
     }
 }
