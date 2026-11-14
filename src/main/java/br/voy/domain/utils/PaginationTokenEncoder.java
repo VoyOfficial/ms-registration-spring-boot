@@ -31,10 +31,14 @@ public class PaginationTokenEncoder {
         long timestamp = System.currentTimeMillis();
         String salt = generateSalt();
 
-        String placeIdsStr =
-                shownPlaceIds != null && !shownPlaceIds.isEmpty()
-                        ? String.join(",", shownPlaceIds)
-                        : "";
+        String placeIdsStr = "";
+        if (shownPlaceIds != null && !shownPlaceIds.isEmpty()) {
+            placeIdsStr =
+                    shownPlaceIds.stream()
+                            .filter(id -> id != null && !id.isBlank())
+                            .reduce((left, right) -> left + "," + right)
+                            .orElse("");
+        }
 
         String googleToken = googleNextPageToken != null ? googleNextPageToken : "";
 

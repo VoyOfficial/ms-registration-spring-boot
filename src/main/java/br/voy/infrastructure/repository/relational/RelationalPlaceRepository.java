@@ -9,6 +9,7 @@ import br.voy.infrastructure.model.PlacePhotoModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
 import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class RelationalPlaceRepository implements PlaceRepository {
+
+    static final int MAX_LIST_PHOTO_BYTES = 150_000;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -325,22 +328,56 @@ public class RelationalPlaceRepository implements PlaceRepository {
             return Map.of();
         }
 
-        Map<Long, PlacePhoto> byPlaceId = new HashMap<>();
-        for (PlacePhotoModel photo : placePhotoJpaRepository.findPrincipalPhotos(placeIds)) {
-            byPlaceId.putIfAbsent(photo.getPlace().getId(), photo.toDomain());
-        }
-
-        List<Long> missing = new ArrayList<>();
-        for (Long placeId : placeIds) {
-            if (!byPlaceId.containsKey(placeId)) {
-                missing.add(placeId);
+        Map<Long, Long> earliest = new HashMap<>();
+        Map<Long, Long> principalMatch = new HashMap<>();
+        for (Object[] row :
+                placePhotoJpaRepository.findPhotoRefsByPlaceIds(placeIds, MAX_LIST_PHOTO_BYTES)) {
+            Long photoId = asLong(row[0]);
+            Long placeId = asLong(row[1]);
+            String reference = (String) row[2];
+            String principal = (String) row[3];
+            if (photoId == null || placeId == null) {
+                continue;
+            }
+            earliest.merge(placeId, photoId, Math::min);
+            if (principal != null && !principal.isBlank() && principal.equals(reference)) {
+                principalMatch.putIfAbsent(placeId, photoId);
             }
         }
-        if (!missing.isEmpty()) {
-            for (PlacePhotoModel photo : placePhotoJpaRepository.findEarliestPhotos(missing)) {
-                byPlaceId.putIfAbsent(photo.getPlace().getId(), photo.toDomain());
+
+        Collection<Long> chosenIds = new ArrayList<>();
+        for (Long placeId : placeIds) {
+            Long photoId = principalMatch.get(placeId);
+            if (photoId == null) {
+                photoId = earliest.get(placeId);
+            }
+            if (photoId != null) {
+                chosenIds.add(photoId);
+            }
+        }
+        if (chosenIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, PlacePhoto> byPlaceId = new HashMap<>();
+        for (PlacePhotoModel photo : placePhotoJpaRepository.findAllById(chosenIds)) {
+            PlacePhoto domain = photo.toDomain();
+            String encoded = domain.getImageBase64();
+            if (encoded != null && encoded.length() > MAX_LIST_PHOTO_BYTES) {
+                continue;
+            }
+            Long placeId = domain.getPlaceId();
+            if (placeId != null) {
+                byPlaceId.putIfAbsent(placeId, domain);
             }
         }
         return byPlaceId;
+    }
+
+    private static Long asLong(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        return null;
     }
 }

@@ -2,7 +2,9 @@ package br.voy.infrastructure.agents.adapters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +52,7 @@ class GooglePlacesAdapterTest {
 
         when(placesApiClient.searchForNearbyPlaces(any(), any(), any(), any()))
                 .thenReturn(response);
-        when(placesApiClient.getPlacePhotos(any()))
+        when(placesApiClient.getPlacePhotos(any(), anyInt()))
                 .thenReturn(
                         List.of(
                                 PlacePhoto.builder()
@@ -86,7 +88,7 @@ class GooglePlacesAdapterTest {
         when(placesApiClient.textSearchQuery(
                         any(), any(), any(), nullable(PlaceType.class), nullable(String.class)))
                 .thenReturn(response);
-        when(placesApiClient.getPlacePhotos(any())).thenReturn(List.of());
+        when(placesApiClient.getPlacePhotos(any(), anyInt())).thenReturn(List.of());
 
         adapter.textSearch("Pizza", new Coordinates(-29.38, -50.87), 5000, null, null);
 
@@ -95,6 +97,7 @@ class GooglePlacesAdapterTest {
                         argThat(
                                 photos ->
                                         photos.length == 1
-                                                && "first-ref".equals(photos[0].photoReference)));
+                                                && "first-ref".equals(photos[0].photoReference)),
+                        eq(PlacesApiClient.LIST_PHOTO_MAX_WIDTH));
     }
 }

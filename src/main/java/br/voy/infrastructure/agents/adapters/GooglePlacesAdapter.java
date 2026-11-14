@@ -61,7 +61,9 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
             return basePlace;
         }
 
-        var photos = placesApiClient.getPlacePhotos(new Photo[] {result.photos[0]});
+        var photos =
+                placesApiClient.getPlacePhotos(
+                        new Photo[] {result.photos[0]}, PlacesApiClient.LIST_PHOTO_MAX_WIDTH);
         return enrichPlaceWithPhotos(basePlace, photos);
     }
 
