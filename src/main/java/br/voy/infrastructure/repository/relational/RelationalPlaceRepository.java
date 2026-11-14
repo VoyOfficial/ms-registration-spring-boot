@@ -9,7 +9,9 @@ import br.voy.infrastructure.model.PlacePhotoModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
 import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -42,15 +44,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
         if (placeDomain.getPhotos() != null && !placeDomain.getPhotos().isEmpty()) {
             List<PlacePhotoModel> placePhotoModelList = new ArrayList<>();
             for (PlacePhoto photo : placeDomain.getPhotos()) {
-                PlacePhotoModel photoModel = new PlacePhotoModel();
-                photoModel.setPhotoReference(photo.getPhotoReference());
-                photoModel.setPhotoUrl(photo.getPhotoUrl());
-                photoModel.setHeight(photo.getHeight());
-                photoModel.setWidth(photo.getWidth());
-                photoModel.setHtmlAttributions(photo.getHtmlAttributions());
-                if (photo.getImageBase64() != null) {
-                    photoModel.setImageBase64(photo.getImageBase64().getBytes());
-                }
+                PlacePhotoModel photoModel = new PlacePhotoModel(photo);
                 photoModel.setPlace(placeModel);
                 placePhotoModelList.add(photoModel);
             }
@@ -239,13 +233,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
                         boundingBox.getMinLon(),
                         boundingBox.getMaxLon());
 
-        List<Place> placesDomain = new ArrayList<>();
-
-        for (PlaceModel placeModel : placeModelList) {
-            placesDomain.add(placeModel.toListDomain());
-        }
-
-        return Optional.of(placesDomain);
+        return Optional.of(toListWithPrincipalPhoto(placeModelList));
     }
 
     @Override
@@ -262,11 +250,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
                 placeJpaRepository.findNearbyPlacesByCoordinates(
                         latitude, longitude, radiusInMeters);
 
-        List<Place> placesDomain = new ArrayList<>();
-
-        for (PlaceModel placeModel : placeModelList) {
-            placesDomain.add(placeModel.toListDomain());
-        }
+        List<Place> placesDomain = toListWithPrincipalPhoto(placeModelList);
 
         logger.info("RELATIONAL PLACE REPOSITORY - FOUND {} NEARBY PLACES", placesDomain.size());
 
@@ -307,15 +291,56 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         var placeModelList = placeJpaRepository.findByNameContainingIgnoreCase(placeName.trim());
 
-        List<Place> placesDomain = new ArrayList<>();
-        for (PlaceModel placeModel : placeModelList) {
-            placesDomain.add(placeModel.toListDomain());
-        }
+        List<Place> placesDomain = toListWithPrincipalPhoto(placeModelList);
 
         logger.info(
                 "RELATIONAL PLACE REPOSITORY - FOUND {} PLACES BY NAME CONTAINING",
                 placesDomain.size());
 
         return placesDomain;
+    }
+
+    private List<Place> toListWithPrincipalPhoto(List<PlaceModel> placeModels) {
+        Map<Long, PlacePhoto> principalPhotos = loadPrincipalPhotos(placeModels);
+        List<Place> places = new ArrayList<>();
+        for (PlaceModel placeModel : placeModels) {
+            PlacePhoto principal = principalPhotos.get(placeModel.getId());
+            if (principal == null) {
+                places.add(placeModel.toListDomain());
+            } else {
+                places.add(placeModel.toListDomain(List.of(principal)));
+            }
+        }
+        return places;
+    }
+
+    private Map<Long, PlacePhoto> loadPrincipalPhotos(List<PlaceModel> placeModels) {
+        List<Long> placeIds = new ArrayList<>();
+        for (PlaceModel placeModel : placeModels) {
+            if (placeModel.getId() != null) {
+                placeIds.add(placeModel.getId());
+            }
+        }
+        if (placeIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, PlacePhoto> byPlaceId = new HashMap<>();
+        for (PlacePhotoModel photo : placePhotoJpaRepository.findPrincipalPhotos(placeIds)) {
+            byPlaceId.putIfAbsent(photo.getPlace().getId(), photo.toDomain());
+        }
+
+        List<Long> missing = new ArrayList<>();
+        for (Long placeId : placeIds) {
+            if (!byPlaceId.containsKey(placeId)) {
+                missing.add(placeId);
+            }
+        }
+        if (!missing.isEmpty()) {
+            for (PlacePhotoModel photo : placePhotoJpaRepository.findEarliestPhotos(missing)) {
+                byPlaceId.putIfAbsent(photo.getPlace().getId(), photo.toDomain());
+            }
+        }
+        return byPlaceId;
     }
 }

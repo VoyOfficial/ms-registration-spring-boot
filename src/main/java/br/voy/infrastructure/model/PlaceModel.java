@@ -117,41 +117,18 @@ public class PlaceModel extends AbstractModel {
 
     @Override
     public Place toDomain() {
-
-        List<PlacePhoto> placePhotos = convertPhotosToDomain();
-
-        Place domain =
-                Place.builder()
-                        .id(id)
-                        .googlePlaceId(googlePlaceId)
-                        .name(name)
-                        .about(about)
-                        .contact(contact)
-                        .address(address)
-                        .city(city)
-                        .state(state)
-                        .rating(rating)
-                        .userRatingsTotal(userRatingsTotal)
-                        .isSaved(false)
-                        .principalPhoto(principalPhoto)
-                        .principalPhotoUrl(principalPhotoUrl)
-                        .googleTypes(googleTypes)
-                        .status(status != null ? status : false)
-                        .ranking(ranking)
-                        .startRecommendation(startRecommendation)
-                        .endRecommendation(endRecommendation)
-                        .createdAt(createdDate)
-                        .lastCancel(lastCancel)
-                        .latitude(latitude != null ? latitude : 0.0)
-                        .longitude(longitude != null ? longitude : 0.0)
-                        .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
-                        .photos(placePhotos)
-                        .build();
-
-        return domain;
+        return toPlace(convertPhotosToDomain());
     }
 
     public Place toListDomain() {
+        return toListDomain(List.of());
+    }
+
+    public Place toListDomain(List<PlacePhoto> photos) {
+        return toPlace(photos != null ? photos : List.of());
+    }
+
+    private Place toPlace(List<PlacePhoto> photos) {
         return Place.builder()
                 .id(id)
                 .googlePlaceId(googlePlaceId)
@@ -176,7 +153,7 @@ public class PlaceModel extends AbstractModel {
                 .latitude(latitude != null ? latitude : 0.0)
                 .longitude(longitude != null ? longitude : 0.0)
                 .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
-                .photos(List.of())
+                .photos(photos)
                 .build();
     }
 

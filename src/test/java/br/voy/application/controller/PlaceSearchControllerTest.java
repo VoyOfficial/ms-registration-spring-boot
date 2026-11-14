@@ -3,11 +3,14 @@ package br.voy.application.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.voy.domain.entity.Coordinates;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.repository.PlaceRepository;
@@ -100,6 +103,33 @@ class PlaceSearchControllerTest {
                 .andExpect(jsonPath("$.places[0].userRatingsTotal").value(128))
                 .andExpect(jsonPath("$.places[0].distanceFromUserLocation").value("1.200 km"))
                 .andExpect(jsonPath("$.nextTokenPage").value("next-token"));
+    }
+
+    @Test
+    @DisplayName("Must deserialize search body types and ordination into the use case")
+    void mustDeserializeSearchBodyIntoTheUseCase() throws Exception {
+        doReturn(new NearbyPlaces(List.of(), null))
+                .when(searchPlacesService)
+                .searchPlaces(anyString(), any(), any(), any(), any());
+
+        mockMvc.perform(
+                        post(SEARCH_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("place", "Pizza")
+                                .param("latitude", "37.421998333333335")
+                                .param("longitude", "-122.084")
+                                .content(
+                                        "{\"types\":[\"Entretenimento\"],\"ordination\":\"Mais próximo\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(searchPlacesService)
+                .searchPlaces(
+                        eq("Pizza"),
+                        any(Coordinates.class),
+                        eq(List.of("Entretenimento")),
+                        eq("Mais próximo"),
+                        eq(""));
     }
 
     @Test
