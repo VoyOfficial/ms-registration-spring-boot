@@ -17,6 +17,7 @@ tags: [bug, place, search]
 ## Sessions
 
 - [[2026-11-14-issue-59-place-banner-and-search-filter]]
+- [[2026-11-14-issue-59-slim-place-list]]
 
 ## Modulos
 
