@@ -95,7 +95,7 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
                 if (shownPlaceIds.contains(place.getGooglePlaceId())) {
                     continue;
                 }
-                resultPlaces.add(place);
+                resultPlaces.add(forList(place));
                 shownPlaceIds.add(place.getGooglePlaceId());
             }
 
@@ -212,7 +212,11 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .googleTypes(place.getGoogleTypes())
-                .photos(place.getPhotos() != null ? place.getPhotos() : List.of())
+                .photos(place.principalPhotos())
                 .build();
+    }
+
+    private Place forList(Place place) {
+        return place.toBuilder().photos(place.principalPhotos()).build();
     }
 }

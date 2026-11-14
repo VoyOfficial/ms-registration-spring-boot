@@ -272,6 +272,7 @@ class PlaceNearbyPersistenceIntegrationTest {
         JsonNode places = new ObjectMapper().readTree(response.getBody()).path("places");
         assertThat(photoNamed(places, "Persisted Banner")).isEqualTo(storedBase64);
         assertThat(photoNamed(places, "Google Banner")).isEqualTo(googleBase64);
+        assertThat(places.findValues("photos")).isEmpty();
         assertThat(response.getBody()).doesNotContain("secret-db-key");
         assertThat(response.getBody()).doesNotContain("secret-google-key");
         assertThat(response.getBody()).doesNotContain(otherBase64);

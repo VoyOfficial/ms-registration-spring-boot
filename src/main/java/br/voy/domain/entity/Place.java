@@ -14,7 +14,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -56,6 +56,37 @@ public class Place {
     private double longitude;
     @Setter private String distanceFromUserLocation;
     private String googleTypes;
+
+    public List<PlacePhoto> principalPhotos() {
+        if (photos == null || photos.isEmpty()) {
+            return List.of();
+        }
+
+        PlacePhoto fallback = null;
+        for (PlacePhoto photo : photos) {
+            String encoded = photo.getImageBase64();
+            if (encoded == null || encoded.isBlank()) {
+                continue;
+            }
+            if (fallback == null) {
+                fallback = photo;
+            }
+            if (principalPhoto != null
+                    && !principalPhoto.isBlank()
+                    && principalPhoto.equals(photo.getPhotoReference())) {
+                return List.of(photo);
+            }
+        }
+        return fallback == null ? List.of() : List.of(fallback);
+    }
+
+    public String principalPhotoBase64() {
+        List<PlacePhoto> selected = principalPhotos();
+        if (selected.isEmpty()) {
+            return null;
+        }
+        return selected.get(0).getImageBase64();
+    }
 
     private static String extractPhotoReference(PlacesSearchResult placeSearchResult) {
         if (Objects.nonNull(placeSearchResult.photos)) {
