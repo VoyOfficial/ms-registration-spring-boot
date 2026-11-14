@@ -234,6 +234,52 @@ class SearchPlacesServiceTest {
     }
 
     @Test
+    @DisplayName("Must filter Entretenimento, order by closest, and still call Text Search")
+    void mustFilterEntertainmentAndCallTextSearchWhenFilteredPageIsShort() {
+        ReflectionTestUtils.setField(service, "pageSize", 20);
+        List<Place> dbPlaces = new ArrayList<>();
+        for (int index = 0; index < 20; index++) {
+            dbPlaces.add(
+                    place(
+                            "pizza-" + index,
+                            "Pizza " + index,
+                            "restaurant",
+                            4.0f,
+                            10,
+                            -29.37,
+                            -50.88));
+        }
+        dbPlaces.add(
+                place(
+                        "far-attr",
+                        "Pizza Museum Far",
+                        "tourist_attraction",
+                        4.0f,
+                        10,
+                        -29.50,
+                        -51.00));
+        dbPlaces.add(
+                place(
+                        "near-attr",
+                        "Pizza Museum Near",
+                        "tourist_attraction",
+                        3.0f,
+                        10,
+                        -29.3661,
+                        -50.8772));
+        stubDb("Pizza", dbPlaces);
+        stubEmptyGoogle();
+
+        var result =
+                service.searchPlaces(
+                        "Pizza", USER, List.of("Entretenimento"), "Mais próximo", null);
+
+        assertEquals(List.of("Pizza Museum Near", "Pizza Museum Far"), namesOf(result));
+        verify(googlePlacesPort)
+                .textSearch(eq("Pizza"), eq(USER), eq(5000), eq("tourist_attraction"), isNull());
+    }
+
+    @Test
     @DisplayName("Must skip Google when DB already fills the page")
     void mustSkipGoogleWhenDbFillsPage() {
         ReflectionTestUtils.setField(service, "pageSize", 2);
