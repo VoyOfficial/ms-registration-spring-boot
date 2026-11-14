@@ -8,6 +8,7 @@ import br.voy.infrastructure.model.PlaceModel;
 import br.voy.infrastructure.model.PlacePhotoModel;
 import br.voy.infrastructure.repository.jpa.PlaceJpaRepository;
 import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
+import br.voy.infrastructure.repository.jpa.PlacePhotoRef;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,7 +26,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class RelationalPlaceRepository implements PlaceRepository {
 
+    /** Stored bytea ceiling. Larger rows are not loaded into a list response. */
     static final int MAX_LIST_PHOTO_BYTES = 150_000;
+
+    /**
+     * Largest base64 payload a row within {@link #MAX_LIST_PHOTO_BYTES} can produce. Raw image
+     * bytes expand by 4/3; legacy rows that already store base64 text stay at or below the stored
+     * size. The list keeps a photo only when both checks agree.
+     */
+    static final int MAX_LIST_PHOTO_CHARS = ((MAX_LIST_PHOTO_BYTES + 2) / 3) * 4;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -330,12 +339,12 @@ public class RelationalPlaceRepository implements PlaceRepository {
 
         Map<Long, Long> earliest = new HashMap<>();
         Map<Long, Long> principalMatch = new HashMap<>();
-        for (Object[] row :
+        for (PlacePhotoRef row :
                 placePhotoJpaRepository.findPhotoRefsByPlaceIds(placeIds, MAX_LIST_PHOTO_BYTES)) {
-            Long photoId = asLong(row[0]);
-            Long placeId = asLong(row[1]);
-            String reference = (String) row[2];
-            String principal = (String) row[3];
+            Long photoId = row.getId();
+            Long placeId = row.getPlaceId();
+            String reference = row.getPhotoReference();
+            String principal = row.getPrincipalPhoto();
             if (photoId == null || placeId == null) {
                 continue;
             }
@@ -363,7 +372,7 @@ public class RelationalPlaceRepository implements PlaceRepository {
         for (PlacePhotoModel photo : placePhotoJpaRepository.findAllById(chosenIds)) {
             PlacePhoto domain = photo.toDomain();
             String encoded = domain.getImageBase64();
-            if (encoded != null && encoded.length() > MAX_LIST_PHOTO_BYTES) {
+            if (encoded != null && encoded.length() > MAX_LIST_PHOTO_CHARS) {
                 continue;
             }
             Long placeId = domain.getPlaceId();
@@ -372,12 +381,5 @@ public class RelationalPlaceRepository implements PlaceRepository {
             }
         }
         return byPlaceId;
-    }
-
-    private static Long asLong(Object value) {
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        return null;
     }
 }
