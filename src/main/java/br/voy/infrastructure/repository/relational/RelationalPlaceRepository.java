@@ -27,14 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class RelationalPlaceRepository implements PlaceRepository {
 
     /** Stored bytea ceiling. Larger rows are not loaded into a list response. */
-    static final int MAX_LIST_PHOTO_BYTES = 150_000;
+    static final int MAX_LIST_PHOTO_BYTES = Place.MAX_LIST_PHOTO_BYTES;
 
-    /**
-     * Largest base64 payload a row within {@link #MAX_LIST_PHOTO_BYTES} can produce. Raw image
-     * bytes expand by 4/3; legacy rows that already store base64 text stay at or below the stored
-     * size. The list keeps a photo only when both checks agree.
-     */
-    static final int MAX_LIST_PHOTO_CHARS = ((MAX_LIST_PHOTO_BYTES + 2) / 3) * 4;
+    /** Base64 ceiling aligned with {@link Place#MAX_LIST_PHOTO_BASE64_CHARS}. */
+    static final int MAX_LIST_PHOTO_CHARS = Place.MAX_LIST_PHOTO_BASE64_CHARS;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
