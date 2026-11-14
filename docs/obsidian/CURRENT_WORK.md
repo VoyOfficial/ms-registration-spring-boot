@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- Live Google IT + DoD Places (PR #63). Session: [[2026-11-14-places-live-it-dod]].
+- none
 
 ## Blocked
 
@@ -12,6 +12,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
+- Live Google IT + DoD Places (PR #63): gate com Google real e teto de foto tambem no path de search. Session: [[2026-11-14-places-live-it-dod]].
 - Foto da lista usa um teto so: 150KB armazenados, 200 mil caracteres em base64. Session: [[2026-11-14-list-photo-size-limit]].
 - Lista nearby em Gramado quebrava e a busca de pizza levava cerca de 2 minutos. Session: [[2026-11-14-nearby-list-and-search-speed]].
 - Busca de places deixava o POST preso baixando a galeria inteira. Session: [[2026-11-14-place-search-hang]].
