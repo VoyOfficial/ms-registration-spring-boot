@@ -37,13 +37,27 @@ mvn clean verify
 
 ---
 
-### Gate 2: E2E (N/A por enquanto) 🚧
+### Gate 2: E2E / live external (parcial) 🚧
 
-O projeto ainda nao tem framework de E2E configurado (ex.: ambiente completo subido via Docker Compose + REST Assured/Testcontainers). Este gate fica **suspenso** ate que um framework seja adotado.
+Nao ha framework E2E full-stack generico. Playwright nao se aplica (sem UI web).
 
-Quando E2E for configurado:
-- Adicionar a estrategia em `.cursor/rules/validation-pyramid.mdc`
-- Reativar este gate como BLOCKING (final gate)
+**Excecao BLOCKING para Google Places:** se o PR altera adapter/client/nearby/search/list photos, a suite mockada sozinha **nao** fecha o DoD. Rodar live IT com Google real (sem `ENABLE_MOCK_SERVICES=true`):
+
+```bash
+# 1) SDK direto
+RUN_PLACES_LIVE_IT=true ./scripts/run-places-live-it.sh
+
+# 2) HTTP contra API local (mock off) — recomendado antes do merge
+ENABLE_MOCK_SERVICES=false PLACES_API_KEY=... java -jar target/*.jar
+./scripts/run-places-live-it.sh --with-smoke
+
+# Alternativa pos-deploy
+RUN_RENDER_IT=true ./mvnw -Dtest=RenderPlacesSmokeIT test
+```
+
+Colar evidencia no PR (comando + resultado). Sem evidencia live, Gate 2 falha para PRs Places.
+
+Para outros PRs, Gate 2 segue suspenso ate existir framework E2E generico.
 
 ---
 

@@ -48,7 +48,7 @@ Esses habitos custam varias voltas de contexto, quebram entre modelos e nao tran
 Unit tests (domain.service) + Integration tests (controller / repository) = testes ok
 ```
 
-E2E nao e gate hoje. Quando existir um framework (Testcontainers full-stack ou REST Assured contra ambiente sobido), ele entra como gate final. Ate la, Gate 2 do DoD permanece suspenso.
+E2E generico nao e gate hoje. **Excecao:** mudancas em Google Places (adapter, client, nearby, search, list photos) exigem live IT com Google real — `PlacesApiClientIT` e, preferencialmente, `RenderPlacesSmokeIT` contra API local com `ENABLE_MOCK_SERVICES=false` (`./scripts/run-places-live-it.sh [--with-smoke]`). Mocked `@WebMvcTest` / `@MockBean` sozinho ja deixou passar 500 na lista e busca de ~2 min. Ver Gate 2 em `.cursor/rules/definition-of-done.mdc`.
 
 ## Commits
 

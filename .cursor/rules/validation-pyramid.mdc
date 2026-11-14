@@ -29,7 +29,9 @@ A pirâmide de validação define os **feedback sensors** para o **Behaviour Har
         Sensor: Codigo valido e consistente
 ```
 
-**Nota:** este projeto não tem testes E2E (contra uma instância real da aplicação/banco em ambiente completo) configurados hoje. "Done" = unit + integration verdes. Playwright não se aplica (não há UI web neste serviço). Se um framework de E2E (ex.: Testcontainers full-stack, REST Assured contra ambiente subido) for adotado, criar uma seção dedicada e promover E2E a gate final (como descrito em `testing-workflow.mdc`).
+**Nota:** E2E full-stack generico ainda nao e gate. Playwright nao se aplica (sem UI web). "Done" padrao = unit + integration verdes.
+
+**Camada live (opt-in, BLOCKING em PRs Places):** `PlacesApiClientIT` (Google SDK real) e `RenderPlacesSmokeIT` (HTTP contra API com mock off — local via `PLACES_SMOKE_BASE_URL` ou Render). Script: `./scripts/run-places-live-it.sh [--with-smoke]`. Ver Gate 2 em `definition-of-done.mdc`.
 
 ---
 
