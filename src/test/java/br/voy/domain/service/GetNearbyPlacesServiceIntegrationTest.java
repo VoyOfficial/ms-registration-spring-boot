@@ -17,6 +17,7 @@ import br.voy.infrastructure.repository.jpa.PlacePhotoJpaRepository;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,7 @@ class GetNearbyPlacesServiceIntegrationTest {
     @MockBean private PlacesApiClient placesApiClient;
 
     @BeforeEach
+    @AfterEach
     void cleanDatabase() {
         placePhotoJpaRepository.deleteAll();
         placeJpaRepository.deleteAll();
