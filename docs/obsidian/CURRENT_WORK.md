@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- none
+- Live Google IT + DoD Places (PR #63). Session: [[2026-11-14-places-live-it-dod]].
 
 ## Blocked
 
