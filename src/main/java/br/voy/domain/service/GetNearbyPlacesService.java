@@ -212,11 +212,11 @@ public class GetNearbyPlacesService implements GetNearbyPlacesUseCase {
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .googleTypes(place.getGoogleTypes())
-                .photos(ListPlacePhotos.principalOnly(place))
+                .photos(place.principalPhotos())
                 .build();
     }
 
     private Place forList(Place place) {
-        return place.toBuilder().photos(ListPlacePhotos.principalOnly(place)).build();
+        return place.toBuilder().photos(place.principalPhotos()).build();
     }
 }

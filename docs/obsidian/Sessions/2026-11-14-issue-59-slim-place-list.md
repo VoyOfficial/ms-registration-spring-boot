@@ -22,7 +22,7 @@ A lista devolvia o base64 de cada foto em `photos` alem do banner. O payload fic
 
 ## Completado
 
-- [x] `GetNearbyPlacesService` e `SearchPlacesService` devolvem so a foto principal
+- [x] `GetNearbyPlacesService` devolve so a foto principal
 - [x] A galeria continua gravada e segue em `PlaceDetailsResponse`
 - [x] `PlaceResponse` de lista omite `photos`
 - [x] `GetNearbyPlacesServiceIntegrationTest` cobre local persistido e local do Google com galeria grande
@@ -31,7 +31,6 @@ A lista devolvia o base64 de cada foto em `photos` alem do banner. O payload fic
 
 | Arquivo | Mudanca |
 | --- | --- |
-| `ListPlacePhotos.java` | escolhe a foto principal |
+| `Place.java` | `principalPhotos()` escolhe a foto do banner |
 | `GetNearbyPlacesService.java` | resultado da lista fica com uma foto |
-| `SearchPlacesService.java` | mesmo corte na busca |
 | `PlaceResponse.java` | lista nao serializa a galeria |

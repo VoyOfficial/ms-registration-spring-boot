@@ -1,7 +1,6 @@
 package br.voy.application.controller.response;
 
 import br.voy.domain.entity.Place;
-import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
@@ -159,35 +158,11 @@ public class PlaceResponse {
     }
 
     private static String bannerPhoto(Place place) {
-        String base64 = principalPhotoBase64(place);
+        String base64 = place.principalPhotoBase64();
         if (base64 != null && !base64.isBlank()) {
             return base64;
         }
         return stripApiKey(place.getPrincipalPhotoUrl());
-    }
-
-    private static String principalPhotoBase64(Place place) {
-        if (place.getPhotos() == null || place.getPhotos().isEmpty()) {
-            return null;
-        }
-
-        String principalReference = place.getPrincipalPhoto();
-        String fallback = null;
-        for (PlacePhoto photo : place.getPhotos()) {
-            String encoded = photo.getImageBase64();
-            if (encoded == null || encoded.isBlank()) {
-                continue;
-            }
-            if (fallback == null) {
-                fallback = encoded;
-            }
-            if (principalReference != null
-                    && !principalReference.isBlank()
-                    && principalReference.equals(photo.getPhotoReference())) {
-                return encoded;
-            }
-        }
-        return fallback;
     }
 
     static String stripApiKey(String url) {
