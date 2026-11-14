@@ -4,11 +4,15 @@ import br.voy.domain.entity.Coordinates;
 import br.voy.domain.entity.NearbyPlaces;
 import br.voy.domain.entity.Place;
 import br.voy.domain.entity.PlaceDetails;
+import br.voy.domain.entity.PlacePhoto;
 import br.voy.domain.ports.GooglePlacesPort;
 import br.voy.infrastructure.agents.PlacesApiClient;
 import com.google.maps.model.LatLng;
+import com.google.maps.model.Photo;
 import com.google.maps.model.PlaceType;
+import com.google.maps.model.PlacesSearchResult;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,36 +47,35 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
         var response =
                 placesApiClient.searchForNearbyPlaces(latLng, radius, placeTypeEnum, nextPageToken);
 
-        // Process all places in parallel
-        var places =
-                Arrays.stream(response.results)
-                        .parallel() // Enable parallel processing
-                        .map(this::processPlaceResult)
-                        .collect(Collectors.toList());
+        var places = mapResults(response.results);
 
-        var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Places: {}", places.size());
 
-        logger.info(
-                "GOOGLE PLACES API ADAPTER - FINISH NEARBY SEARCH - Nearby Places: {}",
-                nearbyPlaces);
-
-        return nearbyPlaces;
+        return new NearbyPlaces(places, response.nextPageToken);
     }
 
-    private Place processPlaceResult(com.google.maps.model.PlacesSearchResult result) {
+    private Place processPlaceResult(PlacesSearchResult result) {
         Place basePlace = Place.toNearbyPlace(result);
 
-        // Enrich with additional photos if available
-        if (result.photos != null && result.photos.length > 0) {
-            var photos = placesApiClient.getPlacePhotos(result.photos);
-            return enrichPlaceWithPhotos(basePlace, photos);
+        if (result.photos == null || result.photos.length == 0) {
+            return basePlace;
         }
 
-        return basePlace;
+        var photos = placesApiClient.getPlacePhotos(new Photo[] {result.photos[0]});
+        return enrichPlaceWithPhotos(basePlace, photos);
     }
 
-    private Place enrichPlaceWithPhotos(
-            Place basePlace, java.util.List<br.voy.domain.entity.PlacePhoto> photos) {
+    private List<Place> mapResults(PlacesSearchResult[] results) {
+        if (results == null || results.length == 0) {
+            return List.of();
+        }
+        return Arrays.stream(results)
+                .parallel()
+                .map(this::processPlaceResult)
+                .collect(Collectors.toList());
+    }
+
+    private Place enrichPlaceWithPhotos(Place basePlace, List<PlacePhoto> photos) {
         return Place.builder()
                 .googlePlaceId(basePlace.getGooglePlaceId())
                 .name(basePlace.getName())
@@ -111,20 +114,11 @@ public class GooglePlacesAdapter implements GooglePlacesPort {
                 placesApiClient.textSearchQuery(
                         query, latLng, radiusMeters, placeTypeEnum, nextPageToken);
 
-        var places =
-                Arrays.stream(
-                                response.results != null
-                                        ? response.results
-                                        : new com.google.maps.model.PlacesSearchResult[0])
-                        .parallel()
-                        .map(this::processPlaceResult)
-                        .collect(Collectors.toList());
+        var places = mapResults(response.results);
 
-        var nearbyPlaces = new NearbyPlaces(places, response.nextPageToken);
+        logger.info("GOOGLE PLACES API ADAPTER - FINISH TEXT SEARCH - Places: {}", places.size());
 
-        logger.info("GOOGLE PLACES API ADAPTER - FINISH TEXT SEARCH - Places: {}", nearbyPlaces);
-
-        return nearbyPlaces;
+        return new NearbyPlaces(places, response.nextPageToken);
     }
 
     @Override

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -56,7 +57,15 @@ public class PlacesApiClient {
 
     public PlacesApiClient(@Value("${places.api.key}") String apiKey) {
         this.apiKey = apiKey;
-        this.context = new GeoApiContext.Builder().apiKey(apiKey).build();
+        this.context =
+                new GeoApiContext.Builder()
+                        .apiKey(apiKey)
+                        .connectTimeout(5, TimeUnit.SECONDS)
+                        .readTimeout(10, TimeUnit.SECONDS)
+                        .writeTimeout(10, TimeUnit.SECONDS)
+                        .retryTimeout(15, TimeUnit.SECONDS)
+                        .maxRetries(1)
+                        .build();
         // Create thread pool for parallel photo downloads (20 threads to handle multiple places)
         this.photoDownloadExecutor = Executors.newFixedThreadPool(20);
     }
@@ -466,9 +475,19 @@ public class PlacesApiClient {
                 Arrays.stream(photos).map(this::downloadPhotoAsync).collect(Collectors.toList());
 
         return futures.stream()
-                .map(CompletableFuture::join)
+                .map(this::awaitPhoto)
                 .filter(placePhoto -> placePhoto != null)
                 .collect(Collectors.toList());
+    }
+
+    private PlacePhoto awaitPhoto(CompletableFuture<PlacePhoto> future) {
+        try {
+            return future.get(12, TimeUnit.SECONDS);
+        } catch (Exception exception) {
+            logger.error(
+                    "PLACES API CLIENT - Photo download timed out: {}", exception.getMessage());
+            return null;
+        }
     }
 
     private CompletableFuture<PlacePhoto> downloadPhotoAsync(Photo photo) {
@@ -524,9 +543,16 @@ public class PlacesApiClient {
                 + apiKey;
     }
 
-    private byte[] downloadPhoto(String photoUrl) throws IOException {
+    byte[] downloadPhoto(String photoUrl) throws IOException {
+        return downloadPhoto(photoUrl, 5_000, 8_000);
+    }
+
+    byte[] downloadPhoto(String photoUrl, int connectTimeoutMillis, int readTimeoutMillis)
+            throws IOException {
         URL url = new URL(photoUrl);
         URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(connectTimeoutMillis);
+        connection.setReadTimeout(readTimeoutMillis);
         try (InputStream in = connection.getInputStream()) {
             return in.readAllBytes();
         }
