@@ -152,6 +152,10 @@ public class PlaceModel extends AbstractModel {
     }
 
     public Place toListDomain() {
+        return toListDomain(List.of());
+    }
+
+    public Place toListDomain(List<PlacePhoto> photos) {
         return Place.builder()
                 .id(id)
                 .googlePlaceId(googlePlaceId)
@@ -176,7 +180,7 @@ public class PlaceModel extends AbstractModel {
                 .latitude(latitude != null ? latitude : 0.0)
                 .longitude(longitude != null ? longitude : 0.0)
                 .distanceOfLocal(distanceOfLocal != null ? distanceOfLocal : 0.0f)
-                .photos(List.of())
+                .photos(photos != null ? photos : List.of())
                 .build();
     }
 

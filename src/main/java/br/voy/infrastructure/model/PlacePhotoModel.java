@@ -3,6 +3,7 @@ package br.voy.infrastructure.model;
 import br.voy.domain.entity.PlacePhoto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -76,13 +77,43 @@ public class PlacePhotoModel extends AbstractModel {
                 .placeId(place != null ? place.getId() : null)
                 .photoReference(photoReference)
                 .photoUrl(photoUrl)
-                .imageBase64(
-                        imageBase64 != null
-                                ? new String(imageBase64)
-                                : null) // Converte byte[] para String Base64
+                .imageBase64(toBase64Payload(imageBase64))
                 .height(height)
                 .width(width)
                 .htmlAttributions(htmlAttributions)
                 .build();
+    }
+
+    /**
+     * Rows written by the current path store decoded image bytes. Older rows stored the base64 text
+     * itself as bytes ({@code string.getBytes()}). Both must come back as raw base64 for the app,
+     * which prefixes {@code data:image/png;base64,}.
+     */
+    static String toBase64Payload(byte[] stored) {
+        if (stored == null || stored.length == 0) {
+            return null;
+        }
+        if (isBase64Text(stored)) {
+            return new String(stored, StandardCharsets.UTF_8);
+        }
+        return Base64.getEncoder().encodeToString(stored);
+    }
+
+    private static boolean isBase64Text(byte[] stored) {
+        for (byte value : stored) {
+            if (!isBase64Character(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isBase64Character(byte value) {
+        return (value >= 'A' && value <= 'Z')
+                || (value >= 'a' && value <= 'z')
+                || (value >= '0' && value <= '9')
+                || value == '+'
+                || value == '/'
+                || value == '=';
     }
 }
