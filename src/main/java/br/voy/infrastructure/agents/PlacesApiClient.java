@@ -47,6 +47,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlacesApiClient {
 
+    public static final int LIST_PHOTO_MAX_WIDTH = 400;
+
+    public static final int DETAILS_PHOTO_MAX_WIDTH = 800;
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final GeoApiContext context;
@@ -465,6 +469,10 @@ public class PlacesApiClient {
     }
 
     public List<PlacePhoto> getPlacePhotos(Photo[] photos) {
+        return getPlacePhotos(photos, DETAILS_PHOTO_MAX_WIDTH);
+    }
+
+    public List<PlacePhoto> getPlacePhotos(Photo[] photos, int maxWidth) {
         if (photos == null || photos.length == 0) {
             return new ArrayList<>();
         }
@@ -472,7 +480,9 @@ public class PlacesApiClient {
         logger.info("PLACES API CLIENT - Downloading {} photos in parallel", photos.length);
 
         List<CompletableFuture<PlacePhoto>> futures =
-                Arrays.stream(photos).map(this::downloadPhotoAsync).collect(Collectors.toList());
+                Arrays.stream(photos)
+                        .map(photo -> downloadPhotoAsync(photo, maxWidth))
+                        .collect(Collectors.toList());
 
         return futures.stream()
                 .map(this::awaitPhoto)
@@ -490,11 +500,11 @@ public class PlacesApiClient {
         }
     }
 
-    private CompletableFuture<PlacePhoto> downloadPhotoAsync(Photo photo) {
+    private CompletableFuture<PlacePhoto> downloadPhotoAsync(Photo photo, int maxWidth) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     try {
-                        return downloadAndBuildPlacePhoto(photo);
+                        return downloadAndBuildPlacePhoto(photo, maxWidth);
                     } catch (Exception e) {
                         logger.error(
                                 "PLACES API CLIENT - Error downloading photo {}: {}",
@@ -506,9 +516,9 @@ public class PlacesApiClient {
                 photoDownloadExecutor);
     }
 
-    private PlacePhoto downloadAndBuildPlacePhoto(Photo photo) throws IOException {
+    private PlacePhoto downloadAndBuildPlacePhoto(Photo photo, int maxWidth) throws IOException {
         String photoReference = photo.photoReference;
-        String photoUrl = buildPhotoUrl(photoReference, photo.width);
+        String photoUrl = buildPhotoUrl(photoReference, photo.width, maxWidth);
 
         byte[] imageBytes = downloadPhoto(photoUrl);
         String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
@@ -519,20 +529,21 @@ public class PlacesApiClient {
                 .imageBase64(imageBase64)
                 .height(photo.height)
                 .width(photo.width)
-                .htmlAttributions(String.join(",", photo.htmlAttributions))
+                .htmlAttributions(attributions(photo))
                 .build();
     }
 
-    private String buildPhotoUrl(String photoReference, int width) {
+    private static String attributions(Photo photo) {
+        if (photo.htmlAttributions == null || photo.htmlAttributions.length == 0) {
+            return null;
+        }
+        return String.join(",", photo.htmlAttributions);
+    }
 
-        int maxWidth;
-
-        if (width > 1600) {
-            maxWidth = 800; // Reduz imagens muito grandes
-        } else if (width < 400) {
-            maxWidth = 400; // Garante que imagens pequenas fiquem aceitáveis no celular
-        } else {
-            maxWidth = width; // Mantém o tamanho normal
+    String buildPhotoUrl(String photoReference, int reportedWidth, int ceiling) {
+        int maxWidth = ceiling;
+        if (reportedWidth > 0 && reportedWidth < ceiling) {
+            maxWidth = Math.max(reportedWidth, 200);
         }
 
         return "https://maps.googleapis.com/maps/api/place/photo?maxwidth="

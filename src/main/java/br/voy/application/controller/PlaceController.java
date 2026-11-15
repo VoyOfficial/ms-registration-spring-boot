@@ -250,8 +250,7 @@ public class PlaceController {
                 new NearbyPlacesResponse(placeResponses, nearbyPlaces.getNextTokenPage());
 
         logger.info(
-                "PLACE CONTROLLER - GET NEARBY PLACES FINISH - Nearby Places Response: {}",
-                nearbyPlacesResponse);
+                "PLACE CONTROLLER - GET NEARBY PLACES FINISH - places: {}", placeResponses.size());
 
         return ResponseEntity.ok(nearbyPlacesResponse);
     }

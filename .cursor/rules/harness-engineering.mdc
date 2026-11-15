@@ -57,9 +57,9 @@ Ordem:
 
 1. Unit tests (`domain.service`).
 2. Integration tests (`@WebMvcTest` no controller, `@DataJpaTest` no repository).
-3. E2E suspenso ate existir framework. Nao inventar gate.
+3. E2E generico suspenso. **Places Google:** live IT obrigatorio (`./scripts/run-places-live-it.sh`, ver Gate 2 do DoD).
 
-DoD ativo, nesta ordem: codigo/testes → code review → documentacao Obsidian → PR. E2E fica de fora.
+DoD ativo, nesta ordem: codigo/testes → (live Places quando aplicavel) → code review → documentacao Obsidian → PR.
 
 Metodo automatico: `./scripts/validate-dod.sh --help`.
 

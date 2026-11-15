@@ -1,5 +1,6 @@
 package br.voy.infrastructure.agents;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,6 +10,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PlacesApiClientPhotoDownloadTest {
+
+    @Test
+    @DisplayName("List photos request at most 400 pixels")
+    void listPhotosRequestAtMost400Pixels() {
+        PlacesApiClient client = new PlacesApiClient("test-key");
+        try {
+            String url = client.buildPhotoUrl("ref", 1400, PlacesApiClient.LIST_PHOTO_MAX_WIDTH);
+            assertTrue(url.contains("maxwidth=400"));
+            assertFalse(url.contains("maxwidth=1400"));
+        } finally {
+            client.shutdown();
+        }
+    }
 
     @Test
     @DisplayName("Photo download stops when the server stalls")

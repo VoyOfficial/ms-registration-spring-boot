@@ -278,6 +278,68 @@ class PlaceNearbyPersistenceIntegrationTest {
         assertThat(response.getBody()).doesNotContain(otherBase64);
     }
 
+    @Test
+    @DisplayName("Should return a stored photo that sits on the list size ceiling")
+    void shouldReturnStoredPhotoAtTheListSizeCeiling() throws Exception {
+        String banner = rawImageBase64(150_000);
+        saveBannerPlace("limit-photo-001", "Limit Banner", "limit-ref", banner);
+        when(googlePlacesPort.getNearbyPlaces(any(), any(), any(), any()))
+                .thenReturn(new NearbyPlaces(List.of(), null));
+
+        var response = restTemplate.getForEntity(buildUrl(), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        JsonNode places = new ObjectMapper().readTree(response.getBody()).path("places");
+        assertThat(photoNamed(places, "Limit Banner")).isEqualTo(banner);
+    }
+
+    @Test
+    @DisplayName("Should omit an oversized stored photo and still return the place")
+    void shouldOmitOversizedStoredPhotoWithoutFailingTheList() throws Exception {
+        String banner = rawImageBase64(150_001);
+        saveBannerPlace("huge-photo-001", "Huge Banner", "huge-ref", banner);
+        when(googlePlacesPort.getNearbyPlaces(any(), any(), any(), any()))
+                .thenReturn(new NearbyPlaces(List.of(), null));
+
+        var response = restTemplate.getForEntity(buildUrl(), String.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).doesNotContain(banner);
+        JsonNode places = new ObjectMapper().readTree(response.getBody()).path("places");
+        assertThat(places).hasSize(1);
+        assertThat(photoNamed(places, "Huge Banner")).isNull();
+    }
+
+    private void saveBannerPlace(
+            String googlePlaceId, String name, String reference, String banner) {
+        placeRepository.savePlace(
+                Place.builder()
+                        .googlePlaceId(googlePlaceId)
+                        .name(name)
+                        .address("Rua 1")
+                        .city("Canela")
+                        .latitude(-29.381)
+                        .longitude(-50.871)
+                        .principalPhoto(reference)
+                        .photos(
+                                List.of(
+                                        PlacePhoto.builder()
+                                                .photoReference(reference)
+                                                .imageBase64(banner)
+                                                .build()))
+                        .build());
+    }
+
+    private static String rawImageBase64(int byteCount) {
+        byte[] raw = new byte[byteCount];
+        raw[0] = (byte) 0x89;
+        if (byteCount > 1) {
+            raw[1] = 0x50;
+        }
+        return Base64.getEncoder().encodeToString(raw);
+    }
+
     private static String photoNamed(JsonNode places, String name) {
         for (JsonNode place : places) {
             if (name.equals(place.path("name").asText())) {

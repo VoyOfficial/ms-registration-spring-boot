@@ -12,6 +12,9 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Recently Completed
 
+- Live Google IT + DoD Places (PR #63): gate com Google real e teto de foto tambem no path de search. Session: [[2026-11-14-places-live-it-dod]].
+- Foto da lista usa um teto so: 150KB armazenados, 200 mil caracteres em base64. Session: [[2026-11-14-list-photo-size-limit]].
+- Lista nearby em Gramado quebrava e a busca de pizza levava cerca de 2 minutos. Session: [[2026-11-14-nearby-list-and-search-speed]].
 - Busca de places deixava o POST preso baixando a galeria inteira. Session: [[2026-11-14-place-search-hang]].
 - [[ISSUE-59]] — Banner base64 no carrossel e lista sem a galeria. Sessions: [[2026-11-14-issue-59-place-banner-and-search-filter]], [[2026-11-14-issue-59-slim-place-list]].
 - [[ISSUE-54]] — Busca de locais. PR #56 merged into `develop`. Optional `/speckit.verify` in a non-author session and closing GitHub issue #54 remain outside this work.

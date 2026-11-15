@@ -15,15 +15,11 @@ public interface PlacePhotoJpaRepository extends JpaRepository<PlacePhotoModel, 
     List<PlacePhotoModel> findByPlaceId(Long placePhotoId);
 
     @Query(
-            "SELECT photo FROM PlacePhotoModel photo JOIN FETCH photo.place place "
+            "SELECT new br.voy.infrastructure.repository.jpa.PlacePhotoRef("
+                    + "photo.id, place.id, photo.photoReference, place.principalPhoto) "
+                    + "FROM PlacePhotoModel photo JOIN photo.place place "
                     + "WHERE place.id IN :placeIds "
-                    + "AND photo.photoReference = place.principalPhoto")
-    List<PlacePhotoModel> findPrincipalPhotos(@Param("placeIds") Collection<Long> placeIds);
-
-    @Query(
-            "SELECT photo FROM PlacePhotoModel photo JOIN FETCH photo.place place "
-                    + "WHERE place.id IN :placeIds AND photo.id = ("
-                    + "SELECT MIN(other.id) FROM PlacePhotoModel other "
-                    + "WHERE other.place.id = photo.place.id)")
-    List<PlacePhotoModel> findEarliestPhotos(@Param("placeIds") Collection<Long> placeIds);
+                    + "AND (photo.imageBase64 IS NULL OR length(photo.imageBase64) <= :maxBytes)")
+    List<PlacePhotoRef> findPhotoRefsByPlaceIds(
+            @Param("placeIds") Collection<Long> placeIds, @Param("maxBytes") int maxBytes);
 }

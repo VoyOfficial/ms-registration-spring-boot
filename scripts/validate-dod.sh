@@ -2,7 +2,8 @@
 # Definition of Done for ms-registration-spring-boot.
 #
 # Gate 1  tests          ./mvnw clean verify
-# Gate 2  E2E            suspended (no framework). Passes with an explicit note.
+# Gate 2  E2E / live     suspended for most PRs; Places Google PRs use --e2e-cmd
+#                        with ./scripts/run-places-live-it.sh [--with-smoke].
 # Gate 3  code review    oriented: /code-reviewer. Pass --review-done after it.
 # Gate 4  Obsidian       ISSUE id in frontmatter of a Work Item and a Session
 # Gate 5  PR             gh pr for the current branch. Pass --skip-pr before opening it.
@@ -30,7 +31,8 @@ Options:
   --task ISSUE-<n>   Issue id (also accepts 43 or #43). Required unless --skip-docs.
   --skip-tests       Skip Gate 1 (./mvnw clean verify).
   --skip-e2e         Explicit no-op for Gate 2. Same result as the default.
-  --e2e-cmd <cmd>    Run this command as Gate 2 when an E2E framework exists.
+  --e2e-cmd <cmd>    Run this command as Gate 2 (required for Places Google PRs:
+                     ./scripts/run-places-live-it.sh or ... --with-smoke).
   --skip-review      Skip the oriented code-review checkpoint.
   --review-done      Mark Gate 3 done after /code-reviewer approved.
   --skip-pr          Skip the PR check (use before the PR exists).
@@ -119,7 +121,8 @@ if [ -n "$e2e_cmd" ]; then
     gate_fail "  FALHOU ($e2e_cmd)"
   fi
 else
-  note "  suspenso: sem framework E2E. Playwright nao se aplica (servico sem UI web)."
+  note "  suspenso: sem framework E2E generico. Playwright nao se aplica (sem UI web)."
+  note "  Places Google: use --e2e-cmd './scripts/run-places-live-it.sh --with-smoke'"
   if [ "$skip_e2e" -eq 1 ]; then
     note "  --skip-e2e explicito"
   fi

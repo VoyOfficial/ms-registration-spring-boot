@@ -21,6 +21,15 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Place {
 
+    /** Stored image ceiling for list payloads (nearby, search, recommendations). */
+    public static final int MAX_LIST_PHOTO_BYTES = 150_000;
+
+    /**
+     * Largest base64 string {@link #MAX_LIST_PHOTO_BYTES} of raw image can produce. List responses
+     * drop a photo above this so Google-sourced and DB-sourced paths share one rule.
+     */
+    public static final int MAX_LIST_PHOTO_BASE64_CHARS = ((MAX_LIST_PHOTO_BYTES + 2) / 3) * 4;
+
     private Long id;
     private String googlePlaceId;
     private String name;
@@ -66,6 +75,9 @@ public class Place {
         for (PlacePhoto photo : photos) {
             String encoded = photo.getImageBase64();
             if (encoded == null || encoded.isBlank()) {
+                continue;
+            }
+            if (encoded.length() > MAX_LIST_PHOTO_BASE64_CHARS) {
                 continue;
             }
             if (fallback == null) {
