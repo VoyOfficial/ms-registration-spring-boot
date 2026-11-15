@@ -66,7 +66,8 @@ public class PlaceController {
             summary = "Search places by name",
             description =
                     "Hybrid search by place name (DB first + Google Text Search), with optional"
-                            + " Portuguese type filters and ordination. Reuses NearbyPlacesResponse.")
+                            + " Portuguese type filters and ordination. Only places within 5 km of"
+                            + " the given coordinates are returned. Reuses NearbyPlacesResponse.")
     @ApiResponse(
             responseCode = "200",
             description = "Search page returned",

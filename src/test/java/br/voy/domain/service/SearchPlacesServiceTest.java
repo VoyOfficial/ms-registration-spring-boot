@@ -155,8 +155,7 @@ class SearchPlacesServiceTest {
 
         var result = service.searchPlaces("spot", USER, null, null, null);
 
-        assertEquals("Near", result.getPlaces().get(0).getName());
-        assertEquals("Far", result.getPlaces().get(result.getPlaces().size() - 1).getName());
+        assertEquals(List.of("Near", "Mid"), namesOf(result));
     }
 
     @Test
@@ -256,8 +255,8 @@ class SearchPlacesServiceTest {
                         "tourist_attraction",
                         4.0f,
                         10,
-                        -29.50,
-                        -51.00));
+                        -29.40,
+                        -50.90));
         dbPlaces.add(
                 place(
                         "near-attr",
@@ -295,6 +294,83 @@ class SearchPlacesServiceTest {
         assertEquals(2, result.getPlaces().size());
         assertNotNull(result.getNextTokenPage());
         verify(googlePlacesPort, never()).textSearch(anyString(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Must ignore higher-rated places outside the 5 km search radius")
+    void mustIgnoreHigherRatedPlacesOutsideSearchRadius() {
+        stubDb(
+                "Pizza",
+                List.of(
+                        place(
+                                "far",
+                                "Pizzaria Dom Formagio",
+                                "restaurant",
+                                5.0f,
+                                400,
+                                37.422,
+                                -122.084),
+                        place("near", "Pizza Guys", "restaurant", 4.2f, 50, -29.37, -50.88)));
+        stubEmptyGoogle();
+
+        var names =
+                namesOf(
+                        service.searchPlaces(
+                                "Pizza", USER, null, PlaceSearchOrdination.MOST_RATED, null));
+
+        assertEquals(List.of("Pizza Guys"), names);
+        verify(googlePlacesPort).textSearch(eq("Pizza"), eq(USER), eq(5000), isNull(), isNull());
+    }
+
+    @Test
+    @DisplayName("Must call Google when every DB name match is outside the search radius")
+    void mustCallGoogleWhenDbMatchesAreOutsideRadius() {
+        List<Place> places = new ArrayList<>();
+        for (int index = 0; index < 20; index++) {
+            places.add(
+                    place(
+                            "gramado-" + index,
+                            "Pizza Gramado " + index,
+                            "restaurant",
+                            5.0f,
+                            200,
+                            -29.37,
+                            -50.87));
+        }
+        places.add(place("near", "Pizza Guys", "restaurant", 4.0f, 40, 37.417, -122.131));
+        stubDb("Pizza", places);
+        doReturn(
+                        new NearbyPlaces(
+                                List.of(
+                                        place(
+                                                "google-near",
+                                                "Pizza Google",
+                                                "restaurant",
+                                                4.8f,
+                                                30,
+                                                37.418,
+                                                -122.09),
+                                        place(
+                                                "google-far",
+                                                "Pizza Remote",
+                                                "restaurant",
+                                                4.9f,
+                                                80,
+                                                -29.38,
+                                                -50.88)),
+                                null))
+                .when(googlePlacesPort)
+                .textSearch(eq("Pizza"), any(), eq(5000), isNull(), isNull());
+
+        Coordinates mountainView = new Coordinates(37.421998333333335, -122.084);
+        var result =
+                service.searchPlaces(
+                        "Pizza", mountainView, null, PlaceSearchOrdination.MOST_RATED, null);
+
+        assertEquals(List.of("Pizza Google", "Pizza Guys"), namesOf(result));
+        verify(placePersistService, times(1)).saveIfAbsent(any());
+        verify(googlePlacesPort)
+                .textSearch(eq("Pizza"), eq(mountainView), eq(5000), isNull(), isNull());
     }
 
     @Test

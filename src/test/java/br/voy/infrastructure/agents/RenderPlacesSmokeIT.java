@@ -53,9 +53,7 @@ class RenderPlacesSmokeIT {
         if (value == null) {
             return false;
         }
-        return value.equalsIgnoreCase("true")
-                || value.equals("1")
-                || value.equalsIgnoreCase("yes");
+        return value.equalsIgnoreCase("true") || value.equals("1") || value.equalsIgnoreCase("yes");
     }
 
     @Test

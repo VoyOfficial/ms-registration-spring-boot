@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class SearchPlacesService implements SearchPlacesUseCase {
 
     private static final int DEFAULT_TEXT_SEARCH_RADIUS_METERS = 5000;
+    private static final double SEARCH_RADIUS_KM = DEFAULT_TEXT_SEARCH_RADIUS_METERS / 1000.0;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -63,12 +64,13 @@ public class SearchPlacesService implements SearchPlacesUseCase {
         Set<String> googleTypesFilter = PlaceSearchFilterMapper.toGoogleTypes(types);
         String normalizedOrdination = PlaceSearchOrdination.normalize(ordination);
 
+        Comparator<Place> ordinationComparator = comparatorFor(normalizedOrdination);
         List<Place> matchedDbPlaces =
-                placeRepository.findPlacesByNameContaining(placeName).stream()
-                        .filter(place -> matchesAnyGoogleType(place, googleTypesFilter))
-                        .map(place -> withDistance(place, coordinates))
-                        .sorted(comparatorFor(normalizedOrdination))
-                        .collect(Collectors.toList());
+                eligiblePlaces(
+                        placeRepository.findPlacesByNameContaining(placeName),
+                        coordinates,
+                        googleTypesFilter);
+        matchedDbPlaces.sort(ordinationComparator);
 
         List<Place> resultPlaces = new ArrayList<>();
         int consumedFromDb = 0;
@@ -93,6 +95,7 @@ public class SearchPlacesService implements SearchPlacesUseCase {
         }
 
         NearbyPlaces googleResponse = null;
+        List<Place> googlePlaces = List.of();
         if (resultPlaces.size() < pageSize) {
             String googlePlaceType =
                     googleTypesFilter.size() == 1 ? googleTypesFilter.iterator().next() : null;
@@ -104,11 +107,8 @@ public class SearchPlacesService implements SearchPlacesUseCase {
                             googlePlaceType,
                             googleToken);
 
-            List<Place> googlePlaces =
-                    googleResponse.getPlaces().stream()
-                            .filter(place -> matchesAnyGoogleType(place, googleTypesFilter))
-                            .map(place -> withDistance(place, coordinates))
-                            .collect(Collectors.toList());
+            googlePlaces =
+                    eligiblePlaces(googleResponse.getPlaces(), coordinates, googleTypesFilter);
 
             if (!googlePlaces.isEmpty()) {
                 persistGooglePlaces(googlePlaces);
@@ -128,12 +128,11 @@ public class SearchPlacesService implements SearchPlacesUseCase {
             googleToken = googleResponse.getNextTokenPage();
         }
 
+        resultPlaces.sort(ordinationComparator);
+
         boolean moreUnseenGoogle =
-                googleResponse != null
-                        && googleResponse.getPlaces().stream()
-                                .filter(place -> matchesAnyGoogleType(place, googleTypesFilter))
-                                .anyMatch(
-                                        place -> !shownPlaceIds.contains(place.getGooglePlaceId()));
+                googlePlaces.stream()
+                        .anyMatch(place -> !shownPlaceIds.contains(place.getGooglePlaceId()));
 
         boolean hasGoogleNext = googleToken != null && !googleToken.isEmpty();
         boolean fullPage = resultPlaces.size() >= pageSize;
@@ -164,6 +163,22 @@ public class SearchPlacesService implements SearchPlacesUseCase {
                         e);
             }
         }
+    }
+
+    private List<Place> eligiblePlaces(
+            List<Place> places, Coordinates coordinates, Set<String> googleTypesFilter) {
+        if (places == null || places.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return places.stream()
+                .filter(place -> matchesAnyGoogleType(place, googleTypesFilter))
+                .map(place -> withDistance(place, coordinates))
+                .filter(this::withinSearchRadius)
+                .collect(Collectors.toList());
+    }
+
+    private boolean withinSearchRadius(Place place) {
+        return distanceKmValue(place) <= SEARCH_RADIUS_KM;
     }
 
     private Place withDistance(Place place, Coordinates coordinates) {
