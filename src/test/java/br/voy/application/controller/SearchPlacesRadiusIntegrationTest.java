@@ -75,16 +75,7 @@ class SearchPlacesRadiusIntegrationTest {
         save("outside-pizza", "Pizza Farther", 4.9f, 37.47245, -122.084);
         save("gramado-pizza", "Pizzaria Dom Formagio", 5.0f, -29.3705632, -50.8786955);
 
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(
-                        searchUrl(MOUNTAIN_VIEW_LATITUDE, MOUNTAIN_VIEW_LONGITUDE),
-                        json(SEARCH_BODY),
-                        String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        JsonNode places = objectMapper.readTree(response.getBody()).path("places");
-        assertThat(names(places)).containsExactly("Pizza Guys");
-        assertThat(distanceKm(places.get(0))).isLessThan(5.0);
+        assertOnly(placesFrom(MOUNTAIN_VIEW_LATITUDE, MOUNTAIN_VIEW_LONGITUDE), "Pizza Guys");
     }
 
     @Test
@@ -93,16 +84,7 @@ class SearchPlacesRadiusIntegrationTest {
         save("near-pizza", "Pizza Guys", 4.9f, 37.4220541, -122.0853242);
         save("gramado-pizza", "Pizzaria Dom Formagio", 4.2f, -29.3705632, -50.8786955);
 
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(
-                        searchUrl(GRAMADO_LATITUDE, GRAMADO_LONGITUDE),
-                        json(SEARCH_BODY),
-                        String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        JsonNode places = objectMapper.readTree(response.getBody()).path("places");
-        assertThat(names(places)).containsExactly("Pizzaria Dom Formagio");
-        assertThat(distanceKm(places.get(0))).isLessThan(5.0);
+        assertOnly(placesFrom(GRAMADO_LATITUDE, GRAMADO_LONGITUDE), "Pizzaria Dom Formagio");
     }
 
     @Test
@@ -129,16 +111,7 @@ class SearchPlacesRadiusIntegrationTest {
                                                 -50.8786955)),
                                 null));
 
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(
-                        searchUrl(MOUNTAIN_VIEW_LATITUDE, MOUNTAIN_VIEW_LONGITUDE),
-                        json(SEARCH_BODY),
-                        String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        JsonNode places = objectMapper.readTree(response.getBody()).path("places");
-        assertThat(names(places)).containsExactly("Pizza Google");
-        assertThat(distanceKm(places.get(0))).isLessThan(5.0);
+        assertOnly(placesFrom(MOUNTAIN_VIEW_LATITUDE, MOUNTAIN_VIEW_LONGITUDE), "Pizza Google");
         verify(googlePlacesPort)
                 .textSearch(eq("Pizza"), any(Coordinates.class), eq(5000), isNull(), isNull());
         assertThat(placeJpaRepository.findByGooglePlaceId("google-near")).isPresent();
@@ -163,6 +136,19 @@ class SearchPlacesRadiusIntegrationTest {
                 .googleTypes("restaurant")
                 .photos(new ArrayList<>())
                 .build();
+    }
+
+    private JsonNode placesFrom(double latitude, double longitude) throws Exception {
+        ResponseEntity<String> response =
+                restTemplate.postForEntity(
+                        searchUrl(latitude, longitude), json(SEARCH_BODY), String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return objectMapper.readTree(response.getBody()).path("places");
+    }
+
+    private static void assertOnly(JsonNode places, String name) {
+        assertThat(names(places)).containsExactly(name);
+        assertThat(distanceKm(places.get(0))).isLessThan(5.0);
     }
 
     private String searchUrl(double latitude, double longitude) {
