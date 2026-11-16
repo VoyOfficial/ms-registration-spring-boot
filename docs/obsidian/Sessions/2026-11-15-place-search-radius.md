@@ -22,6 +22,7 @@ parent_session: [[2026-11-14-places-live-it-dod]]
 - [x] Ordination (`Mais avaliados`, `Mais comentados`, `Mais próximo`) runs on that set
 - [x] A full page of distant name matches no longer skips Google
 - [x] Distant Google hits are not persisted
+- [x] `SearchPlacesRadiusIntegrationTest` hits `POST /v1/places/search` with a real database: Mountain View drops Gramado, Gramado drops Mountain View, and a full page of distant rows still calls Google
 
 ## Decisoes tecnicas
 
