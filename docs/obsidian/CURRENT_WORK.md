@@ -4,7 +4,7 @@ Canonical snapshot for agents and humans. Commit this file with session notes.
 
 ## Active
 
-- none
+- API access token em `/v1/**` (`REQUIRE_API_TOKEN` + `API_ACCESS_TOKEN`). Session: [[2026-11-17-api-access-token]]. PR em aberto.
 
 ## Blocked
 

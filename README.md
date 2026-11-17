@@ -80,6 +80,8 @@ docker-compose up -d
 | API_PORT             | Porta que a aplicação utilizará em sua execução. (Default: 8080)                                   |
 | ENABLE_MOCK_SERVICES | Flag para habilitar os mocks de integração com serviços externos (google places). (Default: false) |
 | PLACES_API_KEY       | Chave de API do Google Places.                                                                     |
+| REQUIRE_API_TOKEN    | Exige `Authorization: Bearer` em `/v1/**`. (Default: false; `true` no Render)                      |
+| API_ACCESS_TOKEN     | Token compartilhado do serviço. Obrigatório quando `REQUIRE_API_TOKEN=true`.                       |
 | DATABASE_HOST        | Host do banco de dados utilizado. (Default: localhost ; Postgres)                                  |
 | DATABASE_PORT        | Porta do banco de dados utilizado. (Default: 5432 ; Postgres)                                      |
 | DATABASE_DB          | Banco de dados utilizado dentro. (Default: voy)                                                    |
