@@ -32,7 +32,6 @@ class PlacesApiClientIT {
 
     private static final LatLng PIZZA_SEARCH = new LatLng(-29.366054, -50.877113);
 
-
     private PlacesApiClient client;
 
     @BeforeEach

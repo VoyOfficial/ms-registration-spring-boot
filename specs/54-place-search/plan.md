@@ -12,7 +12,7 @@ O app mobile precisa buscar estabelecimentos por **nome**, com filtros multi-tip
 4. `SearchPlacesService`:
    - Decodifica `nextPageToken` via `PaginationTokenEncoder` (offset DB + shown googlePlaceIds + google token), igual nearby.
    - Mapeia labels PT → `google_types` primários (mapa do grill). `types` vazio/ausente = sem filtro.
-   - Busca no DB places cujo **nome** contém o termo (case-insensitive); aplica filtro de tipos; calcula distância com `GeoCalculator`; ordena (`Mais avaliados` / `Mais comentados` / default `Mais próximo`).
+   - Busca no DB places cujo **nome** contém o termo (case-insensitive); aplica filtro de tipos; calcula distância com `GeoCalculator`; descarta places a mais de 5 km das coordenadas; ordena os que restam (`Mais avaliados` / `Mais comentados` / default `Mais próximo`). O mesmo raio vale para resultados do Text Search (o `radius` do Google é viés, não limite).
    - Preenche a página (page size alinhado ao nearby, ~20) a partir do offset, dedupe por `googlePlaceId`.
    - Se a página não encheu → `GooglePlacesPort.textSearch(...)` (novo); persiste via `PlacePersistService.saveIfAbsent`; completa a página; atualiza google token.
    - Monta próximo token HMAC se ainda houver mais DB/Google.
