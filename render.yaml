@@ -1,7 +1,7 @@
 # Render Blueprint — one-click remote instance for mobile integration (#50).
 # Dashboard: https://dashboard.render.com/blueprints
-# After deploy, set PLACES_API_KEY (and optionally PAGINATION_SECRET_KEY) in the
-# web service env. Free web services may spin down when idle.
+# After deploy, set PLACES_API_KEY and API_ACCESS_TOKEN in the web service env.
+# Free web services may spin down when idle.
 services:
   - type: web
     name: ms-registration
@@ -42,6 +42,10 @@ services:
         sync: false
       - key: PAGINATION_SECRET_KEY
         generateValue: true
+      - key: REQUIRE_API_TOKEN
+        value: "true"
+      - key: API_ACCESS_TOKEN
+        sync: false
       - key: ENABLE_MOCK_SERVICES
         value: "false"
       - key: FLYWAY_ENABLE

@@ -97,6 +97,9 @@ voy:
   security:
     pagination:
       secret-key: ${PAGINATION_SECRET_KEY:voy-pagination-secret-2024}
+    # Shared secret for /v1/** (Authorization: Bearer). Enable on public hosts (Render).
+    require-api-token: ${REQUIRE_API_TOKEN:false}
+    api-access-token: ${API_ACCESS_TOKEN:}
 
 # Messages
 # Default Messages to Custom Annotations

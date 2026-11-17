@@ -91,6 +91,8 @@ voy:
   security:
     pagination:
       secret-key: ${PAGINATION_SECRET_KEY:voy-pagination-secret-test-2024}
+    require-api-token: false
+    api-access-token: ""
 
 # Messages
 # Default Messages to Custom Annotations
