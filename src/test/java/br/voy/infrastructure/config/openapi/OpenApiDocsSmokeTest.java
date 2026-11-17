@@ -44,7 +44,12 @@ class OpenApiDocsSmokeTest {
         assertThat(root.path("info").path("description").asText())
                 .contains("Places")
                 .contains("Users")
+                .contains("API_ACCESS_TOKEN")
                 .doesNotContain("User CRUD operations");
+
+        assertThat(root.path("components").path("securitySchemes").has("bearerApiAccessToken"))
+                .isTrue();
+        assertThat(root.path("security").toString()).contains("bearerApiAccessToken");
 
         JsonNode paths = root.path("paths");
         assertThat(paths.has("/v1/places")).isTrue();
